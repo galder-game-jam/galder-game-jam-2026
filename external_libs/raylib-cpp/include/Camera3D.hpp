@@ -11,7 +11,7 @@ namespace raylib {
  */
 class Camera3D : public ::Camera3D {
 public:
-    Camera3D(const ::Camera3D& camera) { set(camera); }
+    Camera3D(const ::Camera3D& camera) : ::Camera3D(camera) { }
 
     /**
      * Create a new Camera3D.
@@ -24,14 +24,12 @@ public:
      * @param projection Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
      */
     Camera3D(
-        ::Vector3 position,
-        ::Vector3 target = ::Vector3{0.0f, 0.0f, 0.0f},
+        ::Vector3 position = ::Vector3{0.0f, 0.0f, 0.0f},
+        ::Vector3 target = ::Vector3{0.0f, 0.0f, -1.0f},
         ::Vector3 up = ::Vector3{0.0f, 1.0f, 0.0f},
-        float fovy = 0,
+        float fovy = 45.0f,
         int projection = CAMERA_PERSPECTIVE)
         : ::Camera3D{position, target, up, fovy, projection} {}
-
-    Camera3D() {}
 
     GETTERSETTER(::Vector3, Position, position)
     GETTERSETTER(::Vector3, Target, target)
@@ -43,6 +41,17 @@ public:
         set(camera);
         return *this;
     }
+
+    [[nodiscard]] std::string ToString() const {
+        return TextFormat(
+            "Camera3D(position=(%f, %f, %f), target=(%f, %f, %f), fovy=%f)",
+            position.x, position.y, position.z,
+            target.x, target.y, target.z,
+            fovy
+        );
+    }
+
+    operator std::string() const { return ToString(); }
 
     /**
      * Initializes 3D mode with custom camera (3D)

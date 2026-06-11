@@ -1,12 +1,11 @@
-#ifndef RAYLIB_CPP_INCLUDE_UNMANAGEDSHADER_HPP_
-#define RAYLIB_CPP_INCLUDE_UNMANAGEDSHADER_HPP_
+#ifndef RAYLIB_CPP_INCLUDE_SHADERUNMANAGED_HPP_
+#define RAYLIB_CPP_INCLUDE_SHADERUNMANAGED_HPP_
+
+#include "./raylib-cpp-utils.hpp"
+#include "./raylib.hpp"
 
 #include <rlgl.h>
 #include <string>
-
-#include "Texture.hpp"
-#include "./raylib-cpp-utils.hpp"
-#include "./raylib.hpp"
 
 namespace raylib {
 
@@ -17,7 +16,7 @@ class ShaderUnmanaged : public ::Shader {
 public:
     ShaderUnmanaged() : ::Shader{rlGetShaderIdDefault(), rlGetShaderLocsDefault()} {}
 
-    ShaderUnmanaged(const ::Shader& shader) { set(shader); }
+    ShaderUnmanaged(const ::Shader& shader) : ::Shader(shader) { }
 
     ShaderUnmanaged(unsigned int id, int* locs = nullptr) : ::Shader{id, locs} {}
 
@@ -58,6 +57,10 @@ public:
         return *this;
     }
 
+    [[nodiscard]] std::string ToString() const { return TextFormat("Shader(id=%u)", id); }
+
+    operator std::string() const { return ToString(); }
+
     /**
      * Begin custom shader drawing.
      */
@@ -79,14 +82,14 @@ public:
      *
      * @see GetShaderLocation()
      */
-    int GetLocation(const std::string& uniformName) const { return ::GetShaderLocation(*this, uniformName.c_str()); }
+    RLCPP_NODISCARD int GetLocation(const std::string& uniformName) const { return ::GetShaderLocation(*this, uniformName.c_str()); }
 
     /**
      * Get shader attribute location
      *
      * @see GetShaderLocationAttrib()
      */
-    int GetLocationAttrib(const std::string& attribName) const {
+    RLCPP_NODISCARD int GetLocationAttrib(const std::string& attribName) const {
         return ::GetShaderLocationAttrib(*this, attribName.c_str());
     }
 
@@ -131,9 +134,19 @@ public:
     }
 
     /**
+     * Unload shader from GPU memory (VRAM).
+     */
+    void Unload() {
+        if (locs != nullptr) {
+            ::UnloadShader(*this);
+            locs = nullptr;
+        }
+    }
+
+    /**
      * Retrieves whether or not the shader is ready.
      */
-    bool IsValid() const { return ::IsShaderValid(*this); }
+    RLCPP_NODISCARD bool IsValid() const { return ::IsShaderValid(*this); }
 protected:
     void set(const ::Shader& shader) {
         id = shader.id;
@@ -144,4 +157,4 @@ protected:
 
 using RShaderUnmanaged = raylib::ShaderUnmanaged;
 
-#endif // RAYLIB_CPP_INCLUDE_UNMANAGEDSHADER_HPP_
+#endif // RAYLIB_CPP_INCLUDE_SHADERUNMANAGED_HPP_

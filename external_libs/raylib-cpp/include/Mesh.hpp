@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "./BoundingBox.hpp"
 #include "./MeshUnmanaged.hpp"
 #include "./Model.hpp"
 #include "./raylib-cpp-utils.hpp"
@@ -35,7 +34,7 @@ public:
     /**
      * Move constructor.
      */
-    Mesh(Mesh&& other) {
+    Mesh(Mesh&& other) noexcept {
         set(other);
 
         other.vertexCount = 0;
@@ -49,8 +48,9 @@ public:
         other.indices = nullptr;
         other.animVertices = nullptr;
         other.animNormals = nullptr;
-        other.boneIds = nullptr;
+        other.boneIndices = nullptr;
         other.boneWeights = nullptr;
+        other.boneCount = 0;
         other.vaoId = 0;
         other.vboId = nullptr;
     }
@@ -74,8 +74,9 @@ public:
         other.indices = nullptr;
         other.animVertices = nullptr;
         other.animNormals = nullptr;
-        other.boneIds = nullptr;
+        other.boneIndices = nullptr;
         other.boneWeights = nullptr;
+        other.boneCount = 0;
         other.vaoId = 0;
         other.vboId = nullptr;
 

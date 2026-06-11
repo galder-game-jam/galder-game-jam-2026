@@ -13,15 +13,15 @@ namespace raylib {
  */
 class Color : public ::Color {
 public:
-    Color(const ::Color& color) : ::Color{color.r, color.g, color.b, color.a} {}
+    constexpr Color(const ::Color& color) : ::Color{color.r, color.g, color.b, color.a} {}
 
-    Color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha = 255)
+    constexpr Color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha = 255)
         : ::Color{red, green, blue, alpha} {};
 
     /**
      * Black.
      */
-    Color() : ::Color{0, 0, 0, 255} {};
+    constexpr Color() : ::Color{0, 0, 0, 255} {};
 
     /**
      * Returns a Color from HSV values
@@ -36,43 +36,43 @@ public:
     /**
      * Get Color structure from hexadecimal value
      */
-    Color(unsigned int hexValue) { set(::GetColor(hexValue)); }
+    explicit Color(unsigned int hexValue) : ::Color(::GetColor(hexValue)) { }
 
-    Color(void* srcPtr, int format) { set(::GetPixelColor(srcPtr, format)); }
-
-    /**
-     * Returns hexadecimal value for a Color
-     */
-    int ToInt() const { return ::ColorToInt(*this); }
+    Color(void* srcPtr, int format) : ::Color(::GetPixelColor(srcPtr, format)) { }
 
     /**
      * Returns hexadecimal value for a Color
      */
-    operator int() const { return ::ColorToInt(*this); }
+    RLCPP_NODISCARD int ToInt() const { return ::ColorToInt(*this); }
 
-    std::string ToString() const { return TextFormat("Color(%d, %d, %d, %d)", r, g, b, a); }
+    /**
+     * Returns hexadecimal value for a Color
+     */
+    explicit operator int() const { return ::ColorToInt(*this); }
 
-    operator std::string() const { return ToString(); }
+    RLCPP_NODISCARD std::string ToString() const { return TextFormat("Color(%d, %d, %d, %d)", r, g, b, a); }
+
+    explicit operator std::string() const { return ToString(); }
 
     /**
      * Returns color with alpha applied, alpha goes from 0.0f to 1.0f
      */
-    Color Fade(float alpha) const { return ::Fade(*this, alpha); }
+    RLCPP_NODISCARD Color Fade(float alpha) const { return ::Fade(*this, alpha); }
 
     /**
      * Returns Color normalized as float [0..1]
      */
-    Vector4 Normalize() const { return ::ColorNormalize(*this); }
+    RLCPP_NODISCARD Vector4 Normalize() const { return ::ColorNormalize(*this); }
 
     /**
      * Returns Color from normalized values [0..1]
      */
-    Color(::Vector4 normalized) { set(::ColorFromNormalized(normalized)); }
+    explicit Color(::Vector4 normalized) : Color(::ColorFromNormalized(normalized)) { }
 
     /**
      * Returns HSV values for a Color
      */
-    Vector3 ToHSV() const { return ::ColorToHSV(*this); }
+    RLCPP_NODISCARD Vector3 ToHSV() const { return ::ColorToHSV(*this); }
 
     GETTERSETTER(unsigned char, R, r)
     GETTERSETTER(unsigned char, G, g)
@@ -206,7 +206,7 @@ public:
     /**
      * Returns color with alpha applied, alpha goes from 0.0f to 1.0f
      */
-    Color Alpha(float alpha) const { return ::ColorAlpha(*this, alpha); }
+    RLCPP_NODISCARD Color Alpha(float alpha) const { return ::ColorAlpha(*this, alpha); }
 
     Color Lerp(::Color color2, float factor) {
         return ::ColorLerp(*this, color2, factor);
@@ -215,7 +215,7 @@ public:
     /**
      * Returns src alpha-blended into dst color with tint
      */
-    Color AlphaBlend(::Color dst, ::Color tint) const { return ::ColorAlphaBlend(dst, *this, tint); }
+    RLCPP_NODISCARD Color AlphaBlend(::Color dst, ::Color tint) const { return ::ColorAlphaBlend(dst, *this, tint); }
 
     static Color LightGray() { return LIGHTGRAY; }
     static Color Gray() { return GRAY; }

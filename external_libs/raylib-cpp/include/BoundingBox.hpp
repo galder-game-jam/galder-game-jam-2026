@@ -13,7 +13,7 @@ public:
     /*
      * Copy a bounding box from another bounding box.
      */
-    BoundingBox(const ::BoundingBox& box) : ::BoundingBox{box.min, box.max} {
+    constexpr BoundingBox(const ::BoundingBox& box) : ::BoundingBox{box.min, box.max} {
         // Nothing.
     }
 
@@ -22,8 +22,8 @@ public:
      */
     BoundingBox(const ::Mesh& mesh) { set(::GetMeshBoundingBox(mesh)); }
 
-    BoundingBox(::Vector3 minMax = ::Vector3{0.0f, 0.0f, 0.0f}) : ::BoundingBox{minMax, minMax} {}
-    BoundingBox(::Vector3 min, ::Vector3 max) : ::BoundingBox{min, max} {}
+    constexpr BoundingBox(::Vector3 minMax = ::Vector3{0.0f, 0.0f, 0.0f}) : ::BoundingBox{minMax, minMax} {}
+    constexpr BoundingBox(::Vector3 min, ::Vector3 max) : ::BoundingBox{min, max} {}
 
     GETTERSETTER(::Vector3, Min, min)
     GETTERSETTER(::Vector3, Max, max)
@@ -33,6 +33,15 @@ public:
         return *this;
     }
 
+    [[nodiscard]] std::string ToString() const {
+        return TextFormat(
+            "BoundingBox(min=(%f, %f, %f), max=(%f, %f, %f))",
+            min.x, min.y, min.z, max.x, max.y, max.z
+        );
+    }
+
+    operator std::string() const { return ToString(); }
+
     /**
      * Draw a bounding box with wires
      */
@@ -41,17 +50,17 @@ public:
     /**
      * Detect collision between two boxes
      */
-    bool CheckCollision(const ::BoundingBox& box2) const { return CheckCollisionBoxes(*this, box2); }
+    RLCPP_NODISCARD bool CheckCollision(const ::BoundingBox& box2) const { return CheckCollisionBoxes(*this, box2); }
 
     /**
      * Detect collision between box and sphere
      */
-    bool CheckCollision(::Vector3 center, float radius) const { return CheckCollisionBoxSphere(*this, center, radius); }
+    RLCPP_NODISCARD bool CheckCollision(::Vector3 center, float radius) const { return CheckCollisionBoxSphere(*this, center, radius); }
 
     /**
      * Detect collision between ray and bounding box
      */
-    bool CheckCollision(const ::Ray& ray) const { return GetRayCollisionBox(ray, *this).hit; }
+    RLCPP_NODISCARD bool CheckCollision(const ::Ray& ray) const { return GetRayCollisionBox(ray, *this).hit; }
 
     /**
      * Get collision information between ray and bounding box

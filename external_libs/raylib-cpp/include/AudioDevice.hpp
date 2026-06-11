@@ -18,11 +18,14 @@ public:
      *
      * @throws raylib::RaylibException Throws if the AudioDevice failed to initialize.
      */
-    AudioDevice(bool lateInit = false) {
+    explicit AudioDevice(bool lateInit = false) {
         if (!lateInit) {
             Init();
         }
     }
+
+    AudioDevice(const AudioDevice&) = delete;
+    AudioDevice& operator=(const AudioDevice&) = delete;
 
     /**
      * Close the audio device and context.
@@ -34,7 +37,7 @@ public:
      *
      * @throws raylib::RaylibException Throws if the AudioDevice failed to initialize.
      */
-    void Init() {
+    static void Init()  {
         ::InitAudioDevice();
         if (!IsReady()) {
             throw RaylibException("Failed to initialize AudioDevice");
@@ -44,12 +47,12 @@ public:
     /**
      * Close the audio device and context.
      */
-    void Close() { ::CloseAudioDevice(); }
+    static void Close() { ::CloseAudioDevice(); }
 
     /**
      * Check if audio device has been initialized successfully.
      */
-    bool IsReady() const { return ::IsAudioDeviceReady(); }
+    static bool IsReady()  { return ::IsAudioDeviceReady(); }
 
     /**
      * Set master volume (listener).

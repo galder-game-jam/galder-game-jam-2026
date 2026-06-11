@@ -11,17 +11,13 @@ namespace raylib {
  */
 class Rectangle : public ::Rectangle {
 public:
-    Rectangle(const ::Rectangle& rect) : ::Rectangle{rect.x, rect.y, rect.width, rect.height} {}
+    constexpr Rectangle(const ::Rectangle& rect) : ::Rectangle{rect.x, rect.y, rect.width, rect.height} {}
 
-    Rectangle(float x, float y, float width, float height) : ::Rectangle{x, y, width, height} {}
-    Rectangle(float x, float y, float width) : ::Rectangle{x, y, width, 0} {}
-    Rectangle(float x, float y) : ::Rectangle{x, y, 0, 0} {}
-    Rectangle(float x) : ::Rectangle{x, 0, 0, 0} {}
-    Rectangle() : ::Rectangle{0, 0, 0, 0} {}
+    constexpr Rectangle(float x = 0, float y = 0, float width = 0, float height = 0) : ::Rectangle{x, y, width, height} {}
 
-    Rectangle(::Vector2 position, ::Vector2 size) : ::Rectangle{position.x, position.y, size.x, size.y} {}
-    Rectangle(::Vector2 size) : ::Rectangle{0, 0, size.x, size.y} {}
-    Rectangle(::Vector4 rect) : ::Rectangle{rect.x, rect.y, rect.z, rect.w} {}
+    constexpr Rectangle(::Vector2 position, ::Vector2 size) : ::Rectangle{position.x, position.y, size.x, size.y} {}
+    constexpr Rectangle(::Vector2 size) : ::Rectangle{0, 0, size.x, size.y} {}
+    constexpr Rectangle(::Vector4 rect) : ::Rectangle{rect.x, rect.y, rect.z, rect.w} {}
 
     GETTERSETTER(float, X, x)
     GETTERSETTER(float, Y, y)
@@ -33,13 +29,25 @@ public:
         return *this;
     }
 
-    ::Vector4 ToVector4() { return {x, y, width, height}; }
+    constexpr ::Vector4 ToVector4() const { return {x, y, width, height}; }
 
-    operator ::Vector4() const { return {x, y, width, height}; }
+    constexpr explicit operator ::Vector4() const { return {x, y, width, height}; }
+
+    [[nodiscard]] std::string ToString() const { return TextFormat("Rectangle(%fx%f, %fx%f)", x, y, width, height); }
+
+    operator std::string() const { return ToString(); }
 
     /**
      * Draw a color-filled rectangle
      */
+    static void Draw(int posX, int posY, int width, int height, ::Color color) {
+        ::DrawRectangle(posX, posY, width, height, color);
+    }
+
+    static void Draw(::Vector2 position, ::Vector2 size, ::Color color) {
+        ::DrawRectangleV(position, size, color);
+    }
+
     void Draw(::Color color) const { ::DrawRectangleRec(*this, color); }
 
     void Draw(::Vector2 origin, float rotation, ::Color color) const {
@@ -66,8 +74,8 @@ public:
             color2);
     }
 
-    void DrawGradient(::Color topLeft, ::Color bottomLeft, ::Color topRight, ::Color bottomRight) const {
-        ::DrawRectangleGradientEx(*this, topLeft, bottomLeft, topRight, bottomRight);
+    void DrawGradient(::Color topLeft, ::Color bottomLeft, ::Color bottomRight, ::Color topRight) const {
+        ::DrawRectangleGradientEx(*this, topLeft, bottomLeft, bottomRight, topRight);
     }
 
     void DrawLines(::Color color) const {
@@ -90,32 +98,32 @@ public:
     }
 
     void DrawRoundedLines(float roundness, int segments, float lineThick, ::Color color) const {
-        DrawRectangleRoundedLinesEx(*this, roundness, segments, lineThick, color);
+        ::DrawRectangleRoundedLinesEx(*this, roundness, segments, lineThick, color);
     }
 
     /**
      * Check collision between two rectangles
      */
-    bool CheckCollision(::Rectangle rec2) const { return ::CheckCollisionRecs(*this, rec2); }
+    RLCPP_NODISCARD bool CheckCollision(::Rectangle rec2) const { return ::CheckCollisionRecs(*this, rec2); }
 
     /**
      * Get collision rectangle for two rectangles collision
      */
-    ::Rectangle GetCollision(::Rectangle rec2) const { return ::GetCollisionRec(*this, rec2); }
+    RLCPP_NODISCARD ::Rectangle GetCollision(::Rectangle rec2) const { return ::GetCollisionRec(*this, rec2); }
 
     /**
      * Check if point is inside rectangle
      */
-    bool CheckCollision(::Vector2 point) const { return ::CheckCollisionPointRec(point, *this); }
+    RLCPP_NODISCARD bool CheckCollision(::Vector2 point) const { return ::CheckCollisionPointRec(point, *this); }
 
     /**
      * Check collision between circle and rectangle
      */
-    bool CheckCollision(::Vector2 center, float radius) const {
+    RLCPP_NODISCARD bool CheckCollision(::Vector2 center, float radius) const {
         return ::CheckCollisionCircleRec(center, radius, *this);
     }
 
-    Vector2 GetSize() const { return {width, height}; }
+    RLCPP_NODISCARD Vector2 GetSize() const { return {width, height}; }
 
     Rectangle& SetSize(float newWidth, float newHeight) {
         width = newWidth;
@@ -130,7 +138,7 @@ public:
         return *this;
     }
 
-    Vector2 GetPosition() const { return {x, y}; }
+    RLCPP_NODISCARD Vector2 GetPosition() const { return {x, y}; }
 
     Rectangle& SetPosition(float newX, float newY) {
         x = newX;

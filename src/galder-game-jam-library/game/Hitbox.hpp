@@ -19,7 +19,7 @@ namespace ggj
         public:
             Hitbox() = default;
             Hitbox(b2Body *body, const raylib::Vector2 &physicsSize, const raylib::Vector2 &spriteSize, const raylib::Rectangle &drawingRect, raylib::Texture * texture, const UserData &userData, bool isVisible = true)
-            : PhysicsObject(body, physicsSize, (body->GetFixtureList()[0].GetShape()->GetType() == b2Shape::e_circle) ? PhysicsShape::Circle : PhysicsShape::Rectangle, userData, isVisible)
+            : PhysicsObject(body, physicsSize, (body->GetFixtureList()[0].GetShape()->GetType() == b2Shape::e_circle) ? PhysicsShape::Circle : PhysicsShape::Rectangle, userData, raylib::Color::Red(), isVisible)
             {
             
             }

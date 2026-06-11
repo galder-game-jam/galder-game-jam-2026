@@ -60,8 +60,8 @@ As expected: Only a few of the ideas were small enough to fit the scope of creat
 | [Catch2](https://github.com/catchorg/Catch2)         | 2.13.10 | For Unit Tests                                       |
 | [FakeIt](https://github.com/eranpeer/FakeIt)         | 2.4.0   | For Mocking/Faking objects for unit tests.           |
 | [fmt](https://github.com/fmtlib/fmt)                 | 10.1.1  | Library for string formatting.                       |
-| [RayLib](https://github.com/raysan5/raylib)          | 4.5.0   | For handling `Window`, `Graphics`, `Game input` etc. |
-| [raylib-cpp](https://github.com/RobLoach/raylib-cpp) | 4.5.2   | Object oriented C++ wrapper for RayLib               |
+| [RayLib](https://github.com/raysan5/raylib)          | 6.0.0   | For handling `Window`, `Graphics`, `Game input` etc. |
+| [raylib-cpp](https://github.com/RobLoach/raylib-cpp) | 6.0.1   | Object oriented C++ wrapper for RayLib               |
 | [Tileson](https://github.com/SSBMTonberry/tileson)   | 1.4.0   | For parsing `Tiled` json maps.                       |
 
 # Graphics

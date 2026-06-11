@@ -1,6 +1,6 @@
 ![raylib-cpp Logo](projects/Doxygen/raylib-cpp_256x256.png)
 
-# raylib-cpp ![Targeting raylib 5.0](https://img.shields.io/badge/for_raylib-5.0-blue) [![Tests](https://github.com/RobLoach/raylib-cpp/workflows/Tests/badge.svg)](https://github.com/RobLoach/raylib-cpp/actions?query=workflow%3ATests+branch%3Amaster) [![License](https://img.shields.io/badge/license-zlib%2Flibpng-blue.svg)](LICENSE)
+# raylib-cpp ![Targeting raylib 6](https://img.shields.io/badge/for_raylib-6-blue) [![Tests](https://github.com/RobLoach/raylib-cpp/workflows/Tests/badge.svg)](https://github.com/RobLoach/raylib-cpp/actions?query=workflow%3ATests+branch%3Amaster) [![License](https://img.shields.io/badge/license-zlib%2Flibpng-blue.svg)](LICENSE)
 
 [raylib-cpp](https://github.com/robloach/raylib-cpp) is a C++ wrapper library for [raylib](https://www.raylib.com), a simple and easy-to-use library to enjoy videogames programming. This C++ header provides object-oriented wrappers around *raylib*'s struct interfaces. *raylib-cpp* is not required to use *raylib* in C++, but the classes do bring using the raylib API more inline with C++'s language paradigm.
 
@@ -22,9 +22,9 @@ int main() {
     {
         BeginDrawing();
 
-        window.ClearBackground(RAYWHITE);
+        window.ClearBackground(raylib::Color::RayWhite());
 
-        DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+        DrawText("Congrats! You created your first window!", 190, 200, 20, raylib::Color::LightGray());
 
         // Object methods.
         logo.Draw(
@@ -69,7 +69,7 @@ DrawPixelV(position, PURPLE);
 
 // raylib-cpp
 raylib::Vector2 position(50, 50);
-position.DrawPixel(PURPLE);
+position.DrawPixel(raylib::Color::Purple());
 ```
 
 ### Method Names
@@ -81,7 +81,7 @@ If a method's name contains an object's name, it is removed from its name to sho
 DrawTexture(texture, 50, 50, WHITE);
 
 // raylib-cpp
-texture.Draw(50, 50, WHITE);
+texture.Draw(50, 50, raylib::Color::White());
 ```
 
 ### Optional Parameters
@@ -93,7 +93,7 @@ Many methods have optional parameters with sane defaults.
 DrawTexture(texture, 50, 50, WHITE);
 
 // raylib-cpp
-texture.Draw(50, 50); // WHITE is provided as the default tint.
+texture.Draw(50, 50); // raylib::Color::White() is provided as the default tint.
 ```
 
 ### Object Destructors
@@ -198,7 +198,7 @@ for (int i = 0; i < files.count; i++) {
 UnloadDirectoryFiles(files);
 
 // raylib-cpp
-std::vector<std::string> files = raylib::GetDirectoryFiles(".");
+std::vector<std::string> files = raylib::LoadDirectoryFiles(".");
 TraceLog(LOG_INFO, "Count: %i", files.size());
 for (auto& file : files) {
     TraceLog(LOG_INFO, "File: %s", file.c_str());
@@ -251,6 +251,27 @@ Vector2 newDirection = Vector2Rotate(direction, 30);
 // raylib-cpp
 raylib::Vector2 direction(50, 50);
 raylib::Vector2 newDirection = direction.Rotate(30);
+```
+
+### Modules
+
+If using C++20 or later, by passing `BUILD_RAYLIB_CPP_MODULES` to the build system the library may be imported as a module by using `import raylib;`.
+
+```cpp
+import raylib;
+
+using raylib::Texture;
+using raylib::Window;
+
+int main() {
+    int screenWidth = 800;
+    int screenHeight = 450;
+
+    Window window(screenWidth, screenHeight, "raylib-cpp - basic window");
+    Texture logo("raylib_logo.png");
+
+    // ...
+}
 ```
 
 ## Getting Started

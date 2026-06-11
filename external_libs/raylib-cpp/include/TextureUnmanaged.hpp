@@ -86,10 +86,14 @@ public:
         return *this;
     }
 
+    [[nodiscard]] std::string ToString() const { return TextFormat("Texture(id=%u, %dx%d)", id, width, height); }
+
+    operator std::string() const { return ToString(); }
+
     /**
      * Retrieve the width and height of the texture.
      */
-    ::Vector2 GetSize() const { return {static_cast<float>(width), static_cast<float>(height)}; }
+    RLCPP_NODISCARD Vector2 GetSize() const { return {static_cast<float>(width), static_cast<float>(height)}; }
 
     /**
      * Load texture from image data
@@ -151,7 +155,7 @@ public:
     /**
      * Get pixel data from GPU texture and return an Image
      */
-    ::Image GetData() const { return ::LoadImageFromTexture(*this); }
+    RLCPP_NODISCARD ::Image GetData() const { return ::LoadImageFromTexture(*this); }
 
     /**
      * Get pixel data from GPU texture and return an Image
@@ -294,7 +298,7 @@ public:
     }
 
     TextureUnmanaged& SetMaterial(const ::Material& material, int mapType = MATERIAL_MAP_NORMAL) {
-        ::SetMaterialTexture((::Material*)(&material), mapType, *this);
+        ::SetMaterialTexture(const_cast<::Material*>(&material), mapType, *this);
         return *this;
     }
 
@@ -319,7 +323,7 @@ public:
      *
      * @return True or false depending on whether the Texture has data.
      */
-    bool IsValid() const { return IsTextureValid(*this); }
+    RLCPP_NODISCARD bool IsValid() const { return IsTextureValid(*this); }
 protected:
     void set(const ::Texture& texture) {
         id = texture.id;

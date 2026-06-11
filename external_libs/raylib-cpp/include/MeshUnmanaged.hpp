@@ -5,9 +5,9 @@
 #include <vector>
 
 #include "./BoundingBox.hpp"
+#include "./Matrix.hpp"
 #include "./Model.hpp"
 #include "./raylib-cpp-utils.hpp"
-#include "./raylib.hpp"
 
 namespace raylib {
 
@@ -35,8 +35,9 @@ public:
         indices = nullptr;
         animVertices = nullptr;
         animNormals = nullptr;
-        boneIds = nullptr;
+        boneIndices = nullptr;
         boneWeights = nullptr;
+        boneCount = 0;
         vaoId = 0;
         vboId = nullptr;
     }
@@ -128,8 +129,9 @@ public:
     GETTERSETTER(unsigned short*, Indices, indices) // NOLINT
     GETTERSETTER(float*, AnimVertices, animVertices)
     GETTERSETTER(float*, AnimNormals, animNormals)
-    GETTERSETTER(unsigned char*, BoneIds, boneIds)
+    GETTERSETTER(unsigned char*, BoneIndices, boneIndices)
     GETTERSETTER(float*, BoneWeights, boneWeights)
+    GETTERSETTER(int, BoneCount, boneCount)
     GETTERSETTER(unsigned int, VaoId, vaoId)
     GETTERSETTER(unsigned int*, VboId, vboId)
 
@@ -137,6 +139,15 @@ public:
         set(mesh);
         return *this;
     }
+
+    [[nodiscard]] std::string ToString() const {
+        return TextFormat(
+            "Mesh(vertexCount=%d, triangleCount=%d, boneCount=%d)",
+            vertexCount, triangleCount, boneCount
+        );
+    }
+
+    operator std::string() const { return ToString(); }
 
     /**
      * Unload mesh from memory (RAM and/or VRAM)
@@ -168,7 +179,7 @@ public:
     /**
      * Draw multiple mesh instances with material and different transforms
      */
-    void Draw(const ::Material& material, ::Matrix* transforms, int instances) const {
+    void Draw(const ::Material& material, const ::Matrix* transforms, int instances) const {
         ::DrawMeshInstanced(*this, material, transforms, instances);
     }
 
@@ -197,17 +208,17 @@ public:
     /**
      * Compute mesh bounding box limits
      */
-    raylib::BoundingBox BoundingBox() const { return ::GetMeshBoundingBox(*this); }
+    RLCPP_NODISCARD raylib::BoundingBox BoundingBox() const { return ::GetMeshBoundingBox(*this); }
 
     /**
      * Compute mesh bounding box limits
      */
-    operator raylib::BoundingBox() { return BoundingBox(); }
+    operator raylib::BoundingBox() const { return BoundingBox(); }
 
     /**
      * Compute mesh tangents
      */
-    Mesh& GenTangents() {
+    MeshUnmanaged& GenTangents() {
         ::GenMeshTangents(this);
         return *this;
     }
@@ -215,7 +226,7 @@ public:
     /**
      * Load model from generated mesh
      */
-    raylib::Model LoadModelFrom() const { return ::LoadModelFromMesh(*this); }
+    RLCPP_NODISCARD raylib::Model LoadModelFrom() const { return ::LoadModelFromMesh(*this); }
 
     /**
      * Load model from generated mesh
@@ -225,7 +236,7 @@ public:
     /**
      * Returns whether or not the Mesh is valid.
      */
-    bool IsValid() { return ::IsModelValid(*this); }
+    RLCPP_NODISCARD bool IsValid() const { return vaoId != 0 && vertexCount > 0; }
 
 protected:
     void set(const ::Mesh& mesh) {
@@ -240,8 +251,9 @@ protected:
         indices = mesh.indices;
         animVertices = mesh.animVertices;
         animNormals = mesh.animNormals;
-        boneIds = mesh.boneIds;
+        boneIndices = mesh.boneIndices;
         boneWeights = mesh.boneWeights;
+        boneCount = mesh.boneCount;
         vaoId = mesh.vaoId;
         vboId = mesh.vboId;
     }

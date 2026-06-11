@@ -15,28 +15,12 @@ namespace raylib {
  */
 class Matrix : public ::Matrix {
 public:
-    Matrix(const ::Matrix& mat)
-        : ::Matrix{
-              mat.m0,
-              mat.m4,
-              mat.m8,
-              mat.m12,
-              mat.m1,
-              mat.m5,
-              mat.m9,
-              mat.m13,
-              mat.m2,
-              mat.m6,
-              mat.m10,
-              mat.m14,
-              mat.m3,
-              mat.m7,
-              mat.m11,
-              mat.m15} {
+    constexpr Matrix(const ::Matrix& mat)
+        : ::Matrix(mat) {
         // Nothing.
     }
 
-    Matrix(
+    constexpr Matrix(
         float m0 = 0,
         float m4 = 0,
         float m8 = 0,
@@ -75,36 +59,57 @@ public:
     GETTERSETTER(float, M15, m15)
 
     Matrix& operator=(const ::Matrix& matrix) {
-        set(matrix);
+        if (this != &matrix) {
+            set(matrix);
+        }
         return *this;
     }
 
     Matrix& operator=(const Matrix& matrix) {
-        set(matrix);
+        if (this != &matrix) {
+            set(matrix);
+        }
         return *this;
     }
 
-    bool operator==(const ::Matrix& other) {
+    constexpr bool operator==(const ::Matrix& other) {
         return m0 == other.m0 && m1 == other.m1 && m2 == other.m2 && m3 == other.m3 && m4 == other.m4 &&
                m5 == other.m5 && m6 == other.m6 && m7 == other.m7 && m8 == other.m8 && m9 == other.m9 &&
                m10 == other.m10 && m11 == other.m11 && m12 == other.m12 && m13 == other.m13 && m14 == other.m14 &&
                m15 == other.m15;
     }
 
-    bool operator!=(const ::Matrix& other) { return !(*this == other); }
+    constexpr bool operator!=(const ::Matrix& other) { return !(*this == other); }
+
+    [[nodiscard]] std::string ToString() const {
+        return TextFormat(
+            "Matrix(\n"
+            "  %f, %f, %f, %f\n"
+            "  %f, %f, %f, %f\n"
+            "  %f, %f, %f, %f\n"
+            "  %f, %f, %f, %f\n"
+            ")",
+            m0,  m4,  m8,  m12,
+            m1,  m5,  m9,  m13,
+            m2,  m6,  m10, m14,
+            m3,  m7,  m11, m15
+        );
+    }
+
+    operator std::string() const { return ToString(); }
 
 #ifndef RAYLIB_CPP_NO_MATH
     /**
      * Returns the trace of the matrix (sum of the values along the diagonal)
      */
-    float Trace() const { return ::MatrixTrace(*this); }
+    RLCPP_NODISCARD float Trace() const { return ::MatrixTrace(*this); }
 
     /**
      * Transposes provided matrix
      */
-    Matrix Transpose() const { return ::MatrixTranspose(*this); }
+    RLCPP_NODISCARD Matrix Transpose() const { return ::MatrixTranspose(*this); }
 
-    Matrix Invert() const { return ::MatrixInvert(*this); }
+    RLCPP_NODISCARD Matrix Invert() const { return ::MatrixInvert(*this); }
 
     static Matrix Identity() { return ::MatrixIdentity(); }
 
@@ -130,10 +135,14 @@ public:
 
     static Matrix Scale(float x, float y, float z) { return ::MatrixScale(x, y, z); }
 
-    Matrix Multiply(const ::Matrix& right) const { return ::MatrixMultiply(*this, right); }
+    RLCPP_NODISCARD Matrix Multiply(const ::Matrix& right) const { return ::MatrixMultiply(*this, right); }
+
+    RLCPP_NODISCARD Matrix Multiply(float value) const { return ::MatrixMultiplyValue(*this, value); }
 
     Matrix operator*(const ::Matrix& matrix) { return ::MatrixMultiply(*this, matrix); }
 
+    Matrix operator*(float value) { return ::MatrixMultiplyValue(*this, value); }
+    
     static Matrix Frustum(double left, double right, double bottom, double top, double near, double far) {
         return ::MatrixFrustum(left, right, bottom, top, near, far);
     }
@@ -148,9 +157,9 @@ public:
 
     static Matrix LookAt(Vector3 eye, Vector3 target, Vector3 up) { return ::MatrixLookAt(eye, target, up); }
 
-    float16 ToFloatV() const { return ::MatrixToFloatV(*this); }
+    RLCPP_NODISCARD float16 ToFloatV() const { return ::MatrixToFloatV(*this); }
 
-    operator float16() { return ToFloatV(); }
+    operator float16() const { return ToFloatV(); }
 
     /**
      * Set shader uniform value (matrix 4x4)
