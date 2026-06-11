@@ -1,10 +1,10 @@
-# Galder Game Jam 2025
+# Galder Game Jam 2026
 
-A game jam with André Søberg and Robin Berg Pettersen that found place on 21.-23. November 2025.
+A game jam with André Søberg and Robin Berg Pettersen that found place in 2026.
 
 # The Game
 
-- `galder-game-jam-2025` contains simple code to showcase a very minimal
+- `galder-game-jam-2026` contains simple code to showcase a very minimal
   and simple game concept for a top-down RPG. This is a continuation of the previous RPG from 2024, but this time with a proof-of-concept HUD and dialog system. 
 - When compiled as `Debug` you also get:
     - The option to go to switch maps using the `F1`/`F2` keys
@@ -41,7 +41,7 @@ A game jam with André Søberg and Robin Berg Pettersen that found place on 21.-
 # Game design document
 
 Instead of a brainstorming-document, we created a roadmap on GitHub using issues for each idea we wanted to implement:
-https://github.com/galder-game-jam/galder-game-jam-2025/issues/1
+https://github.com/galder-game-jam/galder-game-jam-2026/issues/1
 
 As expected: Only a few of the ideas were small enough to fit the scope of creating a playable prototype-game in the course of a weekend.
 

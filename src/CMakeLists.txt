@@ -1,5 +1,5 @@
 add_subdirectory(gamedev-base)
 add_subdirectory(galder-game-jam-library)
-add_subdirectory(galder-game-jam-2025)
+add_subdirectory(galder-game-jam-2026)
 add_subdirectory(experiments)
 add_subdirectory(ggj-server)

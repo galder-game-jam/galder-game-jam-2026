@@ -4,6 +4,7 @@
 
 #include "ExecutableInfo.h"
 #include <atomic>
+#include <unistd.h>
 
 #ifdef __clang__
     #include <libc.h>
