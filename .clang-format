@@ -1,17 +1,59 @@
-BasedOnStyle: LLVM
+# Clang-format configuration derived from CodeConvention.hpp
+---
 Language: Cpp
+Standard: Latest   # clang-format has no explicit c++23 value; Latest = newest known (covers C++23)
+BasedOnStyle: LLVM
+
+# Indentation
 IndentWidth: 4
+TabWidth: 4
 UseTab: Never
-ColumnLimit: 100
+ContinuationIndentWidth: 4
+# Access modifiers are indented inside the braces (+4), at the same level as
+# members. This keeps everything inside the record indented, while struct
+# members stay at +4 (never +8).
+AccessModifierOffset: 0
+IndentAccessModifiers: false
+NamespaceIndentation: All     # indent the contents of namespaces
+IndentCaseLabels: true        # indent case labels inside switch
+IndentPPDirectives: BeforeHash # indent nested preprocessor directives (e.g. #include inside #ifndef)
+
+# Braces (Allman: opening brace on its own line)
 BreakBeforeBraces: Allman
-NamespaceIndentation: All
-IndentAccessModifiers: true
-IndentPPDirectives: BeforeHash
-AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: WithoutElse
-AllowShortLoopsOnASingleLine: true
+
+# Short constructs
+AllowShortFunctionsOnASingleLine: Inline   # short member functions may stay on one line
+AllowShortBlocksOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+
+# Pointers and references attach to the type (int& / int*)
 PointerAlignment: Left
-SpaceBeforeCpp11BracedList: true
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+
+# Braced initialization: keep inner spaces -> { 0 } instead of {0}
 Cpp11BracedListStyle: false
-SortIncludes: Never
-FixNamespaceComments: true
+
+# Spacing
+SpaceBeforeParens: ControlStatements   # `if (`/`switch (` but `func(`
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeRangeBasedForLoopColon: true
+SpacesInParentheses: false
+SpacesInAngles: Never
+
+# Comments
+AlignTrailingComments: true
+ReflowComments: false
+
+# Includes
+SortIncludes: false
+
+# General layout
+ColumnLimit: 180
+MaxEmptyLinesToKeep: 1
+KeepEmptyLinesAtTheStartOfBlocks: false
+FixNamespaceComments: true   # add `// namespace foo` after closing brace
+...
