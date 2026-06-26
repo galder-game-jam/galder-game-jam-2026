@@ -8,6 +8,8 @@
 #include "../../graphics/PhysicsSprite.h"
 #include "../../managers/AnimationManager.h"
 #include "../../interfaces/system/IMapper.h"
+#include "../../../gamedev-base/interfaces/managers/ISoundManager.h"
+#include "../../enums/SoundName.h"
 
 namespace ggj
 {
@@ -15,11 +17,12 @@ namespace ggj
     {
         public:
             Ghost() = default;
-            Ghost(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &animationManager, IMapper &mapper, b2Body *body, const raylib::Vector2 &physicsSize,
+            Ghost(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &animationManager, IMapper &mapper, ggj::ISoundManager &soundManager, b2Body *body,
+            const raylib::Vector2 &physicsSize,
             const raylib::Vector2 &spriteSize,
             const raylib::Rectangle &drawingRect, raylib::Texture * texture, const UserData &userData, const raylib::Vector2 &velocity, bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager {animationManager}, m_mapper{mapper},
-              m_velocity{velocity}
+              m_soundManager {soundManager}, m_velocity{velocity}
             {
                 m_body->SetFixedRotation(true);
                 m_animation = m_animationManager.getAnimation(AnimationName::EnemyGhostFly);
@@ -39,6 +42,7 @@ namespace ggj
             float m_turnTriggerValue{3.f};
             ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &m_animationManager;
             IMapper &m_mapper;
+            ggj::ISoundManager &m_soundManager;
             Animation m_animation;
             raylib::Vector2 m_velocity {0.f, 0.f};
     };

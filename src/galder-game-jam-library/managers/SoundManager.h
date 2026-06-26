@@ -1,0 +1,44 @@
+#ifndef GALDER_GAME_JAM_2026_SOUNDMANAGER_H
+#define GALDER_GAME_JAM_2026_SOUNDMANAGER_H
+
+#include <map>
+#include "raylib-cpp.hpp"
+#include "../../gamedev-base/GameDevBase.h"
+#include "../enums/ResourceName.h"
+#include "../enums/SoundName.h"
+#include "../enums/MusicName.h"
+
+namespace ggj
+{
+    class SoundManager : public ISoundManager
+    {
+        public:
+            SoundManager(ILogger& logger, IResourceManager<ResourceName>& resources)
+                : m_logger { logger }, m_resources { resources }
+            {
+            }
+
+            ~SoundManager() override;
+
+            bool initialize() override;
+            void update(float timeDelta) override;
+            void playSound(SoundName id) override;
+            void playMusic(MusicName id) override;
+            void stopMusic() override;
+
+        private:
+            bool loadSound(SoundName id, ResourceName resource);
+            bool loadMusic(MusicName id, ResourceName resource);
+
+            ILogger& m_logger;
+            IResourceManager<ResourceName>& m_resources;
+
+            std::map<SoundName, Sound> m_sounds;
+            std::map<MusicName, Music> m_music;
+
+            MusicName m_currentMusic { MusicName::None };
+            bool m_audioReady { false };
+    };
+} // namespace ggj
+
+#endif // GALDER_GAME_JAM_2026_SOUNDMANAGER_H

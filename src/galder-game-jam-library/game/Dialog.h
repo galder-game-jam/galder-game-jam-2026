@@ -18,8 +18,9 @@ namespace ggj
     class Dialog : public IGameObject<raylib::Vector2>
     {
         public:
-        Dialog(IMapper& mapper, ggj::ITextureManager<TextureName, raylib::Texture>& textures, IInputManager<KeyboardKey>& inputManager, IResourceManager<ResourceName>& resources)
-            : m_mapper { mapper }, m_textures { textures }, m_inputManager { inputManager }, m_resources { resources }
+        Dialog(IMapper& mapper, ggj::ITextureManager<TextureName, raylib::Texture>& textures, IInputManager<KeyboardKey>& inputManager,
+               IResourceManager<ResourceName>& resources, ISoundManager& soundManager)
+            : m_mapper { mapper }, m_textures { textures }, m_inputManager { inputManager }, m_resources { resources }, m_soundManager { soundManager }
         {
             m_isVisible = true;
         }
@@ -38,12 +39,14 @@ namespace ggj
         private:
         void handleInputs(float timeDelta);
         void refreshVisibleChoices();
+        void startTalking(const std::string& text);
         void DrawBox(raylib::Vector2 offset, int width, int height) const;
         void drawDialogBox(raylib::Vector2 offset, int width, int height, const DialogItem& item) const;
         IMapper& m_mapper;
         ITextureManager<TextureName, raylib::Texture>& m_textures;
         IInputManager<KeyboardKey>& m_inputManager;
         IResourceManager<ResourceName>& m_resources;
+        ISoundManager& m_soundManager;
         raylib::Texture* m_dialogTexture;
 
         DialogManager m_dialogManager {};
@@ -81,6 +84,9 @@ namespace ggj
         bool m_draw {};
         int m_currentChoice { 0 };
         std::vector<DialogChoice> m_visibleChoices {};
+
+        float m_talkTimer { 0.0f };    ///< Seconds of talking remaining for the current dialog.
+        float m_syllableTimer { 0.0f }; ///< Countdown to the next syllable sound.
     };
 } // namespace ggj
 

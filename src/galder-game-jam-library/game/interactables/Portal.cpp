@@ -67,6 +67,7 @@ namespace ggj
 
     void Portal::teleport()
     {
+        m_soundManager.playSound(SoundName::PortalUse);
         m_animation = m_animationManager.getAnimation(AnimationName::PortalTeleport);
     }
     void Portal::close()

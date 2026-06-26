@@ -9,7 +9,9 @@
 #include "../enums/KeyboardKey.h"
 #include "../managers/AnimationManager.h"
 #include "../enums/PlayerState.h"
+#include "../enums/SoundName.h"
 #include "../interfaces/system/IMapper.h"
+#include "../../gamedev-base/interfaces/managers/ISoundManager.h"
 
 #include "Hitbox.hpp"
 
@@ -19,11 +21,12 @@ namespace ggj
     {
         public:
         Player() = default;
-        Player(ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper, b2Body* body,
+        Player(ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper,
+               ggj::ISoundManager& soundManager, b2Body* body,
                const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
                bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager { inputManager }, m_animationManager { animationManager },
-              m_mapper { mapper }
+              m_mapper { mapper }, m_soundManager { soundManager }
         {
             m_body->SetFixedRotation(true);
             m_animation = m_animationManager.getAnimation(AnimationName::PlayerIdleNG);
@@ -34,6 +37,7 @@ namespace ggj
 
             const UserData hitboxData { ObjectType::PlayerHitbox, { 0.f, 0.f }, "melee_attack", "", "melee_hitbox" };
             m_hitbox.create(this, m_body->GetWorld(), hitBoxPos, { 32, 32 }, hitboxData);
+            m_hitbox.setSoundManager(&m_soundManager);
             setPlayerState(PlayerState::Idle);
         }
 
@@ -60,6 +64,7 @@ namespace ggj
         bool m_cameraShouldFollowPlayer { true };
         Animation m_animation;
         IMapper& m_mapper;
+        ggj::ISoundManager& m_soundManager;
         PlayerState m_playerState { PlayerState::Dead };
 
         raylib::Vector2 m_startPos {};

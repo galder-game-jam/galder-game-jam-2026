@@ -14,6 +14,7 @@
 #include "interfaces/managers/IGameManager.h"
 #include "interfaces/managers/IInputManager.h"
 #include "interfaces/managers/IResourceManager.h"
+#include "interfaces/managers/ISoundManager.h"
 #include "interfaces/managers/ITextureManager.h"
 #include "interfaces/managers/IWorldManager.h"
 

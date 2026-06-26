@@ -8,6 +8,7 @@
 #include "raylib-cpp.hpp"
 #include "box2d/box2d.h"
 #include "../enums/PhysicsShape.h"
+#include "../enums/SoundName.h"
 #include "../../gamedev-base/GameDevBase.h"
 #include "../graphics/PhysicsObject.h"
 
@@ -46,12 +47,19 @@ namespace ggj
                 {
                     if(b->getUserData()->getObjectType() == ObjectType::Enemy)
                     {
+                        if (m_soundManager != nullptr)
+                            m_soundManager->playSound(SoundName::EnemyDie);
                         b->destroy();
                         b2Body *body = contact->GetFixtureB()->GetBody();
                         body->ApplyLinearImpulseToCenter({m_isLeftPos ? -50.f : 50.f, 0.f}, true);
                         m_owner->getUserData()->enemiesKilled++;
                     }
                 }
+            }
+
+            void setSoundManager(ISoundManager* soundManager)
+            {
+                m_soundManager = soundManager;
             }
             
             /*!
@@ -107,6 +115,7 @@ namespace ggj
             
         private:
             PhysicsObject *m_owner {nullptr};
+            ISoundManager *m_soundManager {nullptr};
             bool m_isLeftPos {false};
             bool m_isActive {false};
     };
