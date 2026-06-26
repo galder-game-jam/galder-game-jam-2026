@@ -15,6 +15,8 @@
 #include "../../gamedev-base/interfaces/managers/ISoundManager.h"
 
 #include "Hitbox.hpp"
+#include "ExperienceTracker.hpp"
+#include "../data/ExperienceConfig.hpp"
 
 namespace ggj
 {
@@ -23,11 +25,11 @@ namespace ggj
         public:
         Player() = default;
         Player(ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper,
-               ggj::ISoundManager& soundManager, b2Body* body,
+               ggj::ISoundManager& soundManager, ExperienceConfig xpConfig, b2Body* body,
                const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
                bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager { inputManager }, m_animationManager { animationManager },
-              m_mapper { mapper }, m_soundManager { soundManager }
+              m_mapper { mapper }, m_soundManager { soundManager }, m_xpConfig { xpConfig }
         {
             m_body->SetFixedRotation(true);
             m_animation = m_animationManager.getAnimation(AnimationName::PlayerIdleNG);
@@ -51,6 +53,10 @@ namespace ggj
         void setHasClearedLevel(bool hasClearedLevel) override;
         [[nodiscard]] int getScore() const override;
         [[nodiscard]] int getLives() const override;
+        [[nodiscard]] int getLevel() const override;
+        [[nodiscard]] int getCurrentXp() const override;
+        [[nodiscard]] int getTotalXp() const override;
+        [[nodiscard]] int getXpToNextLevel() const override;
         Hitbox* getHitbox() override;
         [[nodiscard]] bool isInDialog() const override;
         std::string getDialogId() override;
@@ -86,6 +92,10 @@ namespace ggj
         int m_lives { 3 };
         bool m_inDialog {};
         std::string m_currentDialogId;
+
+        ExperienceConfig    m_xpConfig {};
+        ExperienceTracker   m_xpTracker {};
+        int m_previousKillCount { 0 };
     };
 
 } // namespace ggj

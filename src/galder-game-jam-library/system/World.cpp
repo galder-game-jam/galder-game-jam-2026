@@ -340,7 +340,7 @@ namespace ggj
                     if (raylib::Texture* wizardTex = m_textures.get(TextureName::WizardPlayer); wizardTex != nullptr)
                         tex = wizardTex;
                     Player2* p2 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player2>(
-                        this, m_input, m_animationManager, m_mapper, body, physicsSize, spriteSize, r, tex, generatorData.userData);
+                        this, m_input, m_animationManager, m_mapper, ExperienceConfig {}, body, physicsSize, spriteSize, r, tex, generatorData.userData);
                     m_player = p2;
                     m_userDataManager.addUserData(body, p2);
                     m_userDataManager.addUserData(p2->getHitbox()->getBody(), p2->getHitbox());
@@ -348,7 +348,7 @@ namespace ggj
                 else
                 {
                     Player* p1 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player>(
-                        m_input, m_animationManager, m_mapper, m_soundManager, body, physicsSize, spriteSize, r, tex, generatorData.userData);
+                        m_input, m_animationManager, m_mapper, m_soundManager, ExperienceConfig {}, body, physicsSize, spriteSize, r, tex, generatorData.userData);
                     m_player = p1;
                     m_userDataManager.addUserData(body, p1);
                     m_userDataManager.addUserData(p1->getHitbox()->getBody(), p1->getHitbox());

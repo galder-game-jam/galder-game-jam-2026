@@ -14,6 +14,8 @@
 
 #include "Hitbox.hpp"
 #include "projectiles/Projectile.h"
+#include "ExperienceTracker.hpp"
+#include "../data/ExperienceConfig.hpp"
 
 namespace ggj
 {
@@ -24,10 +26,10 @@ namespace ggj
         public:
         Player2() = default;
         Player2(ggj::World* world, ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager,
-                IMapper& mapper, b2Body* body, const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect,
+                IMapper& mapper, ExperienceConfig xpConfig, b2Body* body, const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect,
                 raylib::Texture* texture, const UserData& userData, bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager { inputManager }, m_animationManager { animationManager },
-              m_mapper { mapper }
+              m_mapper { mapper }, m_xpConfig { xpConfig }
         {
             m_world = world;
             m_body->SetFixedRotation(true);
@@ -51,6 +53,10 @@ namespace ggj
         void setHasClearedLevel(bool hasClearedLevel) override;
         [[nodiscard]] int getScore() const override;
         [[nodiscard]] int getLives() const override;
+        [[nodiscard]] int getLevel() const override;
+        [[nodiscard]] int getCurrentXp() const override;
+        [[nodiscard]] int getTotalXp() const override;
+        [[nodiscard]] int getXpToNextLevel() const override;
         Hitbox* getHitbox() override;
         [[nodiscard]] bool isInDialog() const override { return false; }
         std::string getDialogId() override { return {}; }
@@ -86,6 +92,10 @@ namespace ggj
         int m_score {};
         int m_lives { 3 };
         std::vector<std::unique_ptr<Projectile>> m_projectiles {};
+
+        ExperienceConfig  m_xpConfig {};
+        ExperienceTracker m_xpTracker {};
+        int m_previousKillCount { 0 };
     };
 
 } // namespace ggj
