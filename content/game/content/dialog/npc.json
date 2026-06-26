@@ -44,7 +44,7 @@
         { "text": "Hell no",  "nextDialogId": "lostMoneyHellNo" },
         { "text": "We'll see","nextDialogId": "lostMoneyWellSee" },
         { "text": "Fuck you", "nextDialogId": "lostMoneyFuckYou" },
-        { "text": "How did you get here so fast?", "condition": "initialTalk", "nextDialogId": "lostMoneyDontBother" }
+        { "text": "Are you here?", "condition": "initialTalk", "nextDialogId": "lostMoneyDontBother" }
       ]
     },
     {
