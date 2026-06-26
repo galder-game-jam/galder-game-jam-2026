@@ -62,6 +62,9 @@ add_subdirectory(external_libs/raylib-cpp)
 add_subdirectory(external_libs/box2d)
 add_subdirectory(external_libs/GameNetworkingSockets)
 #add_subdirectory(external_libs/raygui-cpp)
+include_directories(${PROJECT_SOURCE_DIR}/external_libs/raylib-imgui
+                    ${PROJECT_SOURCE_DIR}/external_libs/imgui)
+add_subdirectory(external_libs/raylib-imgui)
 add_subdirectory(src)
 add_subdirectory(tests)
 

@@ -17,10 +17,10 @@ namespace ggj
 
     void Player2::update(float timeDelta)
     {
-        if(m_body == nullptr)
+        if (m_body == nullptr)
             return;
 
-        if(m_isDead)
+        if (m_isDead)
         {
             setPlayerState(PlayerState::Dead);
             m_body->SetEnabled(false);
@@ -28,23 +28,22 @@ namespace ggj
         PhysicsObject::update(timeDelta);
 
         handleInputs(timeDelta);
-        m_body->SetLinearVelocity({m_velocity.x, m_velocity.y});
+        m_body->SetLinearVelocity({ m_velocity.x, m_velocity.y });
 
-
-        if(m_animation.isValid())
+        if (m_animation.isValid())
         {
             m_animation.update(timeDelta);
             m_drawingRect = m_animation.getDrawingRect();
         }
-        
+
         m_hitbox.update(timeDelta);
     }
 
     void Player2::handleInputs(float timeDelta)
     {
-        if(m_isDead)
+        if (m_isDead)
         {
-            if(m_inputManager.keyDown(KeyboardKey::J))
+            if (m_inputManager.keyDown(KeyboardKey::J))
             {
                 m_body->SetTransform(ConvertToB2Vec2(m_startPos), m_body->GetAngle());
                 setPlayerState(PlayerState::Idle);
@@ -60,50 +59,52 @@ namespace ggj
         //Should have a collection of commands or something assigned to the player for a best practice approach
         //But this is just meant to be a quick example
         b2Vec2 vel = m_body->GetLinearVelocity();
-        m_velocity = raylib::Vector2{vel.x, vel.y};
-        
+        m_velocity = raylib::Vector2 { vel.x, vel.y };
+
         bool isInAir = m_velocity.y > 0.2f || m_velocity.y < -0.2f;
-        
-        if(!m_isAttacking || isInAir)
+
+        if (!m_isAttacking || isInAir)
         {
-            if(m_inputManager.keyDown(KeyboardKey::Left) && !m_inputManager.keyDown(KeyboardKey::Right))
+            if (m_inputManager.keyDown(KeyboardKey::Left) && !m_inputManager.keyDown(KeyboardKey::Right))
             {
                 m_isLeftPosition = true;
                 m_hitbox.setLeftPosition(true);
                 m_flip = true;
-                m_velocity = raylib::Vector2{-7.f, m_velocity.y};
-                if(m_velocity.y < 0.2f && m_velocity.y > -0.2f)
+                m_velocity = raylib::Vector2 { -7.f, m_velocity.y };
+                if (m_velocity.y < 0.2f && m_velocity.y > -0.2f)
                     setPlayerState(PlayerState::Walk);
-            } else if(m_inputManager.keyDown(KeyboardKey::Right) && !m_inputManager.keyDown(KeyboardKey::Left))
+            }
+            else if (m_inputManager.keyDown(KeyboardKey::Right) && !m_inputManager.keyDown(KeyboardKey::Left))
             {
                 m_isLeftPosition = false;
                 m_hitbox.setLeftPosition(false);
                 m_flip = false;
-                m_velocity = raylib::Vector2{7.f, m_velocity.y};
-                if(m_velocity.y < 0.2f && m_velocity.y > -0.2f)
+                m_velocity = raylib::Vector2 { 7.f, m_velocity.y };
+                if (m_velocity.y < 0.2f && m_velocity.y > -0.2f)
                     setPlayerState(PlayerState::Walk);
-            } else
+            }
+            else
             {
-                m_velocity = raylib::Vector2{0.f, m_velocity.y};
+                m_velocity = raylib::Vector2 { 0.f, m_velocity.y };
             }
 
-            if(m_inputManager.keyDown(KeyboardKey::Up) && !m_inputManager.keyDown(KeyboardKey::Down))
+            if (m_inputManager.keyDown(KeyboardKey::Up) && !m_inputManager.keyDown(KeyboardKey::Down))
             {
-                m_velocity = raylib::Vector2{m_velocity.x, -7.f};
+                m_velocity = raylib::Vector2 { m_velocity.x, -7.f };
                 setPlayerState(PlayerState::Walk);
             }
-            else if(m_inputManager.keyDown(KeyboardKey::Down) && !m_inputManager.keyDown(KeyboardKey::Up))
+            else if (m_inputManager.keyDown(KeyboardKey::Down) && !m_inputManager.keyDown(KeyboardKey::Up))
             {
-                m_velocity = raylib::Vector2{m_velocity.x, 7.f};
+                m_velocity = raylib::Vector2 { m_velocity.x, 7.f };
                 setPlayerState(PlayerState::Walk);
             }
             else
             {
-                m_velocity = raylib::Vector2{m_velocity.x, 0.f};
+                m_velocity = raylib::Vector2 { m_velocity.x, 0.f };
             }
         }
-        
-        if(m_inputManager.keyPressed(KeyboardKey::K) && !m_isAttacking)
+
+        if (m_inputManager.keyPressed(KeyboardKey::K) && !m_isAttacking)
         {
             setPlayerState(PlayerState::AttackGrounded);
 
@@ -112,54 +113,47 @@ namespace ggj
             shootMageBall();
         }
 
-        #ifdef GAME_DEV_DEBUG
-        if(m_inputManager.keyPressed(KeyboardKey::F9))
-        {
-            m_hitbox.setVisible(!m_hitbox.isVisible());
-        }
-        //Toggle camera-follow
-        if(m_inputManager.keyPressed(KeyboardKey::T))
-        {
-            m_cameraShouldFollowPlayer = !m_cameraShouldFollowPlayer;
-        }
-        #endif
-
         //Toggle player rotate. Fun!
-        if(m_inputManager.keyPressed(KeyboardKey::L))
+        if (m_inputManager.keyPressed(KeyboardKey::L))
         {
             bool rotationFixedToggle = !m_body->IsFixedRotation();
             m_body->SetFixedRotation(rotationFixedToggle);
-            if(rotationFixedToggle)
+            if (rotationFixedToggle)
                 m_body->SetTransform(m_body->GetPosition(), 0);
         }
-        
-        if(!m_isAttacking)
+
+        if (!m_isAttacking)
         {
-            if(m_velocity.x == 0 && m_velocity.y == 0)
+            if (m_velocity.x == 0 && m_velocity.y == 0)
             {
                 setPlayerState(PlayerState::Idle);
             }
         }
-        
-        if(m_isAttacking)
+
+        if (m_isAttacking)
         {
-            if(m_attackCounter >= m_attackFrames)
+            if (m_attackCounter >= m_attackFrames)
             {
                 m_isAttacking = false;
             }
             ++m_attackCounter;
         }
-        
+
         m_hitbox.setIsActive(m_isAttacking);
-        if(m_isLeftPosition)
-            m_hitbox.getBody()->SetTransform(PhysicsObject::ConvertToB2Vec2({m_position.x-12, m_position.y}), 0);
+        if (m_isLeftPosition)
+            m_hitbox.getBody()->SetTransform(PhysicsObject::ConvertToB2Vec2({ m_position.x - 12, m_position.y }), 0);
         else
-            m_hitbox.getBody()->SetTransform(PhysicsObject::ConvertToB2Vec2({m_position.x+12, m_position.y}), 0);
+            m_hitbox.getBody()->SetTransform(PhysicsObject::ConvertToB2Vec2({ m_position.x + 12, m_position.y }), 0);
     }
 
     bool Player2::cameraShouldFollowPlayer() const
     {
         return m_cameraShouldFollowPlayer;
+    }
+
+    void Player2::setCameraFollowsPlayer(bool follow)
+    {
+        m_cameraShouldFollowPlayer = follow;
     }
 
     void Player2::setPlayerState(PlayerState playerState)
@@ -171,26 +165,26 @@ namespace ggj
         m_animation = m_animationManager.getAnimation(m_mapper.getAnimationNameByPlayerState(playerState));
     }
 
-    void Player2::beginContact(PhysicsObject *a, PhysicsObject *b, b2Contact *contact)
+    void Player2::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact)
     {
         b2WorldManifold worldManifold;
         contact->GetWorldManifold(&worldManifold); //Required to calculate manifold when circle hits circle
 
-        if(b->getUserData()->getObjectType() == ObjectType::Enemy)
+        if (b->getUserData()->getObjectType() == ObjectType::Enemy)
         {
-            if(m_score != 0)
+            if (m_score != 0)
                 --m_score;
 
             --m_lives;
 
-            if(m_lives <= 0)
+            if (m_lives <= 0)
                 m_isDead = true;
         }
-        if(b->getUserData()->getCommand() == "clear_level")
+        if (b->getUserData()->getCommand() == "clear_level")
         {
             m_hasClearedLevel = true;
         }
-        if(b->getUserData()->getCommand() == "pickup_coin")
+        if (b->getUserData()->getCommand() == "pickup_coin")
         {
             ++m_score;
         }
@@ -215,16 +209,17 @@ namespace ggj
     {
         m_hasClearedLevel = hasClearedLevel;
     }
-    
-    ggj::Hitbox *Player2::getHitbox()
+
+    ggj::Hitbox* Player2::getHitbox()
     {
         return &m_hitbox;
     }
 
     void Player2::shootMageBall()
     {
-        const raylib::Vector2 velocity{m_isLeftPosition? -8.f: 8.f,0.f};
-        MageBall *ball = m_world->createProjectile<ggj::MageBall>(TextureName::MageBall, raylib::Vector2 {16.f,16.f}, raylib::Vector2{m_position.x, m_position.y - 8}, velocity, 1.f);
+        const raylib::Vector2 velocity { m_isLeftPosition ? -8.f : 8.f, 0.f };
+        MageBall* ball =
+            m_world->createProjectile<ggj::MageBall>(TextureName::MageBall, raylib::Vector2 { 16.f, 16.f }, raylib::Vector2 { m_position.x, m_position.y - 8 }, velocity, 1.f);
         ball->setOwner(this);
     }
-} // dev
+} // namespace ggj

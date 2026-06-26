@@ -21,63 +21,65 @@ namespace ggj
     class Player2 : public PhysicsSprite
     {
         public:
-            Player2() = default;
-            Player2(ggj::World* world, ggj::IInputManager<ggj::KeyboardKey> &inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &animationManager, IMapper &mapper, b2Body *body, const raylib::Vector2 &physicsSize,
-                   const raylib::Vector2 &spriteSize,
-                   const raylib::Rectangle &drawingRect, raylib::Texture * texture, const UserData &userData, bool isVisible = true)
-            : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager {inputManager}, m_animationManager {animationManager}, m_mapper{mapper}
-            {
-                m_world = world;
-                m_body->SetFixedRotation(true);
-                m_animation = m_animationManager.getAnimation(AnimationName::PlayerIdleNG);
-                m_startPos = ConvertToVector2(m_body->GetPosition());
-                
-                const raylib::Vector2 bodyPosition = ConvertToVector2(m_body->GetPosition());
-                auto hitBoxPos = raylib::Vector2(bodyPosition.x + 16, bodyPosition.y);
+        Player2() = default;
+        Player2(ggj::World* world, ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager,
+                IMapper& mapper, b2Body* body, const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect,
+                raylib::Texture* texture, const UserData& userData, bool isVisible = true)
+            : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager { inputManager }, m_animationManager { animationManager },
+              m_mapper { mapper }
+        {
+            m_world = world;
+            m_body->SetFixedRotation(true);
+            m_animation = m_animationManager.getAnimation(AnimationName::PlayerIdleNG);
+            m_startPos = ConvertToVector2(m_body->GetPosition());
 
-                const UserData hitboxData {ObjectType::PlayerHitbox, {0.f, 0.f}, "ranged_attack", "", "ranged_hitbox"};
-                m_hitbox.create(this, m_body->GetWorld(), hitBoxPos, {32, 16}, hitboxData);
-                setPlayerState(PlayerState::Idle);
-            }
+            const raylib::Vector2 bodyPosition = ConvertToVector2(m_body->GetPosition());
+            auto hitBoxPos = raylib::Vector2(bodyPosition.x + 16, bodyPosition.y);
 
-            [[nodiscard]] bool cameraShouldFollowPlayer() const;
-            bool hasClearedLevel() const;
-            void setHasClearedLevel(bool hasClearedLevel);
-            void beginContact(PhysicsObject *a, PhysicsObject *b, b2Contact *contact) override;
-            int getScore() const;
-            int getLives() const;
-            void update(float timeDelta) override;
-            void draw() override;
-            Hitbox *getHitbox();
-        
+            const UserData hitboxData { ObjectType::PlayerHitbox, { 0.f, 0.f }, "ranged_attack", "", "ranged_hitbox" };
+            m_hitbox.create(this, m_body->GetWorld(), hitBoxPos, { 32, 16 }, hitboxData);
+            setPlayerState(PlayerState::Idle);
+        }
+
+        [[nodiscard]] bool cameraShouldFollowPlayer() const;
+        void setCameraFollowsPlayer(bool follow);
+        bool hasClearedLevel() const;
+        void setHasClearedLevel(bool hasClearedLevel);
+        void beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) override;
+        int getScore() const;
+        int getLives() const;
+        void update(float timeDelta) override;
+        void draw() override;
+        Hitbox* getHitbox();
+
         private:
-            void shootMageBall();
-            void handleInputs(float timeDelta);
-            void setPlayerState(PlayerState playerState);
+        void shootMageBall();
+        void handleInputs(float timeDelta);
+        void setPlayerState(PlayerState playerState);
 
-            ggj::World* m_world {nullptr};
-            ggj::IInputManager<ggj::KeyboardKey> &m_inputManager;
-            ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &m_animationManager;
-            bool m_cameraShouldFollowPlayer {true};
-            Animation m_animation;
-            IMapper &m_mapper;
-            PlayerState m_playerState{PlayerState::Dead};
+        ggj::World* m_world { nullptr };
+        ggj::IInputManager<ggj::KeyboardKey>& m_inputManager;
+        ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& m_animationManager;
+        bool m_cameraShouldFollowPlayer { true };
+        Animation m_animation;
+        IMapper& m_mapper;
+        PlayerState m_playerState { PlayerState::Dead };
 
-            raylib::Vector2 m_startPos{};
-            bool m_hasClearedLevel {false};
-            bool m_isDead {false};
-            bool m_isLeftPosition {false};
-            
-            ggj::Hitbox m_hitbox{};
-            bool m_isAttacking {false};
-            uint16_t m_attackFrames {20}; //How many frames an attack takes
-            uint16_t m_attackCounter {0}; //Counts attack duration
-            
-            int m_score{};
-            int m_lives{3};
-            std::vector<std::unique_ptr<Projectile>> m_projectiles {};
+        raylib::Vector2 m_startPos {};
+        bool m_hasClearedLevel { false };
+        bool m_isDead { false };
+        bool m_isLeftPosition { false };
+
+        ggj::Hitbox m_hitbox {};
+        bool m_isAttacking { false };
+        uint16_t m_attackFrames { 20 }; //How many frames an attack takes
+        uint16_t m_attackCounter { 0 }; //Counts attack duration
+
+        int m_score {};
+        int m_lives { 3 };
+        std::vector<std::unique_ptr<Projectile>> m_projectiles {};
     };
 
-} // dev
+} // namespace ggj
 
 #endif //GAME_DEV_TEMPLATE_PLAYER2_H

@@ -6,7 +6,7 @@ if(LINUX)
     # file(COPY ${CMAKE_SOURCE_DIR}/content/game/content DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
     add_executable(galder-game-jam-2026 main.cpp)
-    target_link_libraries(galder-game-jam-2026 galder-game-jam-library gamedev_base raylib_cpp raylib fmt box2d)
+    target_link_libraries(galder-game-jam-2026 galder-game-jam-library gamedev_base raylib_cpp raylib raylib_imgui fmt box2d)
 
     # Copies game content on compile
     add_custom_command(TARGET galder-game-jam-2026 POST_BUILD
@@ -19,7 +19,7 @@ elseif(WINDOWS)
     # Copies game content to the executable folder when CMake file is loaded.
     # file(COPY ${CMAKE_SOURCE_DIR}/content/game/content DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
     add_executable(galder-game-jam-2026 main.cpp ${CMAKE_SOURCE_DIR}/content/logo/icon.rc)
-    target_link_libraries(galder-game-jam-2026 galder-game-jam-library gamedev_base raylib_cpp raylib fmt box2d)
+    target_link_libraries(galder-game-jam-2026 galder-game-jam-library gamedev_base raylib_cpp raylib raylib_imgui fmt box2d)
     # target_link_options(galder-game-jam-2026 PRIVATE -mwindows)
 
     # Copies game content on compile
@@ -41,7 +41,7 @@ else()
     set_source_files_properties(${icon_file_path} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
     add_executable(GalderGameJam2026 MACOSX_BUNDLE main.cpp)
-    target_link_libraries(GalderGameJam2026 galder-game-jam-library gamedev_base raylib_cpp raylib fmt box2d)
+    target_link_libraries(GalderGameJam2026 galder-game-jam-library gamedev_base raylib_cpp raylib raylib_imgui fmt box2d)
     set_target_properties(GalderGameJam2026 PROPERTIES
             MACOSX_BUNDLE TRUE)
     # file(COPY ${CMAKE_SOURCE_DIR}/content/game/content DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/GalderGameJam2026.app/Contents/MacOS)

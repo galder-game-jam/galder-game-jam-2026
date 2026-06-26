@@ -5,6 +5,10 @@
 #include "WorldManager.h"
 #include "../game/Hud.h"
 
+#ifdef GAME_DEV_DEBUG
+    #include "DebugMenu.hpp"
+#endif
+
 namespace ggj
 {
     bool WorldManager::initialize()
@@ -48,10 +52,10 @@ namespace ggj
             return false;
         }
         m_logger.debug("Project parsed SUCCESSFULLY");
-        tson::Tileson t{m_project.get()};
-        for (const auto &folder: m_project->getFolders())
+        tson::Tileson t { m_project.get() };
+        for (const auto& folder : m_project->getFolders())
         {
-            for (const auto &file: folder.getFiles())
+            for (const auto& file : folder.getFiles())
             {
                 if (file.filename().string().ends_with(".json")) //Make sure it's a map!
                 {
@@ -66,17 +70,20 @@ namespace ggj
 
                     if (map->getStatus() == tson::ParseStatus::OK)
                     {
-
-                        if(m_startupIndex < 0 && !file.filename().string().starts_with("final") && file.filename().string().starts_with("map"))
+                        if (m_startupIndex < 0 && !file.filename().string().starts_with("final") && file.filename().string().starts_with("map"))
                         {
                             bool isStartup = map->get<bool>("is_startup_map");
-                            if(isStartup)
+                            if (isStartup)
                             {
                                 m_startupIndex = getStageIndexByFilename(file.filename().string());
                             }
                         }
-                        m_worlds[stage] = std::make_unique<World>(m_logger, m_resources, m_mapper, m_textures, m_window, m_input, m_collisionManager, m_debugManager, m_animationManager, m_userDataManager, std::move(map), m_hud, m_dialog);
+                        m_worlds[stage] = std::make_unique<World>(m_logger, m_resources, m_mapper, m_textures, m_window, m_input, m_collisionManager, m_debugManager,
+                                                                  m_animationManager, m_userDataManager, std::move(map), m_hud, m_dialog);
                         m_worlds[stage]->initialize();
+#ifdef GAME_DEV_DEBUG
+                        m_worlds[stage]->setDebugState(&m_managers.debugState);
+#endif
                         m_logger.debug(fmt::format("World added: {0}", file.filename().generic_string()));
                     }
                     else
@@ -85,7 +92,7 @@ namespace ggj
             }
         }
         m_currentStageIndex = m_startupIndex;
-        if(m_currentStageIndex < 0)
+        if (m_currentStageIndex < 0)
             m_currentStageIndex = 1;
 
         //Expect something!
@@ -94,8 +101,8 @@ namespace ggj
             m_logger.error("No maps found! initialization of WorldManager failed!");
             return false;
         }
-//        if (m_worlds.count(m_currentStageIndex) > 0)
-//            m_currentStage = Stage::Stage1;
+        //        if (m_worlds.count(m_currentStageIndex) > 0)
+        //            m_currentStage = Stage::Stage1;
 
         m_logger.debug("WorldManager initialized SUCCESSFULLY!");
 
@@ -109,23 +116,27 @@ namespace ggj
             m_characterSelectScreen.update(timeDelta);
             if (m_characterSelectScreen.isCharacterSelected())
             {
-                //Do something
                 m_characterSelectScreenActive = false;
+#ifdef GAME_DEV_DEBUG
+                m_managers.debugState.isGameActive = true;
+#endif
             }
         }
         else
         {
 #ifdef GAME_DEV_DEBUG
-            if (m_input.keyPressed(ggj::KeyboardKey::F1)) m_currentStageIndex = 1;
-            if (m_input.keyPressed(ggj::KeyboardKey::F2)) m_currentStageIndex = 2;
-            if (m_input.keyPressed(ggj::KeyboardKey::F3)) m_currentStageIndex = FINAL_MAP_ID;
-            if (m_input.keyPressed(ggj::KeyboardKey::F1) || m_input.keyPressed(ggj::KeyboardKey::F2) || m_input.keyPressed(ggj::KeyboardKey::F3))
+            if (m_managers.debugState.requestedStage != -1)
             {
-                m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
-                m_hud.setWorld(m_worlds[m_currentStageIndex].get());
-
-                m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
-                m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
+                const int32_t requestedStage = m_managers.debugState.requestedStage;
+                m_managers.debugState.requestedStage = -1;
+                if (m_worlds.count(requestedStage) > 0)
+                {
+                    m_currentStageIndex = requestedStage;
+                    m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
+                    m_hud.setWorld(m_worlds[m_currentStageIndex].get());
+                    m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
+                    m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
+                }
             }
 #endif
 
@@ -135,12 +146,12 @@ namespace ggj
             if (m_worlds.count(m_currentStageIndex) > 0)
             {
                 m_worlds[m_currentStageIndex]->update(timeDelta);
-                if(m_worlds[m_currentStageIndex]->isLevelCleared())
+                if (m_worlds[m_currentStageIndex]->isLevelCleared())
                 {
                     m_worlds[m_currentStageIndex]->setLevelCleared(false);
                     ++m_currentStageIndex;
 
-                    if(m_worlds.count(m_currentStageIndex) == 0)
+                    if (m_worlds.count(m_currentStageIndex) == 0)
                         m_currentStageIndex = FINAL_MAP_ID;
 
                     m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
@@ -171,33 +182,33 @@ namespace ggj
         }
     }
 
-//    Stage WorldManager::getStageByFilename(const std::string &filename)
-//    {
-//        if (filename == "map3.json") return Stage::Stage1;
-//        if (filename == "map2.json") return Stage::Stage2;
-//        if (filename == "map1.json") return Stage::Stage3;
-//        if (filename == "finalmap.json") return Stage::StageFinal;
-//
-//        return Stage::None;
-//    }
+    //    Stage WorldManager::getStageByFilename(const std::string &filename)
+    //    {
+    //        if (filename == "map3.json") return Stage::Stage1;
+    //        if (filename == "map2.json") return Stage::Stage2;
+    //        if (filename == "map1.json") return Stage::Stage3;
+    //        if (filename == "finalmap.json") return Stage::StageFinal;
+    //
+    //        return Stage::None;
+    //    }
 
-    int32_t WorldManager::getStageIndexByFilename(const std::string &filename) const
+    int32_t WorldManager::getStageIndexByFilename(const std::string& filename) const
     {
-        if(filename.starts_with("finalmap.json"))
+        if (filename.starts_with("finalmap.json"))
             return FINAL_MAP_ID;
 
-        if(!filename.starts_with("final") && filename.starts_with("map"))
+        if (!filename.starts_with("final") && filename.starts_with("map"))
         {
             try
             {
                 std::string mapNoStr = filename.substr(3, filename.length() - 3 - 5); // Minus: "map" and ".json"
                 return std::stoi(mapNoStr);
             }
-            catch(const std::exception &e)
+            catch (const std::exception& e)
             {
                 return -1;
             }
         }
         return -1;
     }
-}
+} // namespace ggj

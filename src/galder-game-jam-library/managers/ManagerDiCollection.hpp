@@ -5,32 +5,46 @@
 #ifndef GALDER_GAME_JAM_2025_PROJECT_MANAGERDICOLLECTION_HPP
 #define GALDER_GAME_JAM_2025_PROJECT_MANAGERDICOLLECTION_HPP
 
+#ifdef GAME_DEV_DEBUG
+namespace ggj
+{
+    struct DebugState;
+}
+#endif
+
 namespace ggj
 {
     class ManagerDiCollection
     {
         public:
-            ManagerDiCollection( ggj::IResourceManager<ResourceName> &resourceManager,
-                ggj::ITextureManager<TextureName, raylib::Texture> &textureManager,
-                ggj::IInputManager<ggj::KeyboardKey> &inputManager,
-                ggj::CollisionManager & collisionManager, ggj::IDebugManager &debugManager,
-                ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &animationManager,
-                IUserDataManager<PhysicsObject*> &userDataManager) :  resources{resourceManager}, textures{textureManager},
-                           input{inputManager}, collision {collisionManager},
-                          debug {debugManager}, animation {animationManager}, userData{userDataManager}
-            {
+        ManagerDiCollection(ggj::IResourceManager<ResourceName>& resourceManager, ggj::ITextureManager<TextureName, raylib::Texture>& textureManager,
+                            ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::CollisionManager& collisionManager, ggj::IDebugManager& debugManager,
+                            ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IUserDataManager<PhysicsObject*>& userDataManager
+#ifdef GAME_DEV_DEBUG
+                            ,
+                            ggj::DebugState& debugState
+#endif
+                            )
+            : resources { resourceManager }, textures { textureManager }, input { inputManager }, collision { collisionManager }, debug { debugManager },
+              animation { animationManager }, userData { userDataManager }
+#ifdef GAME_DEV_DEBUG
+              ,
+              debugState { debugState }
+#endif
+        {
+        }
 
-            }
-
-            ggj::IResourceManager<ResourceName> &resources;
-            ggj::ITextureManager<TextureName, raylib::Texture> &textures;
-            ggj::IInputManager<ggj::KeyboardKey> &input;
-            ggj::CollisionManager &collision;
-            ggj::IDebugManager &debug;
-            ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &animation;
-            IUserDataManager<PhysicsObject*> &userData;
-
+        ggj::IResourceManager<ResourceName>& resources;
+        ggj::ITextureManager<TextureName, raylib::Texture>& textures;
+        ggj::IInputManager<ggj::KeyboardKey>& input;
+        ggj::CollisionManager& collision;
+        ggj::IDebugManager& debug;
+        ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animation;
+        IUserDataManager<PhysicsObject*>& userData;
+#ifdef GAME_DEV_DEBUG
+        ggj::DebugState& debugState;
+#endif
     };
-}
+} // namespace ggj
 
 #endif //GALDER_GAME_JAM_2025_PROJECT_MANAGERDICOLLECTION_HPP
