@@ -41,6 +41,19 @@ cmake --build cmake-build-debug
 
 Never add includes from `external_libs/` into library headers that leak outward beyond their own module.
 
+## Dependency injection (Boost.DI)
+
+- **Injected plain structs lose their in-class member initializers.** When Boost.DI
+  constructs an *aggregate* (a struct/class with no user-declared constructor), it
+  aggregate-injects each member — building every scalar as `bool{}` / `int{}` and
+  **silently discarding the `{ ... }` defaults**. A `struct Foo { int n{-1}; bool on{true}; };`
+  comes out of DI with `n == 0` and `on == false`.
+- **Fix:** give any injected config/POD struct a user-declared constructor (even
+  `Foo() = default;` is enough to make it a non-aggregate) so DI calls the constructor
+  and honours the initializers. See `DebugState` in `managers/DebugMenu.hpp`.
+- **Defense in depth:** validate map keys with `map.count(k) > 0` before `operator[]`,
+  which default-inserts a null `unique_ptr` on a miss.
+
 ## Language & style rules
 
 - **C++23.** Use modern features where they improve clarity.
