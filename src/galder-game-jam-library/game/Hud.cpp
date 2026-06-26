@@ -29,9 +29,15 @@ namespace ggj
         m_font = font;
     }
 
-    void Hud::setPlayer(Player* player)
+    void Hud::setPlayer(IPlayer* player)
     {
         m_currentPlayer = player;
+    }
+
+    void Hud::setPickedCharacter(PlayerPickedCharacter character)
+    {
+        m_playerPortraitTexture = m_textures.get(
+            character == PlayerPickedCharacter::Wizard ? TextureName::HudRpgWizardPortrait : TextureName::HudRpgRoguePortrait);
     }
 
     void Hud::setWorld(World* world)

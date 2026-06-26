@@ -19,9 +19,14 @@ namespace ggj
         m_currentPortraitTexture = m_roguePortraitTexture;
     }
 
-    bool CharacterSelectScreen::isCharacterSelected()
+    bool CharacterSelectScreen::isCharacterSelected() const
     {
         return m_isCharacterSelected;
+    }
+
+    PlayerPickedCharacter CharacterSelectScreen::getPickedCharacter() const
+    {
+        return m_pickedCharacter;
     }
 
     void CharacterSelectScreen::setFont(raylib::Font* font)
@@ -29,7 +34,7 @@ namespace ggj
         m_font = font;
     }
 
-    void CharacterSelectScreen::setPlayer(Player* player)
+    void CharacterSelectScreen::setPlayer(IPlayer* player)
     {
         m_currentPlayer = player;
     }

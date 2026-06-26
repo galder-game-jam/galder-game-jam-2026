@@ -26,7 +26,7 @@ void ggj::Dialog::setFont(raylib::Font* font)
     m_font = font;
 }
 
-void ggj::Dialog::setPlayer(Player* player)
+void ggj::Dialog::setPlayer(IPlayer* player)
 {
     m_currentPlayer = player;
 }

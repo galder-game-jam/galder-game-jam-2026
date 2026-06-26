@@ -25,7 +25,7 @@ namespace ggj
         }
         void initialize();
         void setFont(raylib::Font* font);
-        void setPlayer(Player* player);
+        void setPlayer(IPlayer* player);
         void setWorld(World* world);
         void setVisible(bool isVisible);
         void rotate(float degrees) override;
@@ -49,7 +49,7 @@ namespace ggj
         DialogManager m_dialogManager {};
         raylib::Font* m_font = nullptr;
 
-        Player* m_currentPlayer = nullptr;
+        IPlayer* m_currentPlayer = nullptr;
         World* m_currentWorld = nullptr;
 
         raylib::Vector2 m_size {};
