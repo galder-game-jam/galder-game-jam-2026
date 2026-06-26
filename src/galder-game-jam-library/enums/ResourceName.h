@@ -104,8 +104,10 @@ namespace ggj
 
         FontDroidSans = 400,
         FontDroidSansBold = 401,
-        FontPixantiqua = 402
+        FontPixantiqua = 402,
+
+        DialogNpc = 500
     };
-}
+} // namespace ggj
 
 #endif //GAME_DEV_TEMPLATE_RESOURCENAME_H

@@ -11,28 +11,26 @@
 
 namespace ggj
 {
-    template <class T>
-    class ResourceManager : public IResourceManager<T>
+    template <class T> class ResourceManager : public IResourceManager<T>
     {
         public:
-            explicit ResourceManager(ggj::IExecutableInfo &executableInfo) : m_executableInfo {executableInfo} {};
-            void initialize() override;
+        explicit ResourceManager(ggj::IExecutableInfo& executableInfo) : m_executableInfo { executableInfo } {};
+        void initialize() override;
 
-            void add(T resourceType, std::string value) override;
-            bool exists(T resourceType) override;
+        void add(T resourceType, std::string value) override;
+        bool exists(T resourceType) override;
 
-            std::string getResource(T resourceType) override;
+        std::string getResource(T resourceType) override;
 
-            std::string getResource(const std::string &resource) override;
+        std::string getResource(const std::string& resource) override;
 
         private:
-            std::map<T, std::string> m_resources;
+        std::map<T, std::string> m_resources;
 
-            ggj::IExecutableInfo &m_executableInfo;
+        ggj::IExecutableInfo& m_executableInfo;
     };
 
-    template<class T>
-    void ResourceManager<T>::initialize()
+    template <class T> void ResourceManager<T>::initialize()
     {
         add(ggj::ResourceName::GraphicsPlayer, "graphics/characters.png");
         add(ggj::ResourceName::GraphicsMagicCliffsTileset, "graphics/magic-cliffs.png");
@@ -116,27 +114,24 @@ namespace ggj
         add(ggj::ResourceName::FontDroidSans, "fonts/DroidSans.ttf");
         add(ggj::ResourceName::FontDroidSansBold, "fonts/DroidSansBold.ttf");
         add(ggj::ResourceName::FontPixantiqua, "fonts/pixantiqua.ttf");
+
+        add(ggj::ResourceName::DialogNpc, "dialog/npc.json");
     }
 
-    template<class T>
-    std::string ResourceManager<T>::getResource(T resourceType)
+    template <class T> std::string ResourceManager<T>::getResource(T resourceType)
     {
         static std::string defaultStr;
-        return (m_resources.count(resourceType) > 0)
-                    ? fmt::format("{0}/{1}", m_executableInfo.getContentRootDirectory().string(), m_resources[resourceType])
-                    : defaultStr;
+        return (m_resources.count(resourceType) > 0) ? fmt::format("{0}/{1}", m_executableInfo.getContentRootDirectory().string(), m_resources[resourceType]) : defaultStr;
     }
 
-    template<class T>
-    void ResourceManager<T>::add(T resourceType, std::string value)
+    template <class T> void ResourceManager<T>::add(T resourceType, std::string value)
     {
         m_resources[resourceType] = value;
     }
 
-    template<class T>
-    bool ResourceManager<T>::exists(T resourceType)
+    template <class T> bool ResourceManager<T>::exists(T resourceType)
     {
-        if(m_resources.count(resourceType) > 0)
+        if (m_resources.count(resourceType) > 0)
         {
             std::filesystem::path p = std::filesystem::path(getResource(resourceType));
             return std::filesystem::exists(p);
@@ -144,12 +139,11 @@ namespace ggj
         return false;
     }
 
-    template<class T>
-    std::string ResourceManager<T>::getResource(const std::string &resource)
+    template <class T> std::string ResourceManager<T>::getResource(const std::string& resource)
     {
         return fmt::format("{0}/{1}", m_executableInfo.getContentRootDirectory().string(), resource);
     }
 
-} // dev
+} // namespace ggj
 
 #endif //GAME_DEV_TEMPLATE_RESOURCEMANAGER_HPP
