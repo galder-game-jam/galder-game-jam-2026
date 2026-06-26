@@ -348,7 +348,7 @@ namespace ggj
                 else
                 {
                     Player* p1 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player>(
-                        m_input, m_animationManager, m_mapper, body, physicsSize, spriteSize, r, tex, generatorData.userData);
+                        m_input, m_animationManager, m_mapper, m_soundManager, body, physicsSize, spriteSize, r, tex, generatorData.userData);
                     m_player = p1;
                     m_userDataManager.addUserData(body, p1);
                     m_userDataManager.addUserData(p1->getHitbox()->getBody(), p1->getHitbox());
