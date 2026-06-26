@@ -4,29 +4,34 @@
 
 #include "Dialog.h"
 #include "../GalderGameJamLibrary.h"
+#include "../managers/DialogLoader.h"
 
 void ggj::Dialog::initialize()
 {
     m_color = raylib::Color::White();
-    m_size = raylib::Vector2{200, 20};
-    m_origin = raylib::Vector2{20, 20};
-    m_position = raylib::Vector2{ 5, 0 };
+    m_size = raylib::Vector2 { 200, 20 };
+    m_origin = raylib::Vector2 { 20, 20 };
+    m_position = raylib::Vector2 { 5, 0 };
 
-    m_dialogOffset = raylib::Vector2{m_position.x + 200, m_position.y + 380};
+    m_dialogOffset = raylib::Vector2 { m_position.x + 200, m_position.y + 380 };
     m_dialogTexture = m_textures.get(TextureName::HudRpgSubset);
+
+    DialogLoader loader;
+    if (!loader.load(m_resources.getResource(ResourceName::DialogNpc), m_dialogManager))
+        TraceLog(LOG_ERROR, "Dialog: failed to load npc.json");
 }
 
-void ggj::Dialog::setFont(raylib::Font *font)
+void ggj::Dialog::setFont(raylib::Font* font)
 {
     m_font = font;
 }
 
-void ggj::Dialog::setPlayer(Player *player)
+void ggj::Dialog::setPlayer(Player* player)
 {
     m_currentPlayer = player;
 }
 
-void ggj::Dialog::setWorld(World *world)
+void ggj::Dialog::setWorld(World* world)
 {
     m_currentWorld = world;
 }
@@ -35,17 +40,11 @@ void ggj::Dialog::setVisible(bool isVisible)
     m_isVisible = isVisible;
 }
 
-void ggj::Dialog::rotate(float degrees)
-{
-}
+void ggj::Dialog::rotate(float degrees) {}
 
-void ggj::Dialog::scale(float scale)
-{
-}
+void ggj::Dialog::scale(float scale) {}
 
-void ggj::Dialog::move(const raylib::Vector2& toMove)
-{
-}
+void ggj::Dialog::move(const raylib::Vector2& toMove) {}
 
 void ggj::Dialog::update(float timeDelta)
 {
@@ -67,12 +66,12 @@ void ggj::Dialog::draw()
     {
         if (m_dialogManager.hasDialog(m_dialogId))
         {
-            DialogItem *dialogItem = m_dialogManager.getDialog(m_dialogId);
+            DialogItem* dialogItem = m_dialogManager.getDialog(m_dialogId);
             drawDialogBox(m_dialogOffset, 15, 3, *dialogItem);
         }
         else
         {
-            drawDialogBox(m_dialogOffset, 15, 3, DialogItem {m_dialogId, TextFormat("Hmm.. A glitch in the Matrix\nThe dialogId %s could not be found", m_dialogId.c_str())});
+            drawDialogBox(m_dialogOffset, 15, 3, DialogItem { m_dialogId, TextFormat("Hmm.. A glitch in the Matrix\nThe dialogId %s could not be found", m_dialogId.c_str()) });
         }
     }
 }
@@ -82,68 +81,64 @@ void ggj::Dialog::DrawBox(raylib::Vector2 offset, int width, int height) const
     float grid = TILE_UNIT * 2;
     raylib::Vector2 shrinkflation = raylib::Vector2(4, 4);
 
-    raylib::Rectangle backdrop = raylib::Rectangle(offset + shrinkflation, raylib::Vector2((width+2) * grid, (height+2) * grid) - shrinkflation * 2);
+    raylib::Rectangle backdrop = raylib::Rectangle(offset + shrinkflation, raylib::Vector2((width + 2) * grid, (height + 2) * grid) - shrinkflation * 2);
     DrawRectangle(backdrop.x, backdrop.y, backdrop.width, backdrop.height, raylib::Color(143, 86, 59, HUD_ALPHA));
 
-    raylib::Rectangle tiles[3][3] =
-    {
-        { m_boxTopLeftRect,    m_boxTopMiddleRect,    m_boxTopRightRect    },
-        { m_boxMiddleLeftRect, m_boxMiddleMiddleRect, m_boxMiddleRightRect },
-        { m_boxBottomLeftRect, m_boxBottomMiddleRect, m_boxBottomRightRect }
-    };
+    raylib::Rectangle tiles[3][3] = { { m_boxTopLeftRect, m_boxTopMiddleRect, m_boxTopRightRect },
+                                      { m_boxMiddleLeftRect, m_boxMiddleMiddleRect, m_boxMiddleRightRect },
+                                      { m_boxBottomLeftRect, m_boxBottomMiddleRect, m_boxBottomRightRect } };
 
     for (int y = 0; y < height + 2; ++y)
     {
         for (int x = 0; x < width + 2; ++x)
         {
-            int tx = (x == 0) ? 0 : (x == width + 1 ? 2 : 1);   // left/mid/right tile
-            int ty = (y == 0) ? 0 : (y == height + 1 ? 2 : 1);  // top/mid/bottom tile
+            int tx = (x == 0) ? 0 : (x == width + 1 ? 2 : 1);  // left/mid/right tile
+            int ty = (y == 0) ? 0 : (y == height + 1 ? 2 : 1); // top/mid/bottom tile
 
             const raylib::Rectangle& src = tiles[ty][tx];
-            raylib::Vector2 pos = offset + raylib::Vector2{grid * x, grid * y};
+            raylib::Vector2 pos = offset + raylib::Vector2 { grid * x, grid * y };
 
             m_dialogTexture->Draw(src, pos);
         }
     }
 }
 
-void ggj::Dialog::drawDialogBox(raylib::Vector2 offset, int width, int height, const DialogItem &item) const
+void ggj::Dialog::drawDialogBox(raylib::Vector2 offset, int width, int height, const DialogItem& item) const
 {
     DrawBox(offset, width, height);
 
-    std::string name = "Galder";//m_currentPlayer->getName();
+    std::string name = "Galder"; //m_currentPlayer->getName();
     int enemies = m_currentWorld->getEnemies();
     int enemiesLeft = m_currentWorld->getNumberOfEnemiesLeft();
 
     int enemiesKilled = enemies - enemiesLeft;
     bool isOpen = enemiesKilled == enemies;
 
-    m_font->DrawText(item.text, raylib::Vector2{offset.x + TILE_UNIT, offset.y + 7}, FONT_SIZE, 0, YELLOW);
+    m_font->DrawText(item.text, raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 7 }, FONT_SIZE, 0, YELLOW);
 
     std::size_t numberOfChoices = item.choices.size();
     float grid = TILE_UNIT * 2;
 
     if (numberOfChoices > 0)
     {
-        raylib::Vector2 choicesOffset(m_dialogOffset.x + grid * 15, m_dialogOffset.y + grid * -2 );
+        raylib::Vector2 choicesOffset(m_dialogOffset.x + grid * 15, m_dialogOffset.y + grid * -2);
 
-        int choicesBoxHeight = numberOfChoices < 3 ? 0: numberOfChoices - 2;
+        int choicesBoxHeight = numberOfChoices < 3 ? 0 : numberOfChoices - 2;
         int choicesBowWidth = 1;
-        DrawBox(choicesOffset, choicesBowWidth,choicesBoxHeight);
+        DrawBox(choicesOffset, choicesBowWidth, choicesBoxHeight);
 
-        m_dialogTexture->Draw(m_dialogSpaceButtonRect, choicesOffset + raylib::Vector2{grid * choicesBowWidth + 6, grid * (choicesBoxHeight + 1) + 10});
+        m_dialogTexture->Draw(m_dialogSpaceButtonRect, choicesOffset + raylib::Vector2 { grid * choicesBowWidth + 6, grid * (choicesBoxHeight + 1) + 10 });
         for (int i = 0; i < numberOfChoices; ++i)
         {
-            auto position = choicesOffset + raylib::Vector2{30, 10 + 20 * static_cast<float>(i)};
+            auto position = choicesOffset + raylib::Vector2 { 30, 10 + 20 * static_cast<float>(i) };
 
             if (m_currentChoice == i)
             {
-                m_dialogTexture->Draw(m_dialogArrowRect, position - raylib::Vector2{20, 0});
+                m_dialogTexture->Draw(m_dialogArrowRect, position - raylib::Vector2 { 20, 0 });
             }
 
             m_font->DrawText(item.choices[i].text, position, FONT_SIZE, 0, YELLOW);
         }
-
     }
     // if (enemiesKilled == 0)
     // {
@@ -173,18 +168,17 @@ void ggj::Dialog::drawDialogBox(raylib::Vector2 offset, int width, int height, c
     // }
 
     m_dialogTexture->Draw(m_dialogTabButtonRect, offset + raylib::Vector2(grid * (width + 1) - 6, grid * (height + 1) - 6 + TILE_UNIT));
-
 }
 
 void ggj::Dialog::handleInputs(float timeDelta)
 {
-    if(m_inputManager.keyPressed(KeyboardKey::Tab))
+    if (m_inputManager.keyPressed(KeyboardKey::Tab))
     {
         m_draw = false;
         m_dialogId = {};
         m_currentPlayer->setHasFinishedDialog();
     }
-    if(m_inputManager.keyPressed(KeyboardKey::S))
+    if (m_inputManager.keyPressed(KeyboardKey::S))
     {
         int choices = m_dialogManager.getDialog(m_dialogId)->choices.size();
         if (m_currentChoice < choices - 1)
@@ -192,14 +186,14 @@ void ggj::Dialog::handleInputs(float timeDelta)
             ++m_currentChoice;
         }
     }
-    if(m_inputManager.keyPressed(KeyboardKey::W))
+    if (m_inputManager.keyPressed(KeyboardKey::W))
     {
         if (m_currentChoice > 0)
         {
             --m_currentChoice;
         }
     }
-    if(m_inputManager.keyPressed(KeyboardKey::Space))
+    if (m_inputManager.keyPressed(KeyboardKey::Space))
     {
         if (m_dialogManager.getDialog(m_dialogId)->choices.size() == 0)
             return;
