@@ -58,6 +58,11 @@ Never add includes from `external_libs/` into library headers that leak outward 
 
 ## Code style
 
+Formatting is enforced by **`.clang-format`** at the repo root — run
+`clang-format -i` on changed files (never on `external_libs/`).
+**`CodeConvention.hpp` is the canonical worked example — match it.**
+ 
+Key rules:
 - **Allman braces** — opening brace on its own line for namespaces, classes, structs, enums, and function definitions.
 - **Indentation:** 4 spaces, no tabs. Namespace bodies are indented. Access specifiers get their own indentation level.
 - **Member variables:** `m_` + camelCase for private/protected (`m_lives`, `m_isVisible`). Plain camelCase for public members.
