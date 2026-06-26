@@ -18,8 +18,9 @@ namespace ggj
     class Dialog : public IGameObject<raylib::Vector2>
     {
         public:
-        Dialog(IMapper& mapper, ggj::ITextureManager<TextureName, raylib::Texture>& textures, IInputManager<KeyboardKey>& inputManager, IResourceManager<ResourceName>& resources)
-            : m_mapper { mapper }, m_textures { textures }, m_inputManager { inputManager }, m_resources { resources }
+        Dialog(IMapper& mapper, ggj::ITextureManager<TextureName, raylib::Texture>& textures, IInputManager<KeyboardKey>& inputManager,
+               IResourceManager<ResourceName>& resources, ISoundManager& soundManager)
+            : m_mapper { mapper }, m_textures { textures }, m_inputManager { inputManager }, m_resources { resources }, m_soundManager { soundManager }
         {
             m_isVisible = true;
         }
@@ -44,6 +45,7 @@ namespace ggj
         ITextureManager<TextureName, raylib::Texture>& m_textures;
         IInputManager<KeyboardKey>& m_inputManager;
         IResourceManager<ResourceName>& m_resources;
+        ISoundManager& m_soundManager;
         raylib::Texture* m_dialogTexture;
 
         DialogManager m_dialogManager {};

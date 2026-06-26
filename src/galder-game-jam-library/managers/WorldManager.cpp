@@ -141,6 +141,7 @@ namespace ggj
                 if (m_worlds.count(requestedStage) > 0)
                 {
                     m_currentStageIndex = requestedStage;
+                    startMusicForStage(m_currentStageIndex);
                     m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_hud.setWorld(m_worlds[m_currentStageIndex].get());
                     m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());

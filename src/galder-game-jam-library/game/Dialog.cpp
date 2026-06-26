@@ -76,6 +76,7 @@ void ggj::Dialog::update(float timeDelta)
                 m_dialogManager.setCondition(dialog->affirmCondition);
 
             refreshVisibleChoices();
+            m_soundManager.playSound(SoundName::DialogTalking);
         }
         handleInputs(timeDelta);
     }
@@ -206,6 +207,7 @@ void ggj::Dialog::handleInputs(float timeDelta)
         if (m_currentChoice < choices - 1)
         {
             ++m_currentChoice;
+            m_soundManager.playSound(SoundName::DialogMumble);
         }
     }
     if (m_inputManager.keyPressed(KeyboardKey::W))
@@ -213,6 +215,7 @@ void ggj::Dialog::handleInputs(float timeDelta)
         if (m_currentChoice > 0)
         {
             --m_currentChoice;
+            m_soundManager.playSound(SoundName::DialogMumble);
         }
     }
     if (m_inputManager.keyPressed(KeyboardKey::Space))
@@ -223,5 +226,6 @@ void ggj::Dialog::handleInputs(float timeDelta)
         m_dialogId = m_visibleChoices[m_currentChoice].nextDialogId;
         m_currentChoice = 0;
         refreshVisibleChoices();
+        m_soundManager.playSound(SoundName::DialogTalking);
     }
 }

@@ -121,9 +121,11 @@ namespace ggj
         add(ggj::ResourceName::SoundEnemyDie, "audio/sfx/enemy_die.wav");
         add(ggj::ResourceName::SoundPortalUse, "audio/sfx/portal_use.wav");
         add(ggj::ResourceName::SoundPlayerAttack, "audio/sfx/player_attack.wav");
+        add(ggj::ResourceName::SoundDialogMumble, "audio/sfx/dialog_mumble.wav");
+        add(ggj::ResourceName::SoundDialogTalking, "audio/sfx/dialog_talking.wav");
 
-        add(ggj::ResourceName::MusicLevel1, "audio/music/level1.wav");
-        add(ggj::ResourceName::MusicLevel2, "audio/music/level2.wav");
+        add(ggj::ResourceName::MusicLevel1, "audio/music/forest1.mp3");
+        add(ggj::ResourceName::MusicLevel2, "audio/music/dungeon1.mp3");
     }
 
     template <class T> std::string ResourceManager<T>::getResource(T resourceType)

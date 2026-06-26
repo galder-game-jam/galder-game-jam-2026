@@ -112,6 +112,8 @@ namespace ggj
         SoundEnemyDie = 601,
         SoundPortalUse = 602,
         SoundPlayerAttack = 603,
+        SoundDialogMumble = 604,
+        SoundDialogTalking = 605,
 
         MusicLevel1 = 700,
         MusicLevel2 = 701

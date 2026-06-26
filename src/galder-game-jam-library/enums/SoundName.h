@@ -11,7 +11,9 @@ namespace ggj
         CoinPickup = 1,  ///< Played when the player collects a coin.
         EnemyDie = 2,    ///< Played when any enemy is destroyed.
         PortalUse = 3,   ///< Played when a player steps through a portal.
-        PlayerAttack = 4 ///< Played when the player triggers a melee attack.
+        PlayerAttack = 4,  ///< Played when the player triggers a melee attack.
+        DialogMumble = 5,  ///< Short mumble played when the selected dialog choice changes.
+        DialogTalking = 6  ///< AC-style talking burst played when a new dialog message is shown.
     };
 } // namespace ggj
 
