@@ -39,6 +39,7 @@ namespace ggj
         private:
         void handleInputs(float timeDelta);
         void refreshVisibleChoices();
+        void startTalking(const std::string& text);
         void DrawBox(raylib::Vector2 offset, int width, int height) const;
         void drawDialogBox(raylib::Vector2 offset, int width, int height, const DialogItem& item) const;
         IMapper& m_mapper;
@@ -83,6 +84,9 @@ namespace ggj
         bool m_draw {};
         int m_currentChoice { 0 };
         std::vector<DialogChoice> m_visibleChoices {};
+
+        float m_talkTimer { 0.0f };    ///< Seconds of talking remaining for the current dialog.
+        float m_syllableTimer { 0.0f }; ///< Countdown to the next syllable sound.
     };
 } // namespace ggj
 
