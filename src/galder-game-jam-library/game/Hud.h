@@ -41,6 +41,7 @@ namespace ggj
             void drawBar(raylib::Vector2 offset, int middleParts) const;
             void drawCoinBar(raylib::Vector2 offset) const;
             void drawKillsBar(raylib::Vector2 offset) const;
+            void drawXpBar(raylib::Vector2 offset) const;
             void drawPlayerPositionBar(raylib::Vector2 offset) const;
 
             IMapper &m_mapper;
@@ -89,6 +90,12 @@ namespace ggj
 
             int m_kills {};
             raylib::Vector2 m_killsOffset{};
+
+            int m_level       {};
+            int m_currentXp   {};
+            int m_totalXp     {};
+            int m_xpToNextLevel {};
+            raylib::Vector2 m_xpOffset{};
 
             raylib::Vector2 m_playerPosition{};
             raylib::Vector2 m_playerPositionOffset{};

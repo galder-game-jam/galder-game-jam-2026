@@ -27,6 +27,14 @@ namespace ggj
         }
         PhysicsObject::update(timeDelta);
 
+        int currentKills = getUserData()->enemiesKilled;
+        if (currentKills > m_previousKillCount)
+        {
+            for (int i = m_previousKillCount; i < currentKills; ++i)
+                m_xpTracker.addXp(GetRandomValue(m_xpConfig.xpPerKillMin, m_xpConfig.xpPerKillMax), m_xpConfig);
+            m_previousKillCount = currentKills;
+        }
+
         handleInputs(timeDelta);
         m_body->SetLinearVelocity({ m_velocity.x, m_velocity.y });
 
@@ -183,10 +191,12 @@ namespace ggj
         if (b->getUserData()->getCommand() == "clear_level")
         {
             m_hasClearedLevel = true;
+            m_xpTracker.addXp(m_xpConfig.xpPerPortal, m_xpConfig);
         }
         if (b->getUserData()->getCommand() == "pickup_coin")
         {
             ++m_score;
+            m_xpTracker.addXp(m_xpConfig.xpPerCoin, m_xpConfig);
         }
     }
 
@@ -198,6 +208,26 @@ namespace ggj
     int Player2::getLives() const
     {
         return m_lives;
+    }
+
+    int Player2::getLevel() const
+    {
+        return m_xpTracker.getLevel();
+    }
+
+    int Player2::getCurrentXp() const
+    {
+        return m_xpTracker.getCurrentXp();
+    }
+
+    int Player2::getTotalXp() const
+    {
+        return m_xpTracker.getTotalXp();
+    }
+
+    int Player2::getXpToNextLevel() const
+    {
+        return m_xpTracker.getXpToNextLevel(m_xpConfig);
     }
 
     bool Player2::hasClearedLevel() const

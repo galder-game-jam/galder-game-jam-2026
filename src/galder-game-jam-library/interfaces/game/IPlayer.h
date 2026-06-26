@@ -29,6 +29,10 @@ namespace ggj
             virtual UserData* getUserData() = 0;
             [[nodiscard]] virtual int getLives() const = 0;
             [[nodiscard]] virtual int getScore() const = 0;
+            [[nodiscard]] virtual int getLevel() const = 0;
+            [[nodiscard]] virtual int getCurrentXp() const = 0;
+            [[nodiscard]] virtual int getTotalXp() const = 0;
+            [[nodiscard]] virtual int getXpToNextLevel() const = 0;
             virtual Hitbox* getHitbox() = 0;
             [[nodiscard]] virtual bool cameraShouldFollowPlayer() const = 0;
             virtual void setCameraFollowsPlayer(bool follow) = 0;

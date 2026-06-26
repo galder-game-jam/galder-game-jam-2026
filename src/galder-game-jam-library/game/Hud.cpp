@@ -16,6 +16,7 @@ namespace ggj
         m_portraitOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 50 };
         m_coinOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 120 };
         m_killsOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 152 };
+        m_xpOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 184 };
         m_playerPositionOffset = raylib::Vector2 { m_position.x + 570, m_position.y + 570 };
         m_questLogOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 400 };
         m_playerPortraitOffset = raylib::Vector2 { m_portraitOffset.x + 3, m_portraitOffset.y + 3 };
@@ -71,6 +72,10 @@ namespace ggj
         m_energy = 3; // Implement energy and then: static_cast<float>(m_currentPlayer->getEnergy());
         m_coins = m_currentPlayer->getScore();
         m_kills = m_currentPlayer->getUserData()->enemiesKilled;
+        m_level       = m_currentPlayer->getLevel();
+        m_currentXp   = m_currentPlayer->getCurrentXp();
+        m_totalXp     = m_currentPlayer->getTotalXp();
+        m_xpToNextLevel = m_currentPlayer->getXpToNextLevel();
         m_playerPosition = raylib::Vector2 { m_currentPlayer->getPosition() };
     }
 
@@ -84,6 +89,7 @@ namespace ggj
         drawPlayerPositionBar(m_playerPositionOffset);
         drawKillsBar(m_killsOffset);
 
+        drawXpBar(m_xpOffset);
         drawQuestLog(m_questLogOffset, 3, 1);
     }
 
@@ -174,5 +180,14 @@ namespace ggj
         drawBar(offset, 5);
         m_font->DrawText(TextFormat("Player position: (%i, %i)", static_cast<int>(m_playerPosition.x), static_cast<int>(m_playerPosition.y)),
                          raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, BLACK);
+    }
+
+    void Hud::drawXpBar(raylib::Vector2 offset) const
+    {
+        drawBar(offset, 3);
+        m_font->DrawText(TextFormat("Lvl: %i", m_level),
+                         raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, BLACK);
+        m_font->DrawText(TextFormat("XP: %i/%i", m_currentXp, m_xpToNextLevel),
+                         raylib::Vector2 { offset.x + TILE_UNIT * 4, offset.y + 5 }, FONT_SIZE, 0, BLACK);
     }
 } // namespace ggj
