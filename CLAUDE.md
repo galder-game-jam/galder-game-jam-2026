@@ -38,6 +38,8 @@ cmake --build cmake-build-debug
 | Catch2 | Unit tests |
 | FakeIt | Mocking/faking in tests |
 | Tileson | Tiled JSON map parsing |
+| Dear ImGui | Immediate-mode debug/editor UI |
+| raylib-imgui (rlImGui) | raylib backend for Dear ImGui |
 
 Never add includes from `external_libs/` into library headers that leak outward beyond their own module.
 

@@ -64,6 +64,8 @@ As expected: Only a few of the ideas were small enough to fit the scope of creat
 | [raylib-cpp](https://github.com/RobLoach/raylib-cpp)                               | 6.0.1   | Object oriented C++ wrapper for RayLib               |
 | [Tileson](https://github.com/SSBMTonberry/tileson)                                 | 1.4.0   | For parsing `Tiled` json maps.                       |
 | [GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets)    | 1.6.0   | For netplay.                                         |
+| [Dear ImGui](https://github.com/ocornut/imgui)                                     | 1.92.7  | Immediate-mode debug/editor UI.                      |
+| [raylib-imgui (rlImGui)](https://github.com/raylib-extras/rlImGui)                 | —       | raylib backend for Dear ImGui.                       |
 
 # Graphics
 
