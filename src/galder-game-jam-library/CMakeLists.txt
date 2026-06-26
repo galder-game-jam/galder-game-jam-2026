@@ -24,6 +24,10 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         game/projectiles/Projectile.cpp
         game/projectiles/Projectile.h
         managers/ManagerDiCollection.hpp
+        managers/SoundManager.h
+        managers/SoundManager.cpp
+        enums/SoundName.h
+        enums/MusicName.h
         game/Hud.cpp
         game/Hud.h
         game/Dialog.cpp

@@ -330,7 +330,7 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
-                m_player = m_layers[generatorData.layerIndex].createGameObject<ggj::Player>(m_input, m_animationManager, m_mapper, body,
+                m_player = m_layers[generatorData.layerIndex].createGameObject<ggj::Player>(m_input, m_animationManager, m_mapper, m_soundManager, body,
                                                                                             raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize,
                                                                                             r, tex, generatorData.userData);
 
@@ -365,7 +365,7 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Bat>(
-                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
                     generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
@@ -440,7 +440,7 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Snake>(
-                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
                     generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
@@ -470,7 +470,7 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Coin>(
-                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
                     generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
@@ -500,7 +500,7 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Spider>(
-                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
                     generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
@@ -530,7 +530,7 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Thing>(
-                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
                     generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
@@ -560,7 +560,7 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Ghost>(
-                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
                     generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
@@ -589,7 +589,7 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
-                m_portal = m_layers[generatorData.layerIndex].createGameObject<ggj::Portal>(m_animationManager, m_mapper, body,
+                m_portal = m_layers[generatorData.layerIndex].createGameObject<ggj::Portal>(m_animationManager, m_mapper, m_soundManager, body,
                                                                                             raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize,
                                                                                             r, tex, generatorData.userData, generatorData.velocity, m_portalTimer, this);
                 m_userDataManager.addUserData(body, m_portal);

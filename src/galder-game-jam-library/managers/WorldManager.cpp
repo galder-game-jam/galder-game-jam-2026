@@ -11,6 +11,12 @@
 
 namespace ggj
 {
+    void WorldManager::startMusicForStage(int32_t stageIndex)
+    {
+        MusicName track = (stageIndex % 2 == 0) ? MusicName::Level2 : MusicName::Level1;
+        m_soundManager.playMusic(track);
+    }
+
     bool WorldManager::initialize()
     {
         bool projectExists = m_resources.exists(ResourceName::MapProject);
@@ -79,7 +85,7 @@ namespace ggj
                             }
                         }
                         m_worlds[stage] = std::make_unique<World>(m_logger, m_resources, m_mapper, m_textures, m_window, m_input, m_collisionManager, m_debugManager,
-                                                                  m_animationManager, m_userDataManager, std::move(map), m_hud, m_dialog);
+                                                                  m_animationManager, m_userDataManager, m_soundManager, std::move(map), m_hud, m_dialog);
                         m_worlds[stage]->initialize();
 #ifdef GAME_DEV_DEBUG
                         m_worlds[stage]->setDebugState(&m_managers.debugState);
@@ -111,12 +117,15 @@ namespace ggj
 
     void WorldManager::update(float timeDelta)
     {
+        m_soundManager.update(timeDelta);
+
         if (m_characterSelectScreenActive)
         {
             m_characterSelectScreen.update(timeDelta);
             if (m_characterSelectScreen.isCharacterSelected())
             {
                 m_characterSelectScreenActive = false;
+                startMusicForStage(m_currentStageIndex);
 #ifdef GAME_DEV_DEBUG
                 m_managers.debugState.isGameActive = true;
 #endif
@@ -153,6 +162,8 @@ namespace ggj
 
                     if (m_worlds.count(m_currentStageIndex) == 0)
                         m_currentStageIndex = FINAL_MAP_ID;
+
+                    startMusicForStage(m_currentStageIndex);
 
                     m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_hud.setWorld(m_worlds[m_currentStageIndex].get());

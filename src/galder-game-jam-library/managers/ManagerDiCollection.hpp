@@ -19,14 +19,15 @@ namespace ggj
         public:
         ManagerDiCollection(ggj::IResourceManager<ResourceName>& resourceManager, ggj::ITextureManager<TextureName, raylib::Texture>& textureManager,
                             ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::CollisionManager& collisionManager, ggj::IDebugManager& debugManager,
-                            ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IUserDataManager<PhysicsObject*>& userDataManager
+                            ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IUserDataManager<PhysicsObject*>& userDataManager,
+                            ggj::ISoundManager& soundManager
 #ifdef GAME_DEV_DEBUG
                             ,
                             ggj::DebugState& debugState
 #endif
                             )
             : resources { resourceManager }, textures { textureManager }, input { inputManager }, collision { collisionManager }, debug { debugManager },
-              animation { animationManager }, userData { userDataManager }
+              animation { animationManager }, userData { userDataManager }, sound { soundManager }
 #ifdef GAME_DEV_DEBUG
               ,
               debugState { debugState }
@@ -41,6 +42,7 @@ namespace ggj
         ggj::IDebugManager& debug;
         ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animation;
         IUserDataManager<PhysicsObject*>& userData;
+        ggj::ISoundManager& sound;
 #ifdef GAME_DEV_DEBUG
         ggj::DebugState& debugState;
 #endif

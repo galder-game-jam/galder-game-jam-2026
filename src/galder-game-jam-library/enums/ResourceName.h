@@ -106,7 +106,15 @@ namespace ggj
         FontDroidSansBold = 401,
         FontPixantiqua = 402,
 
-        DialogNpc = 500
+        DialogNpc = 500,
+
+        SoundCoinPickup = 600,
+        SoundEnemyDie = 601,
+        SoundPortalUse = 602,
+        SoundPlayerAttack = 603,
+
+        MusicLevel1 = 700,
+        MusicLevel2 = 701
     };
 } // namespace ggj
 

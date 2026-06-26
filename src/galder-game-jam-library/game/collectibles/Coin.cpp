@@ -12,6 +12,7 @@ namespace ggj
 
         if(userDataB->getObjectType() == ObjectType::Player)
         {
+            m_soundManager.playSound(SoundName::CoinPickup);
             a->destroy();
         }
     }

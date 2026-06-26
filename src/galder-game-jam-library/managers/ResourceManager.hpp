@@ -116,6 +116,14 @@ namespace ggj
         add(ggj::ResourceName::FontPixantiqua, "fonts/pixantiqua.ttf");
 
         add(ggj::ResourceName::DialogNpc, "dialog/npc.json");
+
+        add(ggj::ResourceName::SoundCoinPickup, "audio/sfx/coin_pickup.wav");
+        add(ggj::ResourceName::SoundEnemyDie, "audio/sfx/enemy_die.wav");
+        add(ggj::ResourceName::SoundPortalUse, "audio/sfx/portal_use.wav");
+        add(ggj::ResourceName::SoundPlayerAttack, "audio/sfx/player_attack.wav");
+
+        add(ggj::ResourceName::MusicLevel1, "audio/music/level1.wav");
+        add(ggj::ResourceName::MusicLevel2, "audio/music/level2.wav");
     }
 
     template <class T> std::string ResourceManager<T>::getResource(T resourceType)

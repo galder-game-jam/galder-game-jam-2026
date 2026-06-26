@@ -113,6 +113,7 @@ namespace ggj
             setPlayerState(PlayerState::AttackGrounded);
             m_isAttacking = true;
             m_attackCounter = 0;
+            m_soundManager.playSound(SoundName::PlayerAttack);
         }
 
 #ifdef GAME_DEV_DEBUG
