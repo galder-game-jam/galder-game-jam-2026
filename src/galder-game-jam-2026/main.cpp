@@ -15,6 +15,7 @@ auto buildInjector(ggj::ILogger& logger, raylib::Window& window)
                                              boost::di::bind<ggj::IResourceManager<ggj::ResourceName>>().to<ggj::ResourceManager<ggj::ResourceName>>(),
                                              boost::di::bind<ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>>().to<ggj::AnimationManager>(),
                                              boost::di::bind<ggj::IUserDataManager<ggj::PhysicsObject*>>().to<ggj::UserDataManager>(),
+                                             boost::di::bind<ggj::ISoundManager>().to<ggj::SoundManager>(),
 
                                              boost::di::bind<ggj::IExecutableInfo>().to<ggj::ExecutableInfo>(), boost::di::bind<ggj::IDebugManager>().to<ggj::DebugManager>(),
                                              boost::di::bind<ggj::CollisionManager>(),
@@ -33,12 +34,14 @@ struct App
     ggj::IGameManager& game;
     ggj::IResourceManager<ggj::ResourceName>& resources;
     ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animations;
+    ggj::ISoundManager& sounds;
     raylib::Window& window;
 
     bool initialize()
     {
         resources.initialize();
         animations.initialize();
+        sounds.initialize();
 
         if (!game.initialize())
             return false;

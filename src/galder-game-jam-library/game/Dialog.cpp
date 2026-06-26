@@ -5,6 +5,22 @@
 #include "Dialog.h"
 #include "../GalderGameJamLibrary.h"
 #include "../managers/DialogLoader.h"
+#include <algorithm>
+#include <array>
+#include <cstdlib>
+
+namespace
+{
+    ggj::SoundName randomTalkingSound()
+    {
+        static constexpr std::array<ggj::SoundName, 7> SOUNDS = {
+            ggj::SoundName::DialogTalking1, ggj::SoundName::DialogTalking2, ggj::SoundName::DialogTalking3,
+            ggj::SoundName::DialogTalking4, ggj::SoundName::DialogTalking5, ggj::SoundName::DialogTalking6,
+            ggj::SoundName::DialogTalking7
+        };
+        return SOUNDS[static_cast<std::size_t>(std::rand()) % SOUNDS.size()];
+    }
+} // namespace
 
 void ggj::Dialog::initialize()
 {
@@ -46,6 +62,17 @@ void ggj::Dialog::scale(float scale) {}
 
 void ggj::Dialog::move(const raylib::Vector2& toMove) {}
 
+void ggj::Dialog::startTalking(const std::string& text)
+{
+    static constexpr float SECONDS_PER_WORD = 0.03f;
+    static constexpr float SYLLABLE_INTERVAL = 0.05f;
+
+    int32_t wordCount = 1 + static_cast<int32_t>(std::count(text.begin(), text.end(), ' '));
+    m_talkTimer = static_cast<float>(wordCount) * SECONDS_PER_WORD;
+    m_syllableTimer = SYLLABLE_INTERVAL;
+    m_soundManager.playSound(randomTalkingSound());
+}
+
 void ggj::Dialog::refreshVisibleChoices()
 {
     DialogItem* dialog = m_dialogManager.getDialog(m_dialogId);
@@ -76,7 +103,20 @@ void ggj::Dialog::update(float timeDelta)
                 m_dialogManager.setCondition(dialog->affirmCondition);
 
             refreshVisibleChoices();
+            startTalking(dialog != nullptr ? dialog->text : std::string {});
         }
+
+        if (m_talkTimer > 0.0f)
+        {
+            m_talkTimer -= timeDelta;
+            m_syllableTimer -= timeDelta;
+            if (m_syllableTimer <= 0.0f)
+            {
+                m_syllableTimer += 0.12f;
+                m_soundManager.playSound(randomTalkingSound());
+            }
+        }
+
         handleInputs(timeDelta);
     }
 }
@@ -198,6 +238,7 @@ void ggj::Dialog::handleInputs(float timeDelta)
         m_draw = false;
         m_dialogId = {};
         m_visibleChoices.clear();
+        m_talkTimer = 0.0f;
         m_currentPlayer->setHasFinishedDialog();
     }
     if (m_inputManager.keyPressed(KeyboardKey::S))
@@ -206,6 +247,7 @@ void ggj::Dialog::handleInputs(float timeDelta)
         if (m_currentChoice < choices - 1)
         {
             ++m_currentChoice;
+            m_soundManager.playSound(SoundName::DialogMumble);
         }
     }
     if (m_inputManager.keyPressed(KeyboardKey::W))
@@ -213,6 +255,7 @@ void ggj::Dialog::handleInputs(float timeDelta)
         if (m_currentChoice > 0)
         {
             --m_currentChoice;
+            m_soundManager.playSound(SoundName::DialogMumble);
         }
     }
     if (m_inputManager.keyPressed(KeyboardKey::Space))
@@ -223,5 +266,7 @@ void ggj::Dialog::handleInputs(float timeDelta)
         m_dialogId = m_visibleChoices[m_currentChoice].nextDialogId;
         m_currentChoice = 0;
         refreshVisibleChoices();
+        DialogItem* next = m_dialogManager.getDialog(m_dialogId);
+        startTalking(next != nullptr ? next->text : std::string {});
     }
 }

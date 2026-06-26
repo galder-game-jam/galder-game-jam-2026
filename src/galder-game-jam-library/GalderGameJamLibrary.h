@@ -17,7 +17,9 @@
 //Enums
 #include "enums/AnimationName.h"
 #include "enums/KeyboardKey.h"
+#include "enums/MusicName.h"
 #include "enums/PlayerState.h"
+#include "enums/SoundName.h"
 
 //Game
 #include "game/Player.h"
@@ -48,6 +50,7 @@
 #include "managers/GameManager.h"
 #include "managers/ResourceManager.hpp"
 #include "managers/InputManager.h"
+#include "managers/SoundManager.h"
 #include "managers/TextureManager.h"
 #include "managers/UserDataManager.hpp"
 #include "managers/ManagerDiCollection.hpp"

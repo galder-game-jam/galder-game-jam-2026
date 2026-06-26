@@ -53,6 +53,7 @@ namespace ggj
         }
         else if(userDataB->getObjectType() == ObjectType::Projectile)
         {
+            m_soundManager.playSound(SoundName::EnemyDie);
             destroy();
             Projectile *p = dynamic_cast<Projectile*>(b);
             p->explode();

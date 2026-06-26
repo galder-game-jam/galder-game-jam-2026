@@ -116,6 +116,22 @@ namespace ggj
         add(ggj::ResourceName::FontPixantiqua, "fonts/pixantiqua.ttf");
 
         add(ggj::ResourceName::DialogNpc, "dialog/npc.json");
+
+        add(ggj::ResourceName::SoundCoinPickup, "audio/sfx/coin_pickup.wav");
+        add(ggj::ResourceName::SoundEnemyDie, "audio/sfx/enemy_die.wav");
+        add(ggj::ResourceName::SoundPortalUse, "audio/sfx/portal_use.wav");
+        add(ggj::ResourceName::SoundPlayerAttack, "audio/sfx/player_attack.wav");
+        add(ggj::ResourceName::SoundDialogMumble, "audio/sfx/dialog_mumble.wav");
+        add(ggj::ResourceName::SoundDialogTalking1, "audio/sfx/dialog_talking_1.wav");
+        add(ggj::ResourceName::SoundDialogTalking2, "audio/sfx/dialog_talking_2.wav");
+        add(ggj::ResourceName::SoundDialogTalking3, "audio/sfx/dialog_talking_3.wav");
+        add(ggj::ResourceName::SoundDialogTalking4, "audio/sfx/dialog_talking_4.wav");
+        add(ggj::ResourceName::SoundDialogTalking5, "audio/sfx/dialog_talking_5.wav");
+        add(ggj::ResourceName::SoundDialogTalking6, "audio/sfx/dialog_talking_6.wav");
+        add(ggj::ResourceName::SoundDialogTalking7, "audio/sfx/dialog_talking_7.wav");
+
+        add(ggj::ResourceName::MusicLevel1, "audio/music/forest1.mp3");
+        add(ggj::ResourceName::MusicLevel2, "audio/music/dungeon1.mp3");
     }
 
     template <class T> std::string ResourceManager<T>::getResource(T resourceType)

@@ -5,6 +5,7 @@
 #ifndef GAME_DEV_TEMPLATE_WORLDMANAGER_H
 #define GAME_DEV_TEMPLATE_WORLDMANAGER_H
 
+#include "../enums/MusicName.h"
 #include "../enums/ResourceName.h"
 #include "../../gamedev-base/GameDevBase.h"
 #include "../system/World.h"
@@ -29,6 +30,7 @@ namespace ggj
                     : m_managers {managers}, m_logger{logger},  m_resources {managers.resources}, m_mapper{mapper},
                       m_textures{managers.textures}, m_window{window}, m_input{managers.input}, m_collisionManager {managers.collision},
                       m_debugManager{managers.debug}, m_animationManager{managers.animation}, m_userDataManager{managers.userData},
+                      m_soundManager{managers.sound},
                       m_hud {hud}, m_dialog {dialog}, m_characterSelectScreen {characterSelectScreen}
             {
 
@@ -40,6 +42,7 @@ namespace ggj
 
         private:
             bool parseProject();
+            void startMusicForStage(int32_t stageIndex);
 
             const int32_t NO_MAP_ID = -1;
             const int32_t FINAL_MAP_ID = 99999;
@@ -58,6 +61,7 @@ namespace ggj
             ggj::IDebugManager &m_debugManager;
             ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &m_animationManager;
             IUserDataManager<PhysicsObject*> &m_userDataManager;
+            ggj::ISoundManager &m_soundManager;
             Hud &m_hud;
             Dialog &m_dialog;
             CharacterSelectScreen &m_characterSelectScreen;

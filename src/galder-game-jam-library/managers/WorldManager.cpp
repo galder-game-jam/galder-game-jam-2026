@@ -11,6 +11,12 @@
 
 namespace ggj
 {
+    void WorldManager::startMusicForStage(int32_t stageIndex)
+    {
+        MusicName track = (stageIndex % 2 == 0) ? MusicName::Level2 : MusicName::Level1;
+        m_soundManager.playMusic(track);
+    }
+
     bool WorldManager::initialize()
     {
         bool projectExists = m_resources.exists(ResourceName::MapProject);
@@ -103,6 +109,8 @@ namespace ggj
 
     void WorldManager::update(float timeDelta)
     {
+        m_soundManager.update(timeDelta);
+
         if (m_characterSelectScreenActive)
         {
             m_characterSelectScreen.update(timeDelta);
@@ -118,6 +126,7 @@ namespace ggj
                 m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                 m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
                 m_characterSelectScreenActive = false;
+                startMusicForStage(m_currentStageIndex);
 #ifdef GAME_DEV_DEBUG
                 m_managers.debugState.isGameActive = true;
 #endif
@@ -133,6 +142,7 @@ namespace ggj
                 if (m_worlds.count(requestedStage) > 0)
                 {
                     m_currentStageIndex = requestedStage;
+                    startMusicForStage(m_currentStageIndex);
                     m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_hud.setWorld(m_worlds[m_currentStageIndex].get());
                     m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
@@ -154,6 +164,8 @@ namespace ggj
 
                     if (m_worlds.count(m_currentStageIndex) == 0)
                         m_currentStageIndex = FINAL_MAP_ID;
+
+                    startMusicForStage(m_currentStageIndex);
 
                     m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_hud.setWorld(m_worlds[m_currentStageIndex].get());
