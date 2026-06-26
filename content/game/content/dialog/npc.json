@@ -2,11 +2,13 @@
   "dialogs": [
     {
       "id": "initialGreeting",
+      "affirmCondition": "initialTalk",
       "text": "Hello my good Traveller!\nWelcome to the world of Galdaria.\nYour first task is to purge these lands of every creature in these woods!\nI am a bit too old to run around and kill, but I have scouted out the area for you.\nCurrently, these pesky creatures are running around. Happy little bastards...\nKill them for me, and I will grant you access to my torture chamber!\nWhen the deed is done, you will find a portal in a cave to the north.\nAre you up for the task?",
       "choices": [
         { "text": "Yes",   "nextDialogId": "initialGreetingYes" },
         { "text": "No",    "nextDialogId": "initialGreetingNo" },
-        { "text": "Maybe", "nextDialogId": "initialGreetingMaybe" }
+        { "text": "Maybe", "nextDialogId": "initialGreetingMaybe" },
+        { "text": "I purged everything", "condition": "levelComplete", "nextDialogId": "initialPurged" }
       ]
     },
     {
@@ -30,13 +32,19 @@
       ]
     },
     {
+      "id": "initialPurged",
+      "text": "Wow...\nWell done you fucking psycho-killer.\nDid it ever occur to you that some of them have a family??\nOh well, you can now proceed further through the portal into the next level",
+      "choices": []
+    },
+    {
       "id": "lostMoney",
       "text": "Oh hello again!\nThese moss-covered zombies attacked me, and I lost all my money when I ran.\nSince you are already running around on your killing spree,\nCan you collect the coins and return to me?",
       "choices": [
         { "text": "No",       "nextDialogId": "lostMoneyNo" },
         { "text": "Hell no",  "nextDialogId": "lostMoneyHellNo" },
         { "text": "We'll see","nextDialogId": "lostMoneyWellSee" },
-        { "text": "Fuck you", "nextDialogId": "lostMoneyFuckYou" }
+        { "text": "Fuck you", "nextDialogId": "lostMoneyFuckYou" },
+        { "text": "How did you get here so fast?", "condition": "initialTalk", "nextDialogId": "lostMoneyDontBother" }
       ]
     },
     {
@@ -65,6 +73,11 @@
     {
       "id": "lostMoneyWellSee",
       "text": "Ah well.\nA maybe is better than nothing.\nEspecially coming from such a lowlife like yourself.\nCome see me when you have collected at least 10 gold for me.",
+      "choices": []
+    },
+    {
+      "id": "lostMoneyDontBother",
+      "text": "How about this..\nYou worry about your problems and I deal with mine.\nOK?\nGeez. What's with all the questions detective?\nPiss off!",
       "choices": []
     }
   ]

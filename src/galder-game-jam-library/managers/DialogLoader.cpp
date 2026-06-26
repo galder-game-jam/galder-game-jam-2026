@@ -35,6 +35,7 @@ namespace ggj
             DialogItem dialogItem;
             dialogItem.dialogId = item["id"].string_value();
             dialogItem.text = item["text"].string_value();
+            dialogItem.affirmCondition = item["affirmCondition"].string_value();
 
             const json11::Json& choices = item["choices"];
             if (choices.is_array())
@@ -47,6 +48,7 @@ namespace ggj
                     DialogChoice dialogChoice;
                     dialogChoice.text = choice["text"].string_value();
                     dialogChoice.nextDialogId = choice["nextDialogId"].string_value();
+                    dialogChoice.condition = choice["condition"].string_value();
                     dialogItem.choices.push_back(std::move(dialogChoice));
                 }
             }
