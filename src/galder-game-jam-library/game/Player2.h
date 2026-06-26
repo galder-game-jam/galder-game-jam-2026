@@ -10,6 +10,7 @@
 #include "../managers/AnimationManager.h"
 #include "../enums/PlayerState.h"
 #include "../interfaces/system/IMapper.h"
+#include "../interfaces/game/IPlayer.h"
 
 #include "Hitbox.hpp"
 #include "projectiles/Projectile.h"
@@ -18,7 +19,7 @@ namespace ggj
 {
     class World;
 
-    class Player2 : public PhysicsSprite
+    class Player2 : public PhysicsSprite, public IPlayer
     {
         public:
         Player2() = default;
@@ -41,16 +42,23 @@ namespace ggj
             setPlayerState(PlayerState::Idle);
         }
 
-        [[nodiscard]] bool cameraShouldFollowPlayer() const;
-        void setCameraFollowsPlayer(bool follow);
-        bool hasClearedLevel() const;
-        void setHasClearedLevel(bool hasClearedLevel);
+        // IPlayer interface
+        [[nodiscard]] raylib::Vector2 getPosition() const override { return PhysicsSprite::getPosition(); }
+        UserData* getUserData() override { return PhysicsSprite::getUserData(); }
+        [[nodiscard]] bool cameraShouldFollowPlayer() const override;
+        void setCameraFollowsPlayer(bool follow) override;
+        [[nodiscard]] bool hasClearedLevel() const override;
+        void setHasClearedLevel(bool hasClearedLevel) override;
+        [[nodiscard]] int getScore() const override;
+        [[nodiscard]] int getLives() const override;
+        Hitbox* getHitbox() override;
+        [[nodiscard]] bool isInDialog() const override { return false; }
+        std::string getDialogId() override { return {}; }
+        void setHasFinishedDialog() override {}
+
         void beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) override;
-        int getScore() const;
-        int getLives() const;
         void update(float timeDelta) override;
         void draw() override;
-        Hitbox* getHitbox();
 
         private:
         void shootMageBall();

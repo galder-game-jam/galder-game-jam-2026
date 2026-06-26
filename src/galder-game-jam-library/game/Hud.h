@@ -8,6 +8,8 @@
 #include "raylib-cpp.hpp"
 #include "../../gamedev-base/GameDevBase.h"
 #include "../GalderGameJamLibrary.h"
+#include "../interfaces/game/IPlayer.h"
+#include "../enums/PlayerPickedCharacter.h"
 
 namespace ggj
 {
@@ -22,8 +24,9 @@ namespace ggj
             }
             void initialize();
             void setFont(raylib::Font *font);
-            void setPlayer(Player *player);
+            void setPlayer(IPlayer *player);
             void setWorld(World *world);
+            void setPickedCharacter(PlayerPickedCharacter character);
             void rotate(float degrees) override;
             void scale(float scale) override;
             void move(const raylib::Vector2 &toMove) override;
@@ -49,7 +52,7 @@ namespace ggj
 
             raylib::Font *m_font = nullptr;
 
-            Player *m_currentPlayer = nullptr;
+            IPlayer *m_currentPlayer = nullptr;
             World *m_currentWorld = nullptr;
 
             raylib::Vector2 m_size {};

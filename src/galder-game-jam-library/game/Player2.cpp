@@ -43,7 +43,7 @@ namespace ggj
     {
         if (m_isDead)
         {
-            if (m_inputManager.keyDown(KeyboardKey::J))
+            if (m_inputManager.keyDown(KeyboardKey::Q))
             {
                 m_body->SetTransform(ConvertToB2Vec2(m_startPos), m_body->GetAngle());
                 setPlayerState(PlayerState::Idle);
@@ -65,7 +65,7 @@ namespace ggj
 
         if (!m_isAttacking || isInAir)
         {
-            if (m_inputManager.keyDown(KeyboardKey::Left) && !m_inputManager.keyDown(KeyboardKey::Right))
+            if (m_inputManager.keyDown(KeyboardKey::A) && !m_inputManager.keyDown(KeyboardKey::D))
             {
                 m_isLeftPosition = true;
                 m_hitbox.setLeftPosition(true);
@@ -74,7 +74,7 @@ namespace ggj
                 if (m_velocity.y < 0.2f && m_velocity.y > -0.2f)
                     setPlayerState(PlayerState::Walk);
             }
-            else if (m_inputManager.keyDown(KeyboardKey::Right) && !m_inputManager.keyDown(KeyboardKey::Left))
+            else if (m_inputManager.keyDown(KeyboardKey::D) && !m_inputManager.keyDown(KeyboardKey::A))
             {
                 m_isLeftPosition = false;
                 m_hitbox.setLeftPosition(false);
@@ -88,12 +88,12 @@ namespace ggj
                 m_velocity = raylib::Vector2 { 0.f, m_velocity.y };
             }
 
-            if (m_inputManager.keyDown(KeyboardKey::Up) && !m_inputManager.keyDown(KeyboardKey::Down))
+            if (m_inputManager.keyDown(KeyboardKey::W) && !m_inputManager.keyDown(KeyboardKey::S))
             {
                 m_velocity = raylib::Vector2 { m_velocity.x, -7.f };
                 setPlayerState(PlayerState::Walk);
             }
-            else if (m_inputManager.keyDown(KeyboardKey::Down) && !m_inputManager.keyDown(KeyboardKey::Up))
+            else if (m_inputManager.keyDown(KeyboardKey::S) && !m_inputManager.keyDown(KeyboardKey::W))
             {
                 m_velocity = raylib::Vector2 { m_velocity.x, 7.f };
                 setPlayerState(PlayerState::Walk);
@@ -104,7 +104,7 @@ namespace ggj
             }
         }
 
-        if (m_inputManager.keyPressed(KeyboardKey::K) && !m_isAttacking)
+        if (m_inputManager.keyPressed(KeyboardKey::C) && !m_isAttacking)
         {
             setPlayerState(PlayerState::AttackGrounded);
 
@@ -114,7 +114,7 @@ namespace ggj
         }
 
         //Toggle player rotate. Fun!
-        if (m_inputManager.keyPressed(KeyboardKey::L))
+        if (m_inputManager.keyPressed(KeyboardKey::Enter) || m_inputManager.keyPressed(KeyboardKey::V))
         {
             bool rotationFixedToggle = !m_body->IsFixedRotation();
             m_body->SetFixedRotation(rotationFixedToggle);

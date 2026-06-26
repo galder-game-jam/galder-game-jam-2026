@@ -308,6 +308,11 @@ namespace ggj
             generateGenericPhysicsObject(name, body, generatorData);
     }
 
+    void World::setPickedCharacter(PlayerPickedCharacter character)
+    {
+        m_pickedCharacter = character;
+    }
+
     void World::generatePlayer(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
@@ -318,7 +323,6 @@ namespace ggj
             {
                 raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
                 raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
-                raylib::Vector2 v = { (float)generatorData.pos.x + origin.x, (float)generatorData.pos.y + origin.y };
 
                 raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
@@ -329,15 +333,26 @@ namespace ggj
                 }
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
+                raylib::Vector2 physicsSize = raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y);
 
-                m_player = m_layers[generatorData.layerIndex].createGameObject<ggj::Player>(m_input, m_animationManager, m_mapper, m_soundManager, body,
-                                                                                            raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize,
-                                                                                            r, tex, generatorData.userData);
-
-                Hitbox* hitbox = m_player->getHitbox();
-
-                m_userDataManager.addUserData(body, m_player);
-                m_userDataManager.addUserData(hitbox->getBody(), hitbox);
+                if (m_pickedCharacter == PlayerPickedCharacter::Wizard)
+                {
+                    if (raylib::Texture* wizardTex = m_textures.get(TextureName::WizardPlayer); wizardTex != nullptr)
+                        tex = wizardTex;
+                    Player2* p2 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player2>(
+                        this, m_input, m_animationManager, m_mapper, body, physicsSize, spriteSize, r, tex, generatorData.userData);
+                    m_player = p2;
+                    m_userDataManager.addUserData(body, p2);
+                    m_userDataManager.addUserData(p2->getHitbox()->getBody(), p2->getHitbox());
+                }
+                else
+                {
+                    Player* p1 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player>(
+                        m_input, m_animationManager, m_mapper, m_soundManager, body, physicsSize, spriteSize, r, tex, generatorData.userData);
+                    m_player = p1;
+                    m_userDataManager.addUserData(body, p1);
+                    m_userDataManager.addUserData(p1->getHitbox()->getBody(), p1->getHitbox());
+                }
             }
         }
     }
@@ -650,7 +665,7 @@ namespace ggj
         //return "both";
     }
 
-    Player* World::getPlayer()
+    IPlayer* World::getPlayer()
     {
         return m_player;
     }

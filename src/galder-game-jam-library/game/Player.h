@@ -11,13 +11,14 @@
 #include "../enums/PlayerState.h"
 #include "../enums/SoundName.h"
 #include "../interfaces/system/IMapper.h"
+#include "../interfaces/game/IPlayer.h"
 #include "../../gamedev-base/interfaces/managers/ISoundManager.h"
 
 #include "Hitbox.hpp"
 
 namespace ggj
 {
-    class Player : public PhysicsSprite
+    class Player : public PhysicsSprite, public IPlayer
     {
         public:
         Player() = default;
@@ -41,19 +42,23 @@ namespace ggj
             setPlayerState(PlayerState::Idle);
         }
 
-        [[nodiscard]] bool cameraShouldFollowPlayer() const;
-        void setCameraFollowsPlayer(bool follow);
-        bool hasClearedLevel() const;
-        void setHasClearedLevel(bool hasClearedLevel);
+        // IPlayer interface
+        [[nodiscard]] raylib::Vector2 getPosition() const override { return PhysicsSprite::getPosition(); }
+        UserData* getUserData() override { return PhysicsSprite::getUserData(); }
+        [[nodiscard]] bool cameraShouldFollowPlayer() const override;
+        void setCameraFollowsPlayer(bool follow) override;
+        [[nodiscard]] bool hasClearedLevel() const override;
+        void setHasClearedLevel(bool hasClearedLevel) override;
+        [[nodiscard]] int getScore() const override;
+        [[nodiscard]] int getLives() const override;
+        Hitbox* getHitbox() override;
+        [[nodiscard]] bool isInDialog() const override;
+        std::string getDialogId() override;
+        void setHasFinishedDialog() override;
+
         void beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) override;
-        int getScore() const;
-        int getLives() const;
         void update(float timeDelta) override;
         void draw() override;
-        Hitbox* getHitbox();
-        bool isInDialog() const;
-        std::string getDialogId();
-        void setHasFinishedDialog();
 
         private:
         void handleInputs(float timeDelta);

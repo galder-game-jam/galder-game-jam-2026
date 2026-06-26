@@ -8,16 +8,11 @@
 #include "raylib-cpp.hpp"
 #include "../../gamedev-base/GameDevBase.h"
 #include "../GalderGameJamLibrary.h"
+#include "../enums/PlayerPickedCharacter.h"
+#include "../interfaces/game/IPlayer.h"
 
 namespace ggj
 {
-    enum class PlayerPickedCharacter
-    {
-        None = 0,
-        Rogue = 1,
-        Wizard = 2,
-    };
-
     class World;
     class CharacterSelectScreen : public IGameObject<raylib::Vector2>
     {
@@ -28,9 +23,10 @@ namespace ggj
                 m_isVisible = true;
             }
             void initialize();
-            bool isCharacterSelected();
+            [[nodiscard]] bool isCharacterSelected() const;
+            [[nodiscard]] PlayerPickedCharacter getPickedCharacter() const;
             void setFont(raylib::Font* font);
-            void setPlayer(Player* player);
+            void setPlayer(IPlayer* player);
             void setWorld(World* world);
             void rotate(float degrees) override;
             void scale(float scale) override;
@@ -53,7 +49,7 @@ namespace ggj
 
             raylib::Font *m_font = nullptr;
 
-            Player *m_currentPlayer = nullptr;
+            IPlayer *m_currentPlayer = nullptr;
             World *m_currentWorld = nullptr;
 
             raylib::Vector2 m_size {};

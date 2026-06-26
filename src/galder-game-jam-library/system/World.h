@@ -14,9 +14,11 @@ namespace ggj
 
 #include "../../gamedev-base/GameDevBase.h"
 #include "../enums/ResourceName.h"
+#include "../enums/PlayerPickedCharacter.h"
 #include "box2d/box2d.h"
 #include "tileson.hpp"
 #include "../interfaces/system/IMapper.h"
+#include "../interfaces/game/IPlayer.h"
 #include "raylib-cpp.hpp"
 #include "WorldLayer.h"
 #include "../enums/KeyboardKey.h"
@@ -50,7 +52,8 @@ namespace ggj
         void update(float timeDelta) override;
         void draw() override;
         std::string getLeadingPlayer() const;
-        Player* getPlayer();
+        void setPickedCharacter(PlayerPickedCharacter character);
+        IPlayer* getPlayer();
         [[nodiscard]] int getEnemies() const;
 #ifdef GAME_DEV_DEBUG
         void setDebugState(ggj::DebugState* pState);
@@ -95,7 +98,8 @@ namespace ggj
 
         int m_portalTimer { 5 };
 
-        Player* m_player = nullptr;
+        IPlayer* m_player = nullptr;
+        PlayerPickedCharacter m_pickedCharacter { PlayerPickedCharacter::Rogue };
 #ifdef GAME_DEV_DEBUG
         ggj::DebugState* m_pDebugState = nullptr;
 #endif

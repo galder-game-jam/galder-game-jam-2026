@@ -23,16 +23,7 @@ namespace ggj
         if (projectExists)
         {
             m_logger.debug("FOUND project!");
-            parseProject();
-            m_hud.initialize();
-            m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
-            m_hud.setWorld(m_worlds[m_currentStageIndex].get());
 
-            m_dialog.initialize();
-            m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
-            m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
-
-            //Load custom font
             std::string fontPath = m_resources.getResource(ResourceName::FontDroidSansBold);
             m_font.Load(fontPath, 64, nullptr, 250);
             m_font.GetTexture().GenMipmaps();
@@ -86,6 +77,7 @@ namespace ggj
                         }
                         m_worlds[stage] = std::make_unique<World>(m_logger, m_resources, m_mapper, m_textures, m_window, m_input, m_collisionManager, m_debugManager,
                                                                   m_animationManager, m_userDataManager, m_soundManager, std::move(map), m_hud, m_dialog);
+                        m_worlds[stage]->setPickedCharacter(m_pickedCharacter);
                         m_worlds[stage]->initialize();
 #ifdef GAME_DEV_DEBUG
                         m_worlds[stage]->setDebugState(&m_managers.debugState);
@@ -124,6 +116,15 @@ namespace ggj
             m_characterSelectScreen.update(timeDelta);
             if (m_characterSelectScreen.isCharacterSelected())
             {
+                m_pickedCharacter = m_characterSelectScreen.getPickedCharacter();
+                parseProject();
+                m_hud.initialize();
+                m_hud.setPickedCharacter(m_pickedCharacter);
+                m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
+                m_hud.setWorld(m_worlds[m_currentStageIndex].get());
+                m_dialog.initialize();
+                m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
+                m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
                 m_characterSelectScreenActive = false;
                 startMusicForStage(m_currentStageIndex);
 #ifdef GAME_DEV_DEBUG
