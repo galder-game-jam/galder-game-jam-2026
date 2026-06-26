@@ -4,6 +4,7 @@
 
 #include "Dialog.h"
 #include "../GalderGameJamLibrary.h"
+#include "../managers/DialogLoader.h"
 
 void ggj::Dialog::initialize()
 {
@@ -14,6 +15,10 @@ void ggj::Dialog::initialize()
 
     m_dialogOffset = raylib::Vector2 { m_position.x + 200, m_position.y + 380 };
     m_dialogTexture = m_textures.get(TextureName::HudRpgSubset);
+
+    DialogLoader loader;
+    if (!loader.load(m_resources.getResource(ResourceName::DialogNpc), m_dialogManager))
+        TraceLog(LOG_ERROR, "Dialog: failed to load npc.json");
 }
 
 void ggj::Dialog::setFont(raylib::Font* font)
@@ -41,10 +46,22 @@ void ggj::Dialog::scale(float scale) {}
 
 void ggj::Dialog::move(const raylib::Vector2& toMove) {}
 
+void ggj::Dialog::refreshVisibleChoices()
+{
+    DialogItem* dialog = m_dialogManager.getDialog(m_dialogId);
+    if (dialog != nullptr)
+        m_visibleChoices = m_dialogManager.getVisibleChoices(*dialog);
+    else
+        m_visibleChoices.clear();
+}
+
 void ggj::Dialog::update(float timeDelta)
 {
     if (m_currentPlayer == nullptr)
         return;
+
+    if (m_currentWorld->getNumberOfEnemiesLeft() == 0)
+        m_dialogManager.setCondition("levelComplete");
 
     if (m_currentPlayer->isInDialog())
     {
@@ -53,6 +70,12 @@ void ggj::Dialog::update(float timeDelta)
             m_dialogId = m_currentPlayer->getDialogId();
             m_draw = true;
             m_currentChoice = 0;
+
+            DialogItem* dialog = m_dialogManager.getDialog(m_dialogId);
+            if (dialog != nullptr && !dialog->affirmCondition.empty())
+                m_dialogManager.setCondition(dialog->affirmCondition);
+
+            refreshVisibleChoices();
         }
         handleInputs(timeDelta);
     }
@@ -114,7 +137,7 @@ void ggj::Dialog::drawDialogBox(raylib::Vector2 offset, int width, int height, c
 
     m_font->DrawText(item.text, raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 7 }, FONT_SIZE, 0, YELLOW);
 
-    std::size_t numberOfChoices = item.choices.size();
+    std::size_t numberOfChoices = m_visibleChoices.size();
     float grid = TILE_UNIT * 2;
 
     if (numberOfChoices > 0)
@@ -135,7 +158,7 @@ void ggj::Dialog::drawDialogBox(raylib::Vector2 offset, int width, int height, c
                 m_dialogTexture->Draw(m_dialogArrowRect, position - raylib::Vector2 { 20, 0 });
             }
 
-            m_font->DrawText(item.choices[i].text, position, FONT_SIZE, 0, YELLOW);
+            m_font->DrawText(m_visibleChoices[i].text, position, FONT_SIZE, 0, YELLOW);
         }
     }
     // if (enemiesKilled == 0)
@@ -174,11 +197,12 @@ void ggj::Dialog::handleInputs(float timeDelta)
     {
         m_draw = false;
         m_dialogId = {};
+        m_visibleChoices.clear();
         m_currentPlayer->setHasFinishedDialog();
     }
     if (m_inputManager.keyPressed(KeyboardKey::S))
     {
-        int choices = m_dialogManager.getDialog(m_dialogId)->choices.size();
+        int choices = static_cast<int>(m_visibleChoices.size());
         if (m_currentChoice < choices - 1)
         {
             ++m_currentChoice;
@@ -193,10 +217,11 @@ void ggj::Dialog::handleInputs(float timeDelta)
     }
     if (m_inputManager.keyPressed(KeyboardKey::Space))
     {
-        if (m_dialogManager.getDialog(m_dialogId)->choices.size() == 0)
+        if (m_visibleChoices.empty())
             return;
 
-        m_dialogId = m_dialogManager.getDialog(m_dialogId)->choices[m_currentChoice].nextDialogId;
+        m_dialogId = m_visibleChoices[m_currentChoice].nextDialogId;
         m_currentChoice = 0;
+        refreshVisibleChoices();
     }
 }

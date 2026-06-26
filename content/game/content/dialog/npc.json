@@ -1,0 +1,84 @@
+{
+  "dialogs": [
+    {
+      "id": "initialGreeting",
+      "affirmCondition": "initialTalk",
+      "text": "Hello my good Traveller!\nWelcome to the world of Galdaria.\nYour first task is to purge these lands of every creature in these woods!\nI am a bit too old to run around and kill, but I have scouted out the area for you.\nCurrently, these pesky creatures are running around. Happy little bastards...\nKill them for me, and I will grant you access to my torture chamber!\nWhen the deed is done, you will find a portal in a cave to the north.\nAre you up for the task?",
+      "choices": [
+        { "text": "Yes",   "nextDialogId": "initialGreetingYes" },
+        { "text": "No",    "nextDialogId": "initialGreetingNo" },
+        { "text": "Maybe", "nextDialogId": "initialGreetingMaybe" },
+        { "text": "I purged everything", "condition": "levelComplete", "nextDialogId": "initialPurged" }
+      ]
+    },
+    {
+      "id": "initialGreetingYes",
+      "text": "Excellent choice!\nI promise you won't regret it!\nTalk to you later.",
+      "choices": []
+    },
+    {
+      "id": "initialGreetingNo",
+      "text": "Uhm ok...\nListen. Here is the issue.\nYou can dwell on this as long as you want.\nBut as long as these creatures are still alive you will not be able to progress.\nUp to you hippie! Peace & Love!\nSo will you help me?",
+      "choices": [
+        { "text": "Yes", "nextDialogId": "initialGreetingYes" }
+      ]
+    },
+    {
+      "id": "initialGreetingMaybe",
+      "text": "Maybe!!??\nHow am I supposed to respond to that??\nAt least have the decency to make up a choice!\nI presume you are capable of that! So spit it out.\nYes or No?",
+      "choices": [
+        { "text": "Yes", "nextDialogId": "initialGreetingYes" },
+        { "text": "No",  "nextDialogId": "initialGreetingNo" }
+      ]
+    },
+    {
+      "id": "initialPurged",
+      "text": "Wow...\nWell done you fucking psycho-killer.\nDid it ever occur to you that some of them have a family??\nOh well, you can now proceed further through the portal into the next level",
+      "choices": []
+    },
+    {
+      "id": "lostMoney",
+      "text": "Oh hello again!\nThese moss-covered zombies attacked me, and I lost all my money when I ran.\nSince you are already running around on your killing spree,\nCan you collect the coins and return to me?",
+      "choices": [
+        { "text": "No",       "nextDialogId": "lostMoneyNo" },
+        { "text": "Hell no",  "nextDialogId": "lostMoneyHellNo" },
+        { "text": "We'll see","nextDialogId": "lostMoneyWellSee" },
+        { "text": "Fuck you", "nextDialogId": "lostMoneyFuckYou" },
+        { "text": "Are you here?", "condition": "initialTalk", "nextDialogId": "lostMoneyDontBother" }
+      ]
+    },
+    {
+      "id": "lostMoneyNo",
+      "text": "Hey!\nThat money belongs to me!\nDidn't your mother teach you stealing is wrong!?\nSo I'm asking again; Can you collect the coins and return to me?",
+      "choices": [
+        { "text": "Hell no",  "nextDialogId": "lostMoneyHellNo" },
+        { "text": "We'll see","nextDialogId": "lostMoneyWellSee" },
+        { "text": "Fuck you", "nextDialogId": "lostMoneyFuckYou" }
+      ]
+    },
+    {
+      "id": "lostMoneyHellNo",
+      "text": "Whoah there!\nNo need to get all pumped up!\nWatch so you don't pop a blood vessel or something.\nSo I'm asking again; Can you collect the coins and return to me?",
+      "choices": [
+        { "text": "We'll see", "nextDialogId": "lostMoneyWellSee" }
+      ]
+    },
+    {
+      "id": "lostMoneyFuckYou",
+      "text": "Watch your tongue traveller!\nI do not respond well to insults\nSo I'm asking again; Can you collect the coins and return to me?",
+      "choices": [
+        { "text": "We'll see", "nextDialogId": "lostMoneyWellSee" }
+      ]
+    },
+    {
+      "id": "lostMoneyWellSee",
+      "text": "Ah well.\nA maybe is better than nothing.\nEspecially coming from such a lowlife like yourself.\nCome see me when you have collected at least 10 gold for me.",
+      "choices": []
+    },
+    {
+      "id": "lostMoneyDontBother",
+      "text": "How about this..\nYou worry about your problems and I deal with mine.\nOK?\nGeez. What's with all the questions detective?\nPiss off!",
+      "choices": []
+    }
+  ]
+}
