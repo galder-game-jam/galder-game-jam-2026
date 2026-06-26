@@ -37,6 +37,7 @@ namespace ggj
 
         private:
         void handleInputs(float timeDelta);
+        void refreshVisibleChoices();
         void DrawBox(raylib::Vector2 offset, int width, int height) const;
         void drawDialogBox(raylib::Vector2 offset, int width, int height, const DialogItem& item) const;
         IMapper& m_mapper;
@@ -79,6 +80,7 @@ namespace ggj
         std::string m_dialogId {};
         bool m_draw {};
         int m_currentChoice { 0 };
+        std::vector<DialogChoice> m_visibleChoices {};
     };
 } // namespace ggj
 
