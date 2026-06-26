@@ -8,7 +8,7 @@
 
 namespace ggj
 {
-    constexpr int ANOTHER_CONST = 32;  
+    constexpr int ANOTHER_CONST = 32;
 
     /*!
      * Adds two integers together. This is an example to showcase doxygen documentation.

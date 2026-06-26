@@ -28,6 +28,7 @@ namespace ggj
         bool isGameActive { false }; ///< Set to true once character select is dismissed.
         bool showHitboxes { false };
         bool cameraFollowsPlayer { true };
+        bool showImGuiDemo { false };
         int requestedStage { -1 }; ///< -1 = no request; consumer resets to -1 after reading.
     };
 
@@ -45,6 +46,7 @@ namespace ggj
              */
         void draw(DebugState& state)
         {
+            ImGui::SetNextWindowSize({ 300, 200 }, ImGuiCond_FirstUseEver);
             ImGui::Begin("Debug Menu");
 
             ImGui::Text("Map");
@@ -63,8 +65,12 @@ namespace ggj
             ImGui::Separator();
             ImGui::Checkbox("Show hitboxes", &state.showHitboxes);
             ImGui::Checkbox("Camera follows player", &state.cameraFollowsPlayer);
+            ImGui::Checkbox("Show ImGui demo", &state.showImGuiDemo);
 
             ImGui::End();
+
+            if (state.showImGuiDemo)
+                ImGui::ShowDemoWindow(&state.showImGuiDemo);
         }
     };
 
