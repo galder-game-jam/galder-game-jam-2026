@@ -6,6 +6,10 @@
 #include "../game/Hud.h"
 #include "../graphics/Sprite.h"
 
+#ifdef GAME_DEV_DEBUG
+    #include "../managers/DebugMenu.hpp"
+#endif
+
 namespace ggj
 {
     bool World::initialize()
@@ -18,7 +22,7 @@ namespace ggj
         m_world.SetContactListener(&m_collisionManager);
         if (m_map->getProp("gravity_x") != nullptr && m_map->getProp("gravity_y") != nullptr)
         {
-            m_world.SetGravity({m_map->get<float>("gravity_x"), m_map->get<float>("gravity_y")});
+            m_world.SetGravity({ m_map->get<float>("gravity_x"), m_map->get<float>("gravity_y") });
         }
         if (m_map->getProp("camera_min_x") != nullptr && m_map->getProp("camera_min_y") != nullptr)
         {
@@ -37,15 +41,14 @@ namespace ggj
         m_cameraDefault = m_camera.target;
 
         int32_t layerIndex = 0;
-        for (auto &layer: m_map->getLayers())
+        for (auto& layer : m_map->getLayers())
         {
-
             if (layer.getType() == tson::LayerType::TileLayer)
             {
                 if (m_layers.count(layerIndex) == 0)
-                    m_layers[layerIndex] = {layerIndex, true, layer.getName()}; //Tiles are only for drawing and will not be updated
+                    m_layers[layerIndex] = { layerIndex, true, layer.getName() }; //Tiles are only for drawing and will not be updated
 
-                for (auto &tileObject: layer.getTileObjects())
+                for (auto& tileObject : layer.getTileObjects())
                 {
                     auto pos = tileObject.second.getPosition();
                     auto rect = tileObject.second.getDrawingRect();
@@ -53,12 +56,12 @@ namespace ggj
                     TextureName id = m_mapper.getTextureNameByString(tileset);
                     if (id != TextureName::None)
                     {
-                        raylib::Texture *tex = m_textures.get(id);
+                        raylib::Texture* tex = m_textures.get(id);
                         if (tex != nullptr)
                         {
-                            raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                            raylib::Vector2 v = {pos.x + origin.x, pos.y + origin.y};
-                            raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                            raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                            raylib::Vector2 v = { pos.x + origin.x, pos.y + origin.y };
+                            raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
                             m_layers[layerIndex].createGameObject<ggj::Sprite>(v, r, tex);
                         }
                     }
@@ -67,17 +70,17 @@ namespace ggj
             else if (layer.getType() == tson::LayerType::ObjectGroup)
             {
                 if (m_layers.count(layerIndex) == 0)
-                    m_layers[layerIndex] = {layerIndex, false, layer.getName()}; //Objects will have their positions updated!
+                    m_layers[layerIndex] = { layerIndex, false, layer.getName() }; //Objects will have their positions updated!
 
-                for (auto &obj: layer.getObjects())
+                for (auto& obj : layer.getObjects())
                 {
-                    tson::TiledClass *c = obj.getClass();
+                    tson::TiledClass* c = obj.getClass();
                     if (c == nullptr)
                         continue;
 
                     if (c->getMember("is_static") != nullptr && c->getMember("is_trigger") != nullptr)
                     {
-                        ObjectGeneratorData generatorData{};
+                        ObjectGeneratorData generatorData {};
 
                         generatorData.layerIndex = layerIndex;
                         generatorData.obj = obj;
@@ -88,8 +91,8 @@ namespace ggj
                         generatorData.isKinematic = c->get<bool>("is_kinematic");
                         generatorData.isPlayer = c->get<bool>("is_player");
                         generatorData.sprite = c->get<std::string>("sprite");
-                        generatorData.spriteSize.x = (float) c->get<int>("sprite_size_x");
-                        generatorData.spriteSize.y = (float) c->get<int>("sprite_size_y");
+                        generatorData.spriteSize.x = (float)c->get<int>("sprite_size_x");
+                        generatorData.spriteSize.y = (float)c->get<int>("sprite_size_y");
                         generatorData.velocity.x = c->get<float>("velocity_x");
                         generatorData.velocity.y = c->get<float>("velocity_y");
 
@@ -100,7 +103,7 @@ namespace ggj
                         std::string userdataDialogId = c->get<std::string>("userdata_dialog_id");
 
                         //RBP: Note to self: Improve Tileson so this was handled automatically in the TiledClass.
-                        for (auto &[key, value]: obj.getProperties().getProperties())
+                        for (auto& [key, value] : obj.getProperties().getProperties())
                         {
                             if (key == "is_static")
                                 generatorData.isStatic = value.getValue<bool>();
@@ -111,9 +114,9 @@ namespace ggj
                             else if (key == "sprite")
                                 generatorData.sprite = value.getValue<std::string>();
                             else if (key == "sprite_size_x")
-                                generatorData.spriteSize.x = (float) value.getValue<int>();
+                                generatorData.spriteSize.x = (float)value.getValue<int>();
                             else if (key == "sprite_size_y")
-                                generatorData.spriteSize.y = (float) value.getValue<int>();
+                                generatorData.spriteSize.y = (float)value.getValue<int>();
                             else if (key == "velocity_x")
                                 generatorData.velocity.x = value.getValue<float>();
                             else if (key == "velocity_y")
@@ -132,7 +135,7 @@ namespace ggj
                                 userdataDialogId = value.getValue<std::string>();
                         }
 
-                        ObjectType objectType = (ObjectType) userdataObjectType;
+                        ObjectType objectType = (ObjectType)userdataObjectType;
                         tson::Vector2i pos = generatorData.obj.getPosition();
                         tson::Vector2i size = generatorData.obj.getSize();
                         tson::Vector2i originalSize = generatorData.obj.getSize();
@@ -145,18 +148,20 @@ namespace ggj
                         }
 
                         PhysicsShape shape = PhysicsShape::None;
-                        if (obj.getObjectType() == tson::ObjectType::Rectangle) shape = PhysicsShape::Rectangle;
-                        else if (obj.getObjectType() == tson::ObjectType::Ellipse) shape = PhysicsShape::Circle;
+                        if (obj.getObjectType() == tson::ObjectType::Rectangle)
+                            shape = PhysicsShape::Rectangle;
+                        else if (obj.getObjectType() == tson::ObjectType::Ellipse)
+                            shape = PhysicsShape::Circle;
 
                         b2BodyDef bodyDef;
                         bodyDef.type = bodyType;
 
-                        b2Vec2 b2size = PhysicsObject::ConvertToB2Vec2({(float) size.x, (float) size.y});
-                        b2Vec2 b2origin = PhysicsObject::ConvertToB2Vec2({(float) size.x / 2, (float) size.y / 2});
-                        b2Vec2 b2pos = PhysicsObject::ConvertToB2Vec2({(float) pos.x, (float) pos.y});
+                        b2Vec2 b2size = PhysicsObject::ConvertToB2Vec2({ (float)size.x, (float)size.y });
+                        b2Vec2 b2origin = PhysicsObject::ConvertToB2Vec2({ (float)size.x / 2, (float)size.y / 2 });
+                        b2Vec2 b2pos = PhysicsObject::ConvertToB2Vec2({ (float)pos.x, (float)pos.y });
 
                         bodyDef.position.Set(b2pos.x + b2origin.x, b2pos.y + b2origin.y);
-                        b2Body *body = m_world.CreateBody(&bodyDef);
+                        b2Body* body = m_world.CreateBody(&bodyDef);
                         if (shape == PhysicsShape::Rectangle)
                         {
                             b2PolygonShape box;
@@ -167,12 +172,11 @@ namespace ggj
                             fd.density = 1.0f; //Density must be something to react to gravity.
                             fd.friction = 0.3f;
                             body->CreateFixture(&fd);
-
                         }
                         else if (shape == PhysicsShape::Circle)
                         {
                             b2CircleShape circle;
-                            size = {size.x / 2, size.y / 2}; //Size is half, as it is radius
+                            size = { size.x / 2, size.y / 2 }; //Size is half, as it is radius
                             circle.m_p.Set(0.f, 0.f);
                             circle.m_radius = b2origin.x;
 
@@ -184,12 +188,12 @@ namespace ggj
                             body->CreateFixture(&fd);
                         }
 
-                        for (b2Fixture *f = body->GetFixtureList(); f; f = f->GetNext())
+                        for (b2Fixture* f = body->GetFixtureList(); f; f = f->GetNext())
                         {
                             f->SetSensor(generatorData.isTrigger);
                         }
 
-                        UserData userData{objectType, {userDataForceX, userDataForceY}, userdataCommand, userdataDialogId, name};
+                        UserData userData { objectType, { userDataForceX, userDataForceY }, userdataCommand, userdataDialogId, name };
                         generatorData.userData = userData;
 
                         generatorData.pos = pos;
@@ -209,10 +213,9 @@ namespace ggj
 
     void World::update(float timeDelta)
     {
-
         m_world.Step(timeDelta, 8,
                      3); //8 and 3 are numbers suggested by Box2D documentation, higher numbers: more accuracy but costs more performance.
-        for (auto &layer: m_layers)
+        for (auto& layer : m_layers)
         {
             layer.second.update(timeDelta);
         }
@@ -222,21 +225,23 @@ namespace ggj
 
         if (m_player != nullptr)
         {
-            if(m_player->hasClearedLevel())
+#ifdef GAME_DEV_DEBUG
+            if (m_pDebugState != nullptr)
+            {
+                m_player->getHitbox()->setVisible(m_pDebugState->showHitboxes);
+                m_player->setCameraFollowsPlayer(m_pDebugState->cameraFollowsPlayer);
+            }
+#endif
+
+            if (m_player->hasClearedLevel())
             {
                 setLevelCleared(true);
                 m_player->setHasClearedLevel(false);
             }
 
-            m_camera.target = (m_player->cameraShouldFollowPlayer())
-                              ? raylib::Vector2((float) (int) (std::round(m_player->getPosition().x) - (float) 800.f / 2),
-                                                (float) (int) (std::round(m_player->getPosition().y) - (float) 600.f / 2))
-                              : m_cameraDefault;
-#ifdef GAME_DEV_DEBUG
-            Colori color = {0, 50, 150, 255};
-            //m_debugManager.setText(4, fmt::format("Current leader: {0}", getLeadingPlayer()), color);
-            //m_debugManager.setText(18, fmt::format("CameraPos: ({0}, {1})", (int) m_camera.target.x, (int) m_camera.target.y), color);
-#endif
+            m_camera.target = (m_player->cameraShouldFollowPlayer()) ? raylib::Vector2((float)(int)(std::round(m_player->getPosition().x) - (float)800.f / 2),
+                                                                                       (float)(int)(std::round(m_player->getPosition().y) - (float)600.f / 2))
+                                                                     : m_cameraDefault;
         }
 
         if (m_camera.target.x > m_cameraMax.x)
@@ -255,7 +260,7 @@ namespace ggj
     {
         m_window.ClearBackground(m_backgroundColor);
         m_camera.BeginMode();
-        for (auto &layer: m_layers)
+        for (auto& layer : m_layers)
         {
             layer.second.draw();
         }
@@ -264,7 +269,7 @@ namespace ggj
         m_dialog.draw();
     }
 
-    void World::generatePhysicsObject(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generatePhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         if (name == "player1")
             generatePlayer(name, body, generatorData);
@@ -303,19 +308,19 @@ namespace ggj
             generateGenericPhysicsObject(name, body, generatorData);
     }
 
-    void World::generatePlayer(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generatePlayer(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
         if (id != TextureName::None)
         {
-            raylib::Texture *tex = m_textures.get(id);
+            raylib::Texture* tex = m_textures.get(id);
             if (tex != nullptr)
             {
-                raylib::Rectangle rect = {0.f, 0.f, (float) generatorData.originalSize.x, (float) generatorData.originalSize.y};
-                raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                raylib::Vector2 v = {(float) generatorData.pos.x + origin.x, (float) generatorData.pos.y + origin.y};
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                raylib::Vector2 v = { (float)generatorData.pos.x + origin.x, (float)generatorData.pos.y + origin.y };
 
-                raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
                 if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
                 {
@@ -326,32 +331,30 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 m_player = m_layers[generatorData.layerIndex].createGameObject<ggj::Player>(m_input, m_animationManager, m_mapper, body,
-                                                                                            raylib::Vector2((float) generatorData.size.x,
-                                                                                                            (float) generatorData.size.y),
-                                                                                            spriteSize, r,
-                                                                                            tex, generatorData.userData);
-                
-                Hitbox *hitbox = m_player->getHitbox();
-                
+                                                                                            raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize,
+                                                                                            r, tex, generatorData.userData);
+
+                Hitbox* hitbox = m_player->getHitbox();
+
                 m_userDataManager.addUserData(body, m_player);
                 m_userDataManager.addUserData(hitbox->getBody(), hitbox);
             }
         }
     }
 
-    void World::generateBat(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generateBat(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
         if (id != TextureName::None)
         {
-            raylib::Texture *tex = m_textures.get(id);
+            raylib::Texture* tex = m_textures.get(id);
             if (tex != nullptr)
             {
-                raylib::Rectangle rect = {0.f, 0.f, (float) generatorData.originalSize.x, (float) generatorData.originalSize.y};
-                raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                raylib::Vector2 v = {(float) generatorData.pos.x + origin.x, (float) generatorData.pos.y + origin.y};
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                raylib::Vector2 v = { (float)generatorData.pos.x + origin.x, (float)generatorData.pos.y + origin.y };
 
-                raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
                 if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
                 {
@@ -361,33 +364,29 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
-                PhysicsObject *physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Bat>(m_animationManager, m_mapper, body,
-                                                                                                             raylib::Vector2(
-                                                                                                                     (float) generatorData.size.x,
-                                                                                                                     (float) generatorData.size.y),
-                                                                                                             spriteSize, r,
-                                                                                                             tex, generatorData.userData,
-                                                                                                             generatorData.velocity);
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Bat>(
+                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
     }
 
-    void World::generateGenericPhysicsObject(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         bool isVisible = !generatorData.isStatic;
 
         PhysicsShape shape = PhysicsShape::None;
-        if (generatorData.obj.getObjectType() == tson::ObjectType::Rectangle) shape = PhysicsShape::Rectangle;
-        else if (generatorData.obj.getObjectType() == tson::ObjectType::Ellipse) shape = PhysicsShape::Circle;
+        if (generatorData.obj.getObjectType() == tson::ObjectType::Rectangle)
+            shape = PhysicsShape::Rectangle;
+        else if (generatorData.obj.getObjectType() == tson::ObjectType::Ellipse)
+            shape = PhysicsShape::Circle;
 
         raylib::Color color = generatorData.isStatic ? RED : DARKPURPLE;
         if (generatorData.sprite.empty())
         {
-            PhysicsObject *physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::PhysicsObject>(body, raylib::Vector2(
-                                                                                                                           (float) generatorData.size.x, (float) generatorData.size.y), shape,
-                                                                                                                   generatorData.userData, color,
-                                                                                                                   isVisible);
+            PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::PhysicsObject>(
+                body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), shape, generatorData.userData, color, isVisible);
             m_userDataManager.addUserData(body, physicsObject);
         }
         else
@@ -395,12 +394,12 @@ namespace ggj
             TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
             if (id != TextureName::None)
             {
-                raylib::Texture *tex = m_textures.get(id);
+                raylib::Texture* tex = m_textures.get(id);
                 if (tex != nullptr)
                 {
-                    raylib::Rectangle rect = {0.f, 0.f, (float) generatorData.originalSize.x, (float) generatorData.originalSize.y};
-                    raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                    raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                    raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                    raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                    raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
                     if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
                     {
@@ -410,32 +409,27 @@ namespace ggj
 
                     raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
-                    PhysicsObject *physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::PhysicsSprite>(body,
-                                                                                                                           raylib::Vector2(
-                                                                                                                                   (float) generatorData.size.x,
-                                                                                                                                   (float) generatorData.size.y),
-                                                                                                                           spriteSize, r,
-                                                                                                                           tex,
-                                                                                                                           generatorData.userData);
+                    PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::PhysicsSprite>(
+                        body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData);
                     m_userDataManager.addUserData(body, physicsObject);
                 }
             }
         }
     }
 
-    void World::generateSnake(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generateSnake(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
         if (id != TextureName::None)
         {
-            raylib::Texture *tex = m_textures.get(id);
+            raylib::Texture* tex = m_textures.get(id);
             if (tex != nullptr)
             {
-                raylib::Rectangle rect = {0.f, 0.f, (float) generatorData.originalSize.x, (float) generatorData.originalSize.y};
-                raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                raylib::Vector2 v = {(float) generatorData.pos.x + origin.x, (float) generatorData.pos.y + origin.y};
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                raylib::Vector2 v = { (float)generatorData.pos.x + origin.x, (float)generatorData.pos.y + origin.y };
 
-                raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
                 if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
                 {
@@ -445,31 +439,27 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
-                PhysicsObject *physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Snake>(m_animationManager, m_mapper, body,
-                                                                                                             raylib::Vector2(
-                                                                                                                     (float) generatorData.size.x,
-                                                                                                                     (float) generatorData.size.y),
-                                                                                                             spriteSize, r,
-                                                                                                             tex, generatorData.userData,
-                                                                                                             generatorData.velocity);
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Snake>(
+                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
     }
 
-    void World::generateCoin(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generateCoin(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
         if (id != TextureName::None)
         {
-            raylib::Texture *tex = m_textures.get(id);
+            raylib::Texture* tex = m_textures.get(id);
             if (tex != nullptr)
             {
-                raylib::Rectangle rect = {0.f, 0.f, (float) generatorData.originalSize.x, (float) generatorData.originalSize.y};
-                raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                raylib::Vector2 v = {(float) generatorData.pos.x + origin.x, (float) generatorData.pos.y + origin.y};
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                raylib::Vector2 v = { (float)generatorData.pos.x + origin.x, (float)generatorData.pos.y + origin.y };
 
-                raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
                 if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
                 {
@@ -479,31 +469,27 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
-                PhysicsObject *physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Coin>(m_animationManager, m_mapper, body,
-                                                                                                               raylib::Vector2(
-                                                                                                                       (float) generatorData.size.x,
-                                                                                                                       (float) generatorData.size.y),
-                                                                                                               spriteSize, r,
-                                                                                                               tex, generatorData.userData,
-                                                                                                               generatorData.velocity);
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Coin>(
+                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
     }
 
-    void World::generateSpider(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generateSpider(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
         if (id != TextureName::None)
         {
-            raylib::Texture *tex = m_textures.get(id);
+            raylib::Texture* tex = m_textures.get(id);
             if (tex != nullptr)
             {
-                raylib::Rectangle rect = {0.f, 0.f, (float) generatorData.originalSize.x, (float) generatorData.originalSize.y};
-                raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                raylib::Vector2 v = {(float) generatorData.pos.x + origin.x, (float) generatorData.pos.y + origin.y};
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                raylib::Vector2 v = { (float)generatorData.pos.x + origin.x, (float)generatorData.pos.y + origin.y };
 
-                raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
                 if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
                 {
@@ -513,31 +499,27 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
-                PhysicsObject *physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Spider>(m_animationManager, m_mapper, body,
-                                                                                                               raylib::Vector2(
-                                                                                                                       (float) generatorData.size.x,
-                                                                                                                       (float) generatorData.size.y),
-                                                                                                               spriteSize, r,
-                                                                                                               tex, generatorData.userData,
-                                                                                                               generatorData.velocity);
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Spider>(
+                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
     }
 
-    void World::generateThing(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generateThing(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
         if (id != TextureName::None)
         {
-            raylib::Texture *tex = m_textures.get(id);
+            raylib::Texture* tex = m_textures.get(id);
             if (tex != nullptr)
             {
-                raylib::Rectangle rect = {0.f, 0.f, (float) generatorData.originalSize.x, (float) generatorData.originalSize.y};
-                raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                raylib::Vector2 v = {(float) generatorData.pos.x + origin.x, (float) generatorData.pos.y + origin.y};
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                raylib::Vector2 v = { (float)generatorData.pos.x + origin.x, (float)generatorData.pos.y + origin.y };
 
-                raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
                 if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
                 {
@@ -547,31 +529,27 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
-                PhysicsObject *physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Thing>(m_animationManager, m_mapper, body,
-                                                                                                                raylib::Vector2(
-                                                                                                                        (float) generatorData.size.x,
-                                                                                                                        (float) generatorData.size.y),
-                                                                                                                spriteSize, r,
-                                                                                                                tex, generatorData.userData,
-                                                                                                                generatorData.velocity);
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Thing>(
+                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
     }
 
-    void World::generateGhost(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generateGhost(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
         if (id != TextureName::None)
         {
-            raylib::Texture *tex = m_textures.get(id);
+            raylib::Texture* tex = m_textures.get(id);
             if (tex != nullptr)
             {
-                raylib::Rectangle rect = {0.f, 0.f, (float) generatorData.originalSize.x, (float) generatorData.originalSize.y};
-                raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                raylib::Vector2 v = {(float) generatorData.pos.x + origin.x, (float) generatorData.pos.y + origin.y};
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                raylib::Vector2 v = { (float)generatorData.pos.x + origin.x, (float)generatorData.pos.y + origin.y };
 
-                raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
                 if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
                 {
@@ -581,31 +559,27 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
-                PhysicsObject *physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Ghost>(m_animationManager, m_mapper, body,
-                                                                                                             raylib::Vector2(
-                                                                                                                     (float) generatorData.size.x,
-                                                                                                                     (float) generatorData.size.y),
-                                                                                                             spriteSize, r,
-                                                                                                             tex, generatorData.userData,
-                                                                                                             generatorData.velocity);
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Ghost>(
+                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
     }
 
-    void World::generatePortal(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generatePortal(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
         if (id != TextureName::None)
         {
-            raylib::Texture *tex = m_textures.get(id);
+            raylib::Texture* tex = m_textures.get(id);
             if (tex != nullptr)
             {
-                raylib::Rectangle rect = {0.f, 0.f, (float) generatorData.originalSize.x, (float) generatorData.originalSize.y};
-                raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                raylib::Vector2 v = {(float) generatorData.pos.x + origin.x, (float) generatorData.pos.y + origin.y};
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                raylib::Vector2 v = { (float)generatorData.pos.x + origin.x, (float)generatorData.pos.y + origin.y };
 
-                raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
                 if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
                 {
@@ -616,30 +590,26 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 m_portal = m_layers[generatorData.layerIndex].createGameObject<ggj::Portal>(m_animationManager, m_mapper, body,
-                                                                                                                raylib::Vector2(
-                                                                                                                        (float) generatorData.size.x,
-                                                                                                                        (float) generatorData.size.y),
-                                                                                                                spriteSize, r,
-                                                                                                                tex, generatorData.userData,
-                                                                                                                generatorData.velocity, m_portalTimer, this);
+                                                                                            raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize,
+                                                                                            r, tex, generatorData.userData, generatorData.velocity, m_portalTimer, this);
                 m_userDataManager.addUserData(body, m_portal);
             }
         }
     }
 
-    void World::generatePowerUp(const std::string &name, b2Body *body, const ObjectGeneratorData &generatorData)
+    void World::generatePowerUp(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
         if (id != TextureName::None)
         {
-            raylib::Texture *tex = m_textures.get(id);
+            raylib::Texture* tex = m_textures.get(id);
             if (tex != nullptr)
             {
-                raylib::Rectangle rect = {0.f, 0.f, (float) generatorData.originalSize.x, (float) generatorData.originalSize.y};
-                raylib::Vector2 origin = {(float) rect.width / 2, (float) rect.height / 2};
-                raylib::Vector2 v = {(float) generatorData.pos.x + origin.x, (float) generatorData.pos.y + origin.y};
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Vector2 origin = { (float)rect.width / 2, (float)rect.height / 2 };
+                raylib::Vector2 v = { (float)generatorData.pos.x + origin.x, (float)generatorData.pos.y + origin.y };
 
-                raylib::Rectangle r = {(float) rect.x, (float) rect.y, (float) rect.width, (float) rect.height};
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
 
                 if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
                 {
@@ -649,13 +619,9 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
-                PhysicsObject *physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::PowerUp>(m_animationManager, m_mapper, body,
-                                                                                                                raylib::Vector2(
-                                                                                                                        (float) generatorData.size.x,
-                                                                                                                        (float) generatorData.size.y),
-                                                                                                                spriteSize, r,
-                                                                                                                tex, generatorData.userData,
-                                                                                                                generatorData.velocity, m_portalTimer);
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::PowerUp>(
+                    m_animationManager, m_mapper, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
+                    generatorData.velocity, m_portalTimer);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -663,7 +629,7 @@ namespace ggj
 
     void World::destroyMarkedObjects()
     {
-        for (auto &layer: m_layers)
+        for (auto& layer : m_layers)
         {
             layer.second.destroyMarkedObjects();
         }
@@ -678,9 +644,9 @@ namespace ggj
     std::string World::getLeadingPlayer() const
     {
         //if(m_player->getScore() > m_player2->getScore())
-            return m_player->getUserData()->getName();
+        return m_player->getUserData()->getName();
         //if(m_player->getScore() < m_player2->getScore())
-          //  return m_player2->getUserData()->getName();
+        //  return m_player2->getUserData()->getName();
         //return "both";
     }
 
@@ -688,6 +654,13 @@ namespace ggj
     {
         return m_player;
     }
+
+#ifdef GAME_DEV_DEBUG
+    void World::setDebugState(ggj::DebugState* pState)
+    {
+        m_pDebugState = pState;
+    }
+#endif
 
     int World::getEnemies() const
     {
@@ -698,4 +671,4 @@ namespace ggj
     {
         --m_numberOfEnemies;
     }
-}
+} // namespace ggj

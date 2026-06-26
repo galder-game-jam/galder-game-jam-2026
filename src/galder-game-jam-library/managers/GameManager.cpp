@@ -4,10 +4,20 @@
 
 #include "GameManager.h"
 
+#ifdef GAME_DEV_DEBUG
+    #include "rlImGui.h"
+#endif
+
+#ifdef GAME_DEV_DEBUG
+ggj::GameManager::~GameManager()
+{
+    rlImGuiShutdown();
+}
+#endif
 
 bool ggj::GameManager::initialize()
 {
-    if(!m_worlds.initialize())
+    if (!m_worlds.initialize())
     {
         m_logger.error("WorldManager initialization failed!");
         return false;
@@ -15,6 +25,10 @@ bool ggj::GameManager::initialize()
 
     m_originalWindowSize = raylib::Vector2((float)m_window.GetWidth(), (float)m_window.GetHeight());
     m_renderTexture = raylib::RenderTexture((int)m_originalWindowSize.x, (int)m_originalWindowSize.y);
+
+#ifdef GAME_DEV_DEBUG
+    rlImGuiSetup(true);
+#endif
 
     return true;
 }
@@ -24,7 +38,6 @@ void ggj::GameManager::update(float timeDelta)
     m_lastTimeDelta = timeDelta;
     m_debugManager.clearText();
     m_worlds.update(timeDelta);
-    m_debugManager.setText(0, "Debug: F1/F2/..=change map. Hitbox = F9", ggj::Colori{255, 0, 0, 255});
 }
 
 void ggj::GameManager::draw()
@@ -42,12 +55,22 @@ void ggj::GameManager::draw()
  */
 void ggj::GameManager::render()
 {
-    float scale = std::min((float)m_window.GetWidth()/m_originalWindowSize.x, (float)m_window.GetHeight()/m_originalWindowSize.y);
+    float scale = std::min((float)m_window.GetWidth() / m_originalWindowSize.x, (float)m_window.GetHeight() / m_originalWindowSize.y);
     BeginDrawing();
     m_window.ClearBackground(BLACK);
-    DrawTexturePro(m_renderTexture.texture, raylib::Rectangle( 0.0f, 0.0f, (float)m_renderTexture.texture.width, (float)-m_renderTexture.texture.height ),
-                   raylib::Rectangle( ((float)m_window.GetWidth() - ((float)m_originalWindowSize.x*scale))*0.5f, ((float)m_window.GetHeight() - ((float)m_originalWindowSize.y*scale))*0.5f,
-                                (float)m_originalWindowSize.x*scale, (float)m_originalWindowSize.y*scale ), { 0, 0 }, 0.0f, WHITE);
+    DrawTexturePro(m_renderTexture.texture, raylib::Rectangle(0.0f, 0.0f, (float)m_renderTexture.texture.width, (float)-m_renderTexture.texture.height),
+                   raylib::Rectangle(((float)m_window.GetWidth() - ((float)m_originalWindowSize.x * scale)) * 0.5f,
+                                     ((float)m_window.GetHeight() - ((float)m_originalWindowSize.y * scale)) * 0.5f, (float)m_originalWindowSize.x * scale,
+                                     (float)m_originalWindowSize.y * scale),
+                   { 0, 0 }, 0.0f, WHITE);
     m_debugManager.draw();
+#ifdef GAME_DEV_DEBUG
+    if (m_debugState.isGameActive)
+    {
+        rlImGuiBegin();
+        m_debugMenu.draw(m_debugState);
+        rlImGuiEnd();
+    }
+#endif
     EndDrawing();
 }

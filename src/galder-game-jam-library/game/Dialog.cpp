@@ -57,6 +57,9 @@ void ggj::Dialog::refreshVisibleChoices()
 
 void ggj::Dialog::update(float timeDelta)
 {
+    if (m_currentPlayer == nullptr)
+        return;
+
     if (m_currentWorld->getNumberOfEnemiesLeft() == 0)
         m_dialogManager.setCondition("levelComplete");
 
@@ -146,7 +149,7 @@ void ggj::Dialog::drawDialogBox(raylib::Vector2 offset, int width, int height, c
         DrawBox(choicesOffset, choicesBowWidth, choicesBoxHeight);
 
         m_dialogTexture->Draw(m_dialogSpaceButtonRect, choicesOffset + raylib::Vector2 { grid * choicesBowWidth + 6, grid * (choicesBoxHeight + 1) + 10 });
-        for (int i = 0; i < static_cast<int>(numberOfChoices); ++i)
+        for (int i = 0; i < numberOfChoices; ++i)
         {
             auto position = choicesOffset + raylib::Vector2 { 30, 10 + 20 * static_cast<float>(i) };
 
