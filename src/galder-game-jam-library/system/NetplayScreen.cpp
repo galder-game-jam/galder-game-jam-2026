@@ -5,6 +5,9 @@
 #include "NetplayScreen.h"
 
 #include "imgui.h"
+#include "fmt/format.h"
+
+#include <cstring>
 
 namespace ggj
 {
@@ -62,6 +65,26 @@ namespace ggj
             ImGui::InputText("##ip", m_ipBuffer, sizeof(m_ipBuffer));
             ImGui::TextUnformatted("Port");
             ImGui::InputInt("##port", &m_port);
+
+            ImGui::Spacing();
+            ImGui::TextUnformatted("Servers found on LAN:");
+            if (m_discoveredServers.empty())
+            {
+                ImGui::TextDisabled("  searching...");
+            }
+            else
+            {
+                for (const DiscoveredServer& server : m_discoveredServers)
+                {
+                    const std::string label = fmt::format("{0}  ({1}:{2})  {3} player(s)##{1}:{2}", server.name, server.ipAddress, server.port, server.playerCount);
+                    if (ImGui::Button(label.c_str()))
+                    {
+                        std::strncpy(m_ipBuffer, server.ipAddress.c_str(), sizeof(m_ipBuffer) - 1);
+                        m_ipBuffer[sizeof(m_ipBuffer) - 1] = '\0';
+                        m_port = server.port;
+                    }
+                }
+            }
         }
 
         // Clamp the port to a valid range.

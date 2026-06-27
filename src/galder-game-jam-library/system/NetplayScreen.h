@@ -7,9 +7,12 @@
 
 #include <cstdint>
 #include <string>
+#include <utility>
+#include <vector>
 #include "raylib-cpp.hpp"
 #include "../../gamedev-base/GameDevBase.h"
 #include "../enums/TextureName.h"
+#include "../data/DiscoveredServer.hpp"
 #include "../interfaces/manager/INetworkManager.h"
 
 namespace ggj
@@ -39,6 +42,9 @@ namespace ggj
         /*! Clears the confirmed/back flags so the screen can be reused. */
         void reset();
 
+        /*! Feeds the latest LAN-discovered hosts to display as quick-connect options. */
+        void setDiscoveredServers(std::vector<DiscoveredServer> servers) { m_discoveredServers = std::move(servers); }
+
         void rotate(float degrees) override {}
         void scale(float scale) override {}
         void move(const raylib::Vector2& toMove) override {}
@@ -56,6 +62,8 @@ namespace ggj
 
         bool m_isConfirmed { false };
         bool m_isBack { false };
+
+        std::vector<DiscoveredServer> m_discoveredServers {};
 
         static constexpr float SCREEN_WIDTH = 800.0f;
         static constexpr float SCREEN_HEIGHT = 600.0f;

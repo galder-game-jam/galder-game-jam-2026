@@ -8,6 +8,8 @@
 #include "../../enums/NetworkRole.h"
 #include "../../enums/PlayerPickedCharacter.h"
 #include "../../data/RemotePlayer.hpp"
+#include "../../data/ConnectedPlayer.hpp"
+#include "../../data/DiscoveredServer.hpp"
 #include "../../../gamedev-base/enums/ConnectionStatus.hpp"
 #include "raylib-cpp.hpp"
 
@@ -15,6 +17,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 namespace ggj
 {
@@ -68,6 +71,20 @@ namespace ggj
         [[nodiscard]] virtual const std::map<uint32_t, raylib::Vector2>& enemyPositions() const = 0;
         /*! Object ids the server has declared gone (collected coins / dead enemies). */
         [[nodiscard]] virtual const std::set<uint32_t>& removedObjectIds() const = 0;
+
+        /*! Host's view of all connected players (host + clients) for the ServerInfo window. Empty off-server. */
+        [[nodiscard]] virtual std::vector<ConnectedPlayer> connectedPlayers() const = 0;
+
+        // --- LAN discovery (Phase 3) ---
+
+        /*! Begin listening for LAN host advertisements (call while browsing on the netplay screen). */
+        virtual void startDiscovery() = 0;
+        /*! Stop listening for LAN advertisements. */
+        virtual void stopDiscovery() = 0;
+        /*! Pump the discovery listener; call each frame while browsing. */
+        virtual void pollDiscovery(float timeDelta) = 0;
+        /*! Hosts found on the LAN since discovery started. */
+        [[nodiscard]] virtual std::vector<DiscoveredServer> discoveredServers() const = 0;
     };
 } // namespace ggj
 

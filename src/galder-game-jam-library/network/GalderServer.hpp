@@ -55,6 +55,15 @@ namespace ggj
 
         [[nodiscard]] size_t connectedClientCount() const { return m_mapClients.size(); }
 
+        /*! Round-trip ping in ms for a connection, or -1 if unavailable. */
+        [[nodiscard]] int getPing(HSteamNetConnection connection) const
+        {
+            SteamNetConnectionRealTimeStatus_t status {};
+            if (m_netInterface != nullptr && m_netInterface->GetConnectionRealTimeStatus(connection, &status, 0, nullptr) == k_EResultOK)
+                return status.m_nPing;
+            return -1;
+        }
+
         void onSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo) override
         {
             switch (pInfo->m_info.m_eState)

@@ -21,13 +21,18 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         data/ClientMessage.hpp
         data/ServerMessage.hpp
         data/RemotePlayer.hpp
+        data/ConnectedPlayer.hpp
+        data/DiscoveredServer.hpp
         enums/NetMessageType.h
         enums/NetworkRole.h
         interfaces/manager/INetworkManager.h
         network/GalderClient.hpp
         network/GalderServer.hpp
+        network/LanBeacon.h
+        network/LanBeacon.cpp
         managers/NetworkManager.cpp
         managers/NetworkManager.h
+        managers/ServerInfoMenu.hpp
         game/projectiles/MageBall.hpp
         game/projectiles/Projectile.cpp
         game/projectiles/Projectile.h

@@ -8,12 +8,14 @@
 #include "../interfaces/manager/INetworkManager.h"
 #include "../network/GalderServer.hpp"
 #include "../network/GalderClient.hpp"
+#include "../network/LanBeacon.h"
 #include "../../gamedev-base/GameDevBase.h"
 
 #include <limits>
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace ggj
 {
@@ -59,6 +61,13 @@ namespace ggj
         [[nodiscard]] const std::map<uint32_t, raylib::Vector2>& enemyPositions() const override { return m_enemyPositions; }
         [[nodiscard]] const std::set<uint32_t>& removedObjectIds() const override { return m_removedObjectIds; }
 
+        [[nodiscard]] std::vector<ConnectedPlayer> connectedPlayers() const override;
+
+        void startDiscovery() override { m_beacon.startListening(); }
+        void stopDiscovery() override { m_beacon.stop(); }
+        void pollDiscovery(float timeDelta) override { m_beacon.poll(timeDelta); }
+        [[nodiscard]] std::vector<DiscoveredServer> discoveredServers() const override { return m_beacon.discoveredServers(); }
+
         private:
         void pollServer(float timeDelta);
         void pollClient(float timeDelta);
@@ -93,6 +102,9 @@ namespace ggj
 
         // Client-only bookkeeping
         bool m_hasSentJoinRequest { false };
+
+        // LAN discovery / advertising
+        LanBeacon m_beacon;
     };
 } // namespace ggj
 

@@ -40,6 +40,7 @@ namespace ggj
             shutdown();
             return;
         }
+        m_beacon.startAdvertising(name, port);
         m_logger.information(fmt::format("Hosting on port {0} as '{1}'", port, name));
     }
 
@@ -72,6 +73,7 @@ namespace ggj
             m_server.reset();
         }
         m_client.reset();
+        m_beacon.stop();
 
         m_role = NetworkRole::None;
         m_localPlayerId = HOST_PLAYER_ID;
@@ -117,6 +119,10 @@ namespace ggj
     void NetworkManager::pollServer(float timeDelta)
     {
         m_server->poll();
+
+        // Keep advertising our presence on the LAN with an up-to-date player count.
+        m_beacon.setPlayerCount(static_cast<int32_t>(m_server->connectedClientCount()) + 1);
+        m_beacon.poll(timeDelta);
 
         // Apply inbound client messages.
         for (const auto& [connection, message] : m_server->takeInbound())
@@ -312,6 +318,50 @@ namespace ggj
 
         if (remote.position.x == 0.0f && remote.position.y == 0.0f)
             remote.position = message.position;
+    }
+
+    std::vector<ConnectedPlayer> NetworkManager::connectedPlayers() const
+    {
+        std::vector<ConnectedPlayer> result;
+        if (m_role != NetworkRole::Server)
+            return result;
+
+        ConnectedPlayer host;
+        host.playerId = HOST_PLAYER_ID;
+        host.name = m_localName;
+        host.isHost = true;
+        host.position = m_localPosition;
+        host.lives = m_localLives;
+        host.score = m_localScore;
+        host.kills = m_localKills;
+        host.pingMs = -1;
+        result.push_back(host);
+
+        for (const auto& [playerId, remote] : m_remotePlayers)
+        {
+            ConnectedPlayer player;
+            player.playerId = playerId;
+            player.name = remote.name;
+            player.isHost = false;
+            player.position = remote.targetPosition;
+            player.lives = remote.lives;
+            player.score = remote.score;
+            player.kills = remote.kills;
+
+            if (m_server)
+            {
+                for (const auto& [connection, mappedId] : m_connectionToPlayerId)
+                {
+                    if (mappedId == playerId)
+                    {
+                        player.pingMs = m_server->getPing(connection);
+                        break;
+                    }
+                }
+            }
+            result.push_back(player);
+        }
+        return result;
     }
 
     void NetworkManager::publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool facingLeft)
