@@ -97,7 +97,7 @@ namespace ggj
 
         m_backgroundTexture->Draw(raylib::Vector2{0.0f, 0.0f});
 
-        DrawRectangle(180, 225, 440, 275, Color{0, 0, 0, 185});
+        DrawRectangle(180, 225, 440, 290, Color{0, 0, 0, 140});
 
         const float MENU_START_Y = 250.0f;
         const float MENU_SPACING = 70.0f;
