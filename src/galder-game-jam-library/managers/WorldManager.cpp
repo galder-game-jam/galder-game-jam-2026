@@ -385,6 +385,13 @@ namespace ggj
                 if (m_worlds.count(m_currentStageIndex) > 0)
                     m_worlds[m_currentStageIndex]->killAllEnemies();
             }
+
+            if (m_managers.debugState.awardCoin)
+            {
+                m_managers.debugState.awardCoin = false;
+                if (m_worlds.count(m_currentStageIndex) > 0)
+                    m_worlds[m_currentStageIndex]->addPlayerScore(0, 1);
+            }
 #endif
 
             if (m_currentStageIndex == NO_MAP_ID)
