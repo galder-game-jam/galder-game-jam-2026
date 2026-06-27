@@ -3,6 +3,7 @@
 //
 
 #include "WorldManager.h"
+#include "../enums/SoundName.h"
 #include "../game/Hud.h"
 #include "../system/MainMenuScreen.h"
 #include "../system/NetplayScreen.h"
@@ -152,6 +153,7 @@ namespace ggj
 
         if (m_mainMenuScreenActive)
         {
+            m_soundManager.playMusic(MusicName::MainMenu1);
             m_mainMenuScreen.update(timeDelta);
             if (m_mainMenuScreen.isExitGameSelected())
                 exit(0);
@@ -391,6 +393,30 @@ namespace ggj
                 m_managers.debugState.awardCoin = false;
                 if (m_worlds.count(m_currentStageIndex) > 0)
                     m_worlds[m_currentStageIndex]->addPlayerScore(0, 1);
+            }
+
+            if (m_managers.debugState.gainLife)
+            {
+                m_managers.debugState.gainLife = false;
+                if (m_worlds.count(m_currentStageIndex) > 0)
+                {
+                    World* world = m_worlds[m_currentStageIndex].get();
+                    world->addPlayerLives(0, 1);
+                    IPlayer* player = world->getPlayer();
+                    if (player != nullptr)
+                        world->spawnFloatingText(player->getPosition());
+                    m_soundManager.playSound(SoundName::ExtraLife);
+                }
+            }
+
+            if (m_managers.debugState.loseLife)
+            {
+                m_managers.debugState.loseLife = false;
+                if (m_worlds.count(m_currentStageIndex) > 0
+                    && m_worlds[m_currentStageIndex]->getPlayerLives(0) > 1)
+                {
+                    m_worlds[m_currentStageIndex]->addPlayerLives(0, -1);
+                }
             }
 #endif
 

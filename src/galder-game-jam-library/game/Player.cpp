@@ -40,7 +40,11 @@ namespace ggj
                 m_world->addPlayerXp(m_playerIndex, GetRandomValue(cfg.xpPerKillMin, cfg.xpPerKillMax));
 
                 if (fx.killsPerExtraLife > 0 && (i + 1) % fx.killsPerExtraLife == 0)
+                {
                     m_world->addPlayerLives(m_playerIndex, 1);
+                    m_world->spawnFloatingText(getPosition());
+                    m_soundManager.playSound(SoundName::ExtraLife);
+                }
             }
             m_previousKillCount = currentKills;
         }
@@ -69,6 +73,7 @@ namespace ggj
                 m_world->resetPlayerLives(m_playerIndex);
                 m_hitbox.setIsActive(true);
                 m_body->SetEnabled(true);
+                m_soundManager.playSound(SoundName::PlayerRespawn);
             }
             else
                 return;
@@ -139,6 +144,8 @@ namespace ggj
         if (m_inputManager.keyPressed(KeyboardKey::Minus))
         {
             m_world->addPlayerLives(m_playerIndex, 1);
+            m_world->spawnFloatingText(getPosition());
+            m_soundManager.playSound(SoundName::ExtraLife);
         }
 #endif
 
@@ -205,10 +212,14 @@ namespace ggj
             if (m_world->getPlayerScore(m_playerIndex) != 0)
                 m_world->addPlayerScore(m_playerIndex, -1);
 
+            m_soundManager.playSound(SoundName::PlayerHurt);
             m_world->decrementPlayerLives(m_playerIndex);
 
             if (m_world->getPlayerLives(m_playerIndex) <= 0)
+            {
+                m_soundManager.playSound(SoundName::PlayerDeath);
                 m_isDead = true;
+            }
         }
         if (b->getUserData()->getCommand() == "clear_level")
         {

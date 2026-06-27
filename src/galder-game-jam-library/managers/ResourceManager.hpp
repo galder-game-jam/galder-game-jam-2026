@@ -133,6 +133,13 @@ namespace ggj
         add(ggj::ResourceName::SoundDialogTalking5, "audio/sfx/dialog_talking_5.wav");
         add(ggj::ResourceName::SoundDialogTalking6, "audio/sfx/dialog_talking_6.wav");
         add(ggj::ResourceName::SoundDialogTalking7, "audio/sfx/dialog_talking_7.wav");
+        add(ggj::ResourceName::SoundLevelUp, "audio/sfx/level_up.wav");
+        add(ggj::ResourceName::SoundPlayerHurt, "audio/sfx/player_hurt.wav");
+        add(ggj::ResourceName::SoundPlayerDeath, "audio/sfx/player_death.wav");
+        add(ggj::ResourceName::SoundPlayerRespawn, "audio/sfx/player_respawn.wav");
+        add(ggj::ResourceName::SoundPortalOpen, "audio/sfx/portal_open.wav");
+        add(ggj::ResourceName::SoundExtraLife,   "audio/sfx/extra_life.wav");
+        add(ggj::ResourceName::SoundWizardShoot, "audio/sfx/wizard_shoot.wav");
 
         add(ggj::ResourceName::MusicForest1, "audio/music/forest1.mp3");
         add(ggj::ResourceName::MusicForest2, "audio/music/forest2.mp3");
@@ -142,6 +149,7 @@ namespace ggj
         add(ggj::ResourceName::MusicBossBattle2, "audio/music/bossbattle2.mp3");
         add(ggj::ResourceName::MusicBossBattle3, "audio/music/bossbattle3.mp3");
         add(ggj::ResourceName::MusicBossBattle4, "audio/music/bossbattle4.mp3");
+        add(ggj::ResourceName::MusicMainMenu1, "audio/music/mainmenu1.mp3");
     }
 
     template <class T> std::string ResourceManager<T>::getResource(T resourceType)

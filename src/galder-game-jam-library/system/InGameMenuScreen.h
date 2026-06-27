@@ -5,6 +5,7 @@
 #include "raylib-cpp.hpp"
 #include "../../gamedev-base/GameDevBase.h"
 #include "../enums/KeyboardKey.h"
+#include "../enums/SoundName.h"
 
 namespace ggj
 {
@@ -17,8 +18,8 @@ namespace ggj
     class InGameMenuScreen : public IGameObject<raylib::Vector2>
     {
         public:
-            explicit InGameMenuScreen(IInputManager<KeyboardKey>& inputManager)
-                : m_inputManager { inputManager }
+            InGameMenuScreen(IInputManager<KeyboardKey>& inputManager, ISoundManager& soundManager)
+                : m_inputManager { inputManager }, m_soundManager { soundManager }
             {
                 m_isVisible = true;
             }
@@ -48,6 +49,7 @@ namespace ggj
             };
 
             IInputManager<KeyboardKey>& m_inputManager;
+            ISoundManager& m_soundManager;
             raylib::Font* m_font { nullptr };
 
             InGameMenuOption m_selectedOption { InGameMenuOption::Resume };

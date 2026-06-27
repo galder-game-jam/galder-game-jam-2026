@@ -70,6 +70,7 @@ namespace ggj
                 m_world->resetPlayerLives(m_playerIndex);
                 m_hitbox.setIsActive(true);
                 m_body->SetEnabled(true);
+                m_soundManager.playSound(SoundName::PlayerRespawn);
             }
             else
                 return;
@@ -204,10 +205,14 @@ namespace ggj
             if (m_world->getPlayerScore(m_playerIndex) != 0)
                 m_world->addPlayerScore(m_playerIndex, -1);
 
+            m_soundManager.playSound(SoundName::PlayerHurt);
             m_world->decrementPlayerLives(m_playerIndex);
 
             if (m_world->getPlayerLives(m_playerIndex) <= 0)
+            {
+                m_soundManager.playSound(SoundName::PlayerDeath);
                 m_isDead = true;
+            }
         }
         if (b->getUserData()->getCommand() == "clear_level")
         {
@@ -290,6 +295,7 @@ namespace ggj
 
     void Player2::shootMageBall()
     {
+        m_soundManager.playSound(SoundName::WizardShoot);
         const float BASE_PROJ_SPEED = 8.f;
         const float projSpeed = BASE_PROJ_SPEED * m_world->getPlayerTalentEffects(m_playerIndex).projectileSpeedMultiplier;
         const raylib::Vector2 velocity { m_isLeftPosition ? -projSpeed : projSpeed, 0.f };
