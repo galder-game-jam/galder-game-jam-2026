@@ -70,12 +70,7 @@ namespace ggj
 
         m_backgroundTexture->Draw(raylib::Vector2{0.0f, 0.0f});
 
-        DrawRectangle(180, 110, 440, 390, Color{0, 0, 0, 185});
-
-        const std::string title = "GALDER'S QUEST";
-        Vector2 titleSize = MeasureTextEx(*m_font, title.c_str(), (float)TITLE_FONT_SIZE, 0);
-        float titleX = (SCREEN_WIDTH - titleSize.x) * 0.5f;
-        m_font->DrawText(title, raylib::Vector2{titleX, 140.0f}, (float)TITLE_FONT_SIZE, 0, WHITE);
+        DrawRectangle(180, 225, 440, 275, Color{0, 0, 0, 185});
 
         const float MENU_START_Y = 250.0f;
         const float MENU_SPACING = 70.0f;

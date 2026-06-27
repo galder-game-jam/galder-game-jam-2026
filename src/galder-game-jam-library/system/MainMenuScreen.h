@@ -57,7 +57,6 @@ namespace ggj
 
             const float SCREEN_WIDTH  = 800.0f;
             const float SCREEN_HEIGHT = 600.0f;
-            const int TITLE_FONT_SIZE = 60;
             const int MENU_FONT_SIZE  = 40;
             static constexpr int MENU_ITEM_COUNT = 4;
 

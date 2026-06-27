@@ -227,6 +227,7 @@ namespace ggj
 
         if (m_characterSelectScreenActive)
         {
+            ClearBackground(BLACK);
             m_characterSelectScreen.draw();
         }
         else
