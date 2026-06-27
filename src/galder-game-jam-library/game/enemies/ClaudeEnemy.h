@@ -6,11 +6,15 @@
 #include "../../graphics/PhysicsSprite.h"
 #include "../../managers/AnimationManager.h"
 #include "../../interfaces/system/IMapper.h"
+#include "../../interfaces/game/IPlayer.h"
 #include "../../../gamedev-base/interfaces/managers/ISoundManager.h"
 #include "../../enums/SoundName.h"
 
 namespace ggj
 {
+    class World;
+
+    enum class ClaudeState { Idle, Walk, Attack };
 
     class ClaudeEnemy : public PhysicsSprite
     {
@@ -19,12 +23,17 @@ namespace ggj
             ClaudeEnemy(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper, ggj::ISoundManager& soundManager, b2Body* body,
                 const raylib::Vector2& physicsSize,
                 const raylib::Vector2& spriteSize,
-                const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData, int lives, bool isVisible = true)
+                const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
+                int lives, float followSpeed, IPlayer* player, World* world, bool isVisible = true)
                 : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible),
-                  m_animationManager { animationManager }, m_mapper { mapper }, m_soundManager { soundManager }, m_lives { lives }
+                  m_animationManager { animationManager }, m_mapper { mapper }, m_soundManager { soundManager },
+                  m_lives { lives }, m_followSpeed { followSpeed }, m_player { player }, m_world { world }
             {
                 m_body->SetFixedRotation(true);
-                m_animation = m_animationManager.getAnimation(AnimationName::EnemyClaudeIdle);
+                m_idleAnimation   = m_animationManager.getAnimation(AnimationName::EnemyClaudeIdle);
+                m_walkAnimation   = m_animationManager.getAnimation(AnimationName::EnemyClaudeWalk);
+                m_attackAnimation = m_animationManager.getAnimation(AnimationName::EnemyClaudeAttack);
+                m_animation       = m_idleAnimation;
             }
 
             void move(const raylib::Vector2& toMove) override;
@@ -34,17 +43,34 @@ namespace ggj
 
         private:
             void takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft);
+            void setBossState(ClaudeState newState);
 
             ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& m_animationManager;
             IMapper& m_mapper;
             ggj::ISoundManager& m_soundManager;
-            Animation m_animation;
-            int m_lives { 3 };
 
+            Animation m_idleAnimation;
+            Animation m_walkAnimation;
+            Animation m_attackAnimation;
+            Animation m_animation;
+
+            int   m_lives       { 3 };
+            float m_followSpeed { 0.f };
+
+            IPlayer* m_player { nullptr };
+            World*   m_world  { nullptr };
+
+            // Boss state machine
+            bool       m_isSittingDuck  { false };  ///< Force Idle for testing; set to true to disable AI.
+            ClaudeState m_bossState     { ClaudeState::Idle };
+            float m_stateTimer          { 0.f };
+            float m_stateInterval       { 2.5f };   ///< Seconds between state rolls.
+
+            // Invulnerability + flash
             float m_invulTimer { 0.f };
             float m_flashTimer { 0.f };
-            static constexpr float INVUL_DURATION  = 1.f;
-            static constexpr float FLASH_INTERVAL  = 0.1f;
+            static constexpr float INVUL_DURATION = 1.f;
+            static constexpr float FLASH_INTERVAL = 0.1f;
     };
 
 } // ggj

@@ -8,8 +8,14 @@ namespace ggj
 {
     void PhysicsSprite::draw()
     {
+        if(!m_isVisible)
+            return;
+
         if(m_texture == nullptr)
+        {
             PhysicsObject::draw();
+            return;
+        }
 
         float width = (m_flip) ? -m_drawingRect.width : m_drawingRect.width;
         raylib::Rectangle rect = {m_drawingRect.x, m_drawingRect.y, width, m_drawingRect.height};

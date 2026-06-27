@@ -261,6 +261,7 @@ namespace ggj
         if (m_camera.target.y < m_cameraMin.y)
             m_camera.target.y = m_cameraMin.y;
 
+        flushPendingSpawns();
         syncNetworkObjects();
         destroyMarkedObjects();
 
@@ -910,6 +911,58 @@ namespace ggj
         }
     }
 
+    void World::spawnClaudling(raylib::Vector2 position, float followSpeed)
+    {
+        m_pendingClaudlingSpawns.push_back({ position, followSpeed });
+    }
+
+    void World::flushPendingSpawns()
+    {
+        for (const PendingClaudlingSpawn& spawn : m_pendingClaudlingSpawns)
+            doSpawnClaudling(spawn.position, spawn.followSpeed);
+        m_pendingClaudlingSpawns.clear();
+    }
+
+    void World::doSpawnClaudling(raylib::Vector2 position, float followSpeed)
+    {
+        const raylib::Vector2 SIZE { 32.f, 32.f };
+
+        b2BodyDef bodyDef;
+        bodyDef.type = b2_dynamicBody;
+        const b2Vec2 b2origin = PhysicsObject::ConvertToB2Vec2({ SIZE.x / 2.f, SIZE.y / 2.f });
+        const b2Vec2 b2pos    = PhysicsObject::ConvertToB2Vec2(position);
+        bodyDef.position.Set(b2pos.x + b2origin.x, b2pos.y + b2origin.y);
+        b2Body* body = m_world.CreateBody(&bodyDef);
+
+        b2PolygonShape box;
+        const b2Vec2 b2size = PhysicsObject::ConvertToB2Vec2(SIZE);
+        box.SetAsBox(b2size.x / 2.f - b2_polygonRadius, b2size.y / 2.f - b2_polygonRadius);
+        b2FixtureDef fd;
+        fd.shape    = &box;
+        fd.density  = 1.0f;
+        fd.friction = 0.3f;
+        body->CreateFixture(&fd);
+        body->SetFixedRotation(true);
+
+        raylib::Texture* tex = m_textures.get(TextureName::EnemyClaudling);
+        if (tex == nullptr)
+            return;
+
+        const raylib::Rectangle drawingRect { 0.f, 0.f, SIZE.x, SIZE.y };
+        const UserData userData { ObjectType::Enemy, { 0.f, 0.f }, "", "", "claudling" };
+
+        PhysicsObject* physicsObject = createObject<Claudling>(
+            m_animationManager, m_mapper, m_soundManager, body,
+            SIZE, SIZE, drawingRect, tex, userData, followSpeed, m_player);
+
+        if (physicsObject != nullptr)
+        {
+            m_userDataManager.addUserData(body, physicsObject);
+            ++m_numberOfEnemies;
+            registerNetworkObject(m_userDataManager.getUserData(body));
+        }
+    }
+
     void World::generateClaude(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
     {
         TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
@@ -932,7 +985,8 @@ namespace ggj
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::ClaudeEnemy>(
                     m_animationManager, m_mapper, m_soundManager, body,
                     raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
-                    spriteSize, r, tex, generatorData.userData, generatorData.lives);
+                    spriteSize, r, tex, generatorData.userData, generatorData.lives,
+                    generatorData.followSpeed, m_player, this);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
