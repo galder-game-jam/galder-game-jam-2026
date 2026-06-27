@@ -208,7 +208,10 @@ namespace ggj
             m_world->decrementPlayerLives(m_playerIndex);
 
             if (m_world->getPlayerLives(m_playerIndex) <= 0)
+            {
+                m_soundManager.playSound(SoundName::PlayerDeath);
                 m_isDead = true;
+            }
         }
         if (b->getUserData()->getCommand() == "clear_level")
         {

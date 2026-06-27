@@ -41,6 +41,7 @@ namespace ggj
         ok &= loadSound(SoundName::DialogTalking7, ResourceName::SoundDialogTalking7);
         ok &= loadSound(SoundName::LevelUp, ResourceName::SoundLevelUp);
         ok &= loadSound(SoundName::PlayerHurt, ResourceName::SoundPlayerHurt);
+        ok &= loadSound(SoundName::PlayerDeath, ResourceName::SoundPlayerDeath);
         ok &= loadMusic(MusicName::Forest1, ResourceName::MusicForest1);
         ok &= loadMusic(MusicName::Forest2, ResourceName::MusicForest2);
         ok &= loadMusic(MusicName::Dungeon1, ResourceName::MusicDungeon1);
