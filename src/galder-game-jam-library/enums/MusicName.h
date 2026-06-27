@@ -10,8 +10,14 @@ namespace ggj
         None = 0,
         Forest1 = 1,
         Forest2 = 2,
-        Dungeon1 = 3,
-        Dungeon2 = 4
+
+        Dungeon1 = 10,
+        Dungeon2 = 11,
+
+        BossBattle1 = 20,
+        BossBattle2 = 21,
+        BossBattle3 = 22,
+        BossBattle4 = 23,
     };
 } // namespace ggj
 
