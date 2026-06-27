@@ -19,7 +19,7 @@ auto buildInjector(ggj::ILogger& logger, raylib::Window& window)
                                              boost::di::bind<ggj::IResourceManager<ggj::ResourceName>>().to<ggj::ResourceManager<ggj::ResourceName>>(),
                                              boost::di::bind<ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>>().to<ggj::AnimationManager>(),
                                              boost::di::bind<ggj::IUserDataManager<ggj::PhysicsObject*>>().to<ggj::UserDataManager>(),
-                                             boost::di::bind<ggj::IOptionsManager>().to<ggj::OptionsManager>(),
+                                             boost::di::bind<ggj::IOptionsManager>().to<ggj::OptionsManager>().in(boost::di::singleton),
                                              boost::di::bind<ggj::ISoundManager>().to<ggj::SoundManager>(),
 
                                              boost::di::bind<ggj::IExecutableInfo>().to<ggj::ExecutableInfo>(), boost::di::bind<ggj::IDebugManager>().to<ggj::DebugManager>(),

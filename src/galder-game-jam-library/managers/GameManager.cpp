@@ -66,7 +66,7 @@ void ggj::GameManager::render()
     m_worlds.drawImGui();
 #ifdef GAME_DEV_DEBUG
     if (m_debugState.isGameActive)
-        m_debugMenu.draw(m_debugState);
+        m_debugMenu.draw(m_debugState, m_options);
 #endif
     rlImGuiEnd();
 

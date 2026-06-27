@@ -47,6 +47,7 @@ namespace ggj
 
             raylib::Texture* m_backgroundTexture { nullptr };
             AudioOptions m_localOptions {};
+            HudOptions   m_localHudOptions {};
 
             bool m_isBack { false };
 

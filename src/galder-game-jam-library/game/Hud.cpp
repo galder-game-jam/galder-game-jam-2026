@@ -90,6 +90,12 @@ namespace ggj
         m_playerPosition = m_currentPlayer->getVisualCenter();
     }
 
+    raylib::Color Hud::tinted(raylib::Color color) const
+    {
+        const float alpha = m_options.getHudOptions().hudAlpha;
+        return raylib::Color { color.r, color.g, color.b, static_cast<unsigned char>(alpha * static_cast<float>(color.a)) };
+    }
+
     void Hud::draw()
     {
         if (!m_isVisible)
@@ -104,7 +110,7 @@ namespace ggj
         drawQuestLog(m_questLogOffset, 3, 1);
 
         if (!m_playerName.empty() && m_font != nullptr)
-            m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, raylib::Color::White());
+            m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, tinted(raylib::Color::White()));
 
         if (m_minimap != nullptr)
             m_minimap->draw(m_playerPosition);
@@ -116,8 +122,9 @@ namespace ggj
         raylib::Vector2 shrinkflation = raylib::Vector2(4, 4);
 
         raylib::Rectangle backdrop = raylib::Rectangle(offset + shrinkflation, raylib::Vector2((width + 2) * grid, (height + 2) * grid) - shrinkflation * 2);
-        DrawRectangle(backdrop.x, backdrop.y, backdrop.width, backdrop.height, raylib::Color(143, 86, 59, HUD_ALPHA));
+        DrawRectangle(backdrop.x, backdrop.y, backdrop.width, backdrop.height, tinted(raylib::Color(143, 86, 59, 180)));
 
+        const raylib::Color texTint = tinted(WHITE);
         raylib::Rectangle tiles[3][3] = { { m_boxTopLeftRect, m_boxTopMiddleRect, m_boxTopRightRect },
                                           { m_boxMiddleLeftRect, m_boxMiddleMiddleRect, m_boxMiddleRightRect },
                                           { m_boxBottomLeftRect, m_boxBottomMiddleRect, m_boxBottomRightRect } };
@@ -132,7 +139,7 @@ namespace ggj
                 const raylib::Rectangle& src = tiles[ty][tx];
                 raylib::Vector2 pos = offset + raylib::Vector2 { grid * x, grid * y };
 
-                m_hudTexture->Draw(src, pos);
+                m_hudTexture->Draw(src, pos, texTint);
             }
         }
 
@@ -142,25 +149,27 @@ namespace ggj
         int enemiesKilled = enemies - enemiesLeft;
         bool isOpen = enemiesKilled == enemies;
 
-        m_font->DrawText(TextFormat("Quest Log"), raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 7 }, FONT_SIZE, 0, YELLOW);
-        m_font->DrawText(TextFormat("Kill enemies %i/%i", enemiesKilled, enemies), raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 27 }, FONT_SIZE, 0, BLACK);
-        m_font->DrawText(TextFormat("Portal is %s", isOpen ? "open" : "closed"), raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 67 }, FONT_SIZE, 0, isOpen ? GREEN : RED);
+        m_font->DrawText(TextFormat("Quest Log"), raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 7 }, FONT_SIZE, 0, tinted(YELLOW));
+        m_font->DrawText(TextFormat("Kill enemies %i/%i", enemiesKilled, enemies), raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 27 }, FONT_SIZE, 0, tinted(BLACK));
+        m_font->DrawText(TextFormat("Portal is %s", isOpen ? "open" : "closed"), raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 67 }, FONT_SIZE, 0, tinted(isOpen ? GREEN : RED));
     }
 
     void Hud::DrawResourceBar(const float counter, raylib::Rectangle rectResource, raylib::Rectangle rectEnd, float barNo) const
     {
+        const raylib::Color texTint = tinted(WHITE);
         float barTypeOffset = 20 * barNo;
         for (int i = 0; i < counter; ++i)
         {
-            m_hudTexture->Draw(rectResource, raylib::Vector2 { m_portraitRect.width + rectResource.width * i + m_portraitOffset.x, 6 + barTypeOffset + m_portraitOffset.y });
+            m_hudTexture->Draw(rectResource, raylib::Vector2 { m_portraitRect.width + rectResource.width * i + m_portraitOffset.x, 6 + barTypeOffset + m_portraitOffset.y }, texTint);
         }
-        m_hudTexture->Draw(rectEnd, raylib::Vector2 { m_portraitRect.width + rectResource.width * counter + m_portraitOffset.x, 2 + barTypeOffset + m_portraitOffset.y });
+        m_hudTexture->Draw(rectEnd, raylib::Vector2 { m_portraitRect.width + rectResource.width * counter + m_portraitOffset.x, 2 + barTypeOffset + m_portraitOffset.y }, texTint);
     }
 
     void Hud::drawPlayerPortrait() const
     {
-        m_playerPortraitTexture->Draw(m_playerPortraitOffset);
-        m_hudTexture->Draw(m_portraitRect, m_portraitOffset);
+        const raylib::Color texTint = tinted(WHITE);
+        m_playerPortraitTexture->Draw(m_playerPortraitOffset, texTint);
+        m_hudTexture->Draw(m_portraitRect, m_portraitOffset, texTint);
 
         DrawResourceBar(m_health, m_lifeRect, m_lifeEnd, 0);
         DrawResourceBar(m_mana, m_manaRect, m_manaEnd, 1);
@@ -169,42 +178,43 @@ namespace ggj
 
     void Hud::drawBar(raylib::Vector2 offset, int middleParts) const
     {
-        m_hudTexture->Draw(m_barRectLeft, offset);
+        const raylib::Color texTint = tinted(WHITE);
+        m_hudTexture->Draw(m_barRectLeft, offset, texTint);
         for (int i = 0; i < middleParts; ++i)
         {
-            m_hudTexture->Draw(m_barRectMiddle, offset + raylib::Vector2 { TILE_UNIT * 2 + TILE_UNIT * 2 * i, 0 });
+            m_hudTexture->Draw(m_barRectMiddle, offset + raylib::Vector2 { TILE_UNIT * 2 + TILE_UNIT * 2 * i, 0 }, texTint);
         }
 
-        m_hudTexture->Draw(m_barRectRight, offset + raylib::Vector2 { TILE_UNIT * 2 + TILE_UNIT * 2 * middleParts, 0 });
+        m_hudTexture->Draw(m_barRectRight, offset + raylib::Vector2 { TILE_UNIT * 2 + TILE_UNIT * 2 * middleParts, 0 }, texTint);
     }
 
     void Hud::drawCoinBar(raylib::Vector2 offset) const
     {
         drawBar(offset, 1);
-        m_hudTexture->Draw(m_coinRect, offset + raylib::Vector2 { TILE_UNIT * 1, 4 });
+        m_hudTexture->Draw(m_coinRect, offset + raylib::Vector2 { TILE_UNIT * 1, 4 }, tinted(WHITE));
 
-        m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)), raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, BLACK);
+        m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)), raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
     }
 
     void Hud::drawKillsBar(raylib::Vector2 offset) const
     {
         drawBar(offset, 1);
-        m_font->DrawText(TextFormat("Kills: %i", static_cast<int>(m_kills)), raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, BLACK);
+        m_font->DrawText(TextFormat("Kills: %i", static_cast<int>(m_kills)), raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
     }
 
     void Hud::drawPlayerPositionBar(raylib::Vector2 offset) const
     {
         drawBar(offset, 5);
         m_font->DrawText(TextFormat("Player position: (%i, %i)", static_cast<int>(m_playerPosition.x), static_cast<int>(m_playerPosition.y)),
-                         raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, BLACK);
+                         raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
     }
 
     void Hud::drawXpBar(raylib::Vector2 offset) const
     {
         drawBar(offset, 3);
         m_font->DrawText(TextFormat("Lvl: %i", m_level),
-                         raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, BLACK);
+                         raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
         m_font->DrawText(TextFormat("XP: %i/%i", m_currentXp, m_xpToNextLevel),
-                         raylib::Vector2 { offset.x + TILE_UNIT * 4, offset.y + 5 }, FONT_SIZE, 0, BLACK);
+                         raylib::Vector2 { offset.x + TILE_UNIT * 4, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
     }
 } // namespace ggj

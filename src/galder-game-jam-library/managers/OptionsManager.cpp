@@ -35,6 +35,12 @@ namespace ggj
             m_audioOptions.soundVolume  = static_cast<float>(sound["soundVolume"].number_value());
         }
 
+        const json11::Json& hud = root["hud"];
+        if (hud.is_object())
+        {
+            m_hudOptions.hudAlpha = static_cast<float>(hud["alpha"].number_value());
+        }
+
         return true;
     }
 
@@ -48,6 +54,9 @@ namespace ggj
                 { "musicVolume", static_cast<double>(m_audioOptions.musicVolume) },
                 { "soundMuted",  m_audioOptions.isSoundMuted },
                 { "soundVolume", static_cast<double>(m_audioOptions.soundVolume) }
+            }},
+            { "hud", json11::Json::object {
+                { "alpha", static_cast<double>(m_hudOptions.hudAlpha) }
             }}
         };
 
