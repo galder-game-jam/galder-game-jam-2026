@@ -14,7 +14,7 @@
         "moveDown": 83,
         "moveLeft": 65,
         "moveRight": 68,
-        "attack": 67,
+        "attack": 32,
         "respawn": 81
     }
 }

@@ -19,7 +19,7 @@ namespace ggj
         KeyboardKey moveDown  { KeyboardKey::S }; ///< Key to move the player downward.
         KeyboardKey moveLeft  { KeyboardKey::A }; ///< Key to move the player left.
         KeyboardKey moveRight { KeyboardKey::D }; ///< Key to move the player right.
-        KeyboardKey attack    { KeyboardKey::C }; ///< Key to trigger an attack.
+        KeyboardKey attack    { KeyboardKey::Space }; ///< Key to trigger an attack.
         KeyboardKey respawn   { KeyboardKey::Q }; ///< Key to respawn after death.
     };
 
