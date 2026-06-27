@@ -23,6 +23,7 @@ bool ggj::GameManager::initialize()
     m_renderTexture = raylib::RenderTexture((int)m_originalWindowSize.x, (int)m_originalWindowSize.y);
 
     rlImGuiSetup(true);
+    SetExitKey(KEY_NULL); // Esc is handled in-game; don't let raylib close the window
 
     return true;
 }

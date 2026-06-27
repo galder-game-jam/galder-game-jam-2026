@@ -7,6 +7,7 @@
 #include "../system/MainMenuScreen.h"
 #include "../system/NetplayScreen.h"
 #include "../system/OptionsScreen.h"
+#include "../system/InGameMenuScreen.h"
 #include "ServerInfoMenu.hpp"
 #include <cstdlib>
 
@@ -67,6 +68,7 @@ namespace ggj
             m_mainMenuScreen.setFont(&m_font);
             m_netplayScreen.initialize();
             m_optionsScreen.initialize();
+            m_inGameMenuScreen.setFont(&m_font);
             m_characterSelectScreen.initialize();
             m_characterSelectScreen.setFont(&m_font);
         }
@@ -181,8 +183,17 @@ namespace ggj
             {
                 m_optionsScreen.reset();
                 m_optionsScreenActive = false;
-                m_mainMenuScreenActive = true;
-                m_mainMenuScreen.reset();
+                if (m_optionsReturnToInGame)
+                {
+                    m_optionsReturnToInGame = false;
+                    m_inGameMenuActive = true;
+                    m_inGameMenuScreen.reset();
+                }
+                else
+                {
+                    m_mainMenuScreenActive = true;
+                    m_mainMenuScreen.reset();
+                }
             }
             return;
         }
@@ -247,6 +258,42 @@ namespace ggj
         }
         else
         {
+            if (m_inGameMenuActive)
+            {
+                m_inGameMenuScreen.update(timeDelta);
+                if (m_inGameMenuScreen.isResumeSelected())
+                {
+                    m_inGameMenuActive = false;
+                    m_inGameMenuScreen.reset();
+                }
+                else if (m_inGameMenuScreen.isOptionsSelected())
+                {
+                    m_inGameMenuScreen.reset();
+                    m_optionsScreen.reset();
+                    m_optionsScreenActive = true;
+                    m_optionsReturnToInGame = true;
+                }
+                else if (m_inGameMenuScreen.isExitSelected())
+                {
+                    m_inGameMenuActive = false;
+                    m_inGameMenuScreen.reset();
+                    m_mainMenuScreenActive = true;
+                    m_mainMenuScreen.reset();
+                    m_soundManager.stopMusic();
+#ifdef GAME_DEV_DEBUG
+                    m_managers.debugState.isGameActive = false;
+#endif
+                }
+                return;
+            }
+
+            if (m_input.keyPressed(KeyboardKey::Escape))
+            {
+                m_inGameMenuActive = true;
+                m_inGameMenuScreen.reset();
+                return;
+            }
+
 #ifdef GAME_DEV_DEBUG
             if (m_managers.debugState.requestedStage != -1)
             {
@@ -365,6 +412,11 @@ namespace ggj
             if (m_worlds.count(m_currentStageIndex) > 0)
             {
                 m_worlds[m_currentStageIndex]->draw();
+            }
+
+            if (m_inGameMenuActive)
+            {
+                m_inGameMenuScreen.draw();
             }
         }
     }

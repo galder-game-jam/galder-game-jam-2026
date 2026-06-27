@@ -60,4 +60,6 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         system/NetplayScreen.cpp
         system/NetplayScreen.h
         system/OptionsScreen.cpp
-        system/OptionsScreen.h)
+        system/OptionsScreen.h
+        system/InGameMenuScreen.cpp
+        system/InGameMenuScreen.h)
