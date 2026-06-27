@@ -812,9 +812,35 @@ namespace ggj
         if (m_playerStats.count(playerIndex) > 0)
         {
             PlayerStats& stats = m_playerStats[playerIndex];
-            stats.lives = state.lives;
-            stats.score = state.score;
+            stats.lives        = state.lives;
+            stats.score        = state.score;
             stats.xpTracker.restore(state.level, state.currentXp, state.totalXp);
+            stats.talentPoints    = state.talentPoints;
+            stats.talentState     = state.talentState;
+            stats.computedEffects = computeTalentEffects(state.talentState);
         }
     }
+
+    void World::addPlayerXp(int32_t playerIndex, int amount)
+    {
+        auto& stats = m_playerStats.at(playerIndex);
+        const int scaled    = static_cast<int>(static_cast<float>(amount) * stats.computedEffects.xpMultiplier);
+        const int prevLevel = stats.xpTracker.getLevel();
+        stats.xpTracker.addXp(scaled > 0 ? scaled : amount, stats.xpConfig);
+        const int newLevel  = stats.xpTracker.getLevel();
+        // Grant 1 talent point for each even level crossed (levels 2, 4, 6 …)
+        stats.talentPoints += (newLevel / 2) - (prevLevel / 2);
+    }
+
+    void World::updatePlayerTalentState(int32_t playerIndex, const TalentState& state, int talentPoints)
+    {
+        if (m_playerStats.count(playerIndex) > 0)
+        {
+            PlayerStats& stats    = m_playerStats[playerIndex];
+            stats.talentState     = state;
+            stats.talentPoints    = talentPoints;
+            stats.computedEffects = computeTalentEffects(state);
+        }
+    }
+
 } // namespace ggj

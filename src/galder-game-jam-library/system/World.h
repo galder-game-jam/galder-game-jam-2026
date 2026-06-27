@@ -86,8 +86,24 @@ namespace ggj
         void addPlayerLives(int32_t playerIndex, int delta) { m_playerStats.at(playerIndex).lives += delta; }
         void resetPlayerLives(int32_t playerIndex) { m_playerStats.at(playerIndex).lives = 3; }
         void addPlayerScore(int32_t playerIndex, int delta) { m_playerStats.at(playerIndex).score += delta; }
-        void addPlayerXp(int32_t playerIndex, int amount) { m_playerStats.at(playerIndex).xpTracker.addXp(amount, m_playerStats.at(playerIndex).xpConfig); }
+
+        /*!
+         * Awards XP to a player, applying any active XP-multiplier talents.
+         * Automatically grants 2 talent points for each level gained.
+         */
+        void addPlayerXp(int32_t playerIndex, int amount);
         void restorePlayerStats(int32_t playerIndex, const PlayerPersistentState& state);
+
+        // Talent system accessors
+        [[nodiscard]] int getPlayerTalentPoints(int32_t playerIndex) const { return m_playerStats.at(playerIndex).talentPoints; }
+        [[nodiscard]] const TalentState&   getPlayerTalentState(int32_t playerIndex)   const { return m_playerStats.at(playerIndex).talentState;   }
+        [[nodiscard]] const TalentEffects& getPlayerTalentEffects(int32_t playerIndex) const { return m_playerStats.at(playerIndex).computedEffects; }
+
+        /*!
+         * Replaces the talent state for a player and recomputes their effects.
+         * Called by WorldManager after the talent screen closes.
+         */
+        void updatePlayerTalentState(int32_t playerIndex, const TalentState& state, int talentPoints);
 
         template <typename T> T* createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive);
 

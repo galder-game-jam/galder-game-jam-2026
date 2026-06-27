@@ -35,8 +35,14 @@ namespace ggj
         if (currentKills > m_previousKillCount)
         {
             const ExperienceConfig& cfg = m_world->getXpConfig(m_playerIndex);
+            const TalentEffects& fx  = m_world->getPlayerTalentEffects(m_playerIndex);
             for (int i = m_previousKillCount; i < currentKills; ++i)
+            {
                 m_world->addPlayerXp(m_playerIndex, GetRandomValue(cfg.xpPerKillMin, cfg.xpPerKillMax));
+
+                if (fx.bonusXpPerKill > 0)
+                    m_world->addPlayerXp(m_playerIndex, fx.bonusXpPerKill);
+            }
             m_previousKillCount = currentKills;
         }
 
@@ -81,6 +87,9 @@ namespace ggj
 
         bool isInAir = m_velocity.y > 0.2f || m_velocity.y < -0.2f;
 
+        const float BASE_SPEED = 7.f;
+        const float speed = BASE_SPEED * m_world->getPlayerTalentEffects(m_playerIndex).speedMultiplier;
+
         if (!m_isAttacking || isInAir)
         {
             if (m_inputManager.keyDown(KeyboardKey::A) && !m_inputManager.keyDown(KeyboardKey::D))
@@ -88,7 +97,7 @@ namespace ggj
                 m_isLeftPosition = true;
                 m_hitbox.setLeftPosition(true);
                 m_flip = true;
-                m_velocity = raylib::Vector2 { -7.f, m_velocity.y };
+                m_velocity = raylib::Vector2 { -speed, m_velocity.y };
                 if (m_velocity.y < 0.2f && m_velocity.y > -0.2f)
                     setPlayerState(PlayerState::Walk);
             }
@@ -97,7 +106,7 @@ namespace ggj
                 m_isLeftPosition = false;
                 m_hitbox.setLeftPosition(false);
                 m_flip = false;
-                m_velocity = raylib::Vector2 { 7.f, m_velocity.y };
+                m_velocity = raylib::Vector2 { speed, m_velocity.y };
                 if (m_velocity.y < 0.2f && m_velocity.y > -0.2f)
                     setPlayerState(PlayerState::Walk);
             }
@@ -108,12 +117,12 @@ namespace ggj
 
             if (m_inputManager.keyDown(KeyboardKey::W) && !m_inputManager.keyDown(KeyboardKey::S))
             {
-                m_velocity = raylib::Vector2 { m_velocity.x, -7.f };
+                m_velocity = raylib::Vector2 { m_velocity.x, -speed };
                 setPlayerState(PlayerState::Walk);
             }
             else if (m_inputManager.keyDown(KeyboardKey::S) && !m_inputManager.keyDown(KeyboardKey::W))
             {
-                m_velocity = raylib::Vector2 { m_velocity.x, 7.f };
+                m_velocity = raylib::Vector2 { m_velocity.x, speed };
                 setPlayerState(PlayerState::Walk);
             }
             else
@@ -150,7 +159,9 @@ namespace ggj
 
         if (m_isAttacking)
         {
-            if (m_attackCounter >= m_attackFrames)
+            const float atkMul = m_world->getPlayerTalentEffects(m_playerIndex).attackSpeedMultiplier;
+            const auto effectiveFrames = static_cast<uint16_t>(static_cast<float>(m_attackFrames) * atkMul);
+            if (m_attackCounter >= effectiveFrames)
             {
                 m_isAttacking = false;
             }
@@ -279,7 +290,9 @@ namespace ggj
 
     void Player2::shootMageBall()
     {
-        const raylib::Vector2 velocity { m_isLeftPosition ? -8.f : 8.f, 0.f };
+        const float BASE_PROJ_SPEED = 8.f;
+        const float projSpeed = BASE_PROJ_SPEED * m_world->getPlayerTalentEffects(m_playerIndex).projectileSpeedMultiplier;
+        const raylib::Vector2 velocity { m_isLeftPosition ? -projSpeed : projSpeed, 0.f };
         MageBall* ball =
             m_world->createProjectile<ggj::MageBall>(TextureName::MageBall, raylib::Vector2 { 16.f, 16.f }, raylib::Vector2 { m_position.x, m_position.y - 8 }, velocity, 1.f);
         ball->setOwner(this);
