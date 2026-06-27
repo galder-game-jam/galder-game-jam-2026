@@ -25,7 +25,13 @@ namespace ggj
                 track = MusicName::Dungeon1;
                 break;
             case 3:
-                track = MusicName::Forest2;
+                track = MusicName::BossBattle1;
+                break;
+            case 4:
+                track = MusicName::Dungeon2;
+                break;
+            case 5:
+                track = MusicName::BossBattle2;
                 break;
             case 99999:
                 track = MusicName::Dungeon2;
