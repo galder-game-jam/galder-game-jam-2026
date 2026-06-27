@@ -25,6 +25,10 @@ namespace ggj
             setPlayerState(PlayerState::Dead);
             m_body->SetEnabled(false);
         }
+        if (m_inDialog)
+        {
+            setPlayerState(PlayerState::Idle);
+        }
         PhysicsObject::update(timeDelta);
 
         int currentKills = getUserData()->enemiesKilled;
@@ -63,6 +67,11 @@ namespace ggj
             }
             else
                 return;
+        }
+        if (m_inDialog)
+        {
+            m_velocity = raylib::Vector2 { 0, 0 };
+            return;
         }
 
         //Should have a collection of commands or something assigned to the player for a best practice approach
@@ -199,6 +208,17 @@ namespace ggj
             m_world->addPlayerScore(m_playerIndex, 1);
             m_world->addPlayerXp(m_playerIndex, m_world->getXpConfig(m_playerIndex).xpPerCoin);
         }
+        if (b->getUserData()->getObjectType() == ObjectType::Dialog)
+        {
+            m_inDialog = true;
+            m_currentDialogId = b->getUserData()->getDialogId();
+        }
+    }
+
+    void Player2::setHasFinishedDialog()
+    {
+        m_inDialog = false;
+        m_currentDialogId = {};
     }
 
     int Player2::getScore() const
