@@ -42,6 +42,7 @@ namespace ggj
                 if (fx.killsPerExtraLife > 0 && (i + 1) % fx.killsPerExtraLife == 0)
                 {
                     m_world->addPlayerLives(m_playerIndex, 1);
+                    m_world->spawnFloatingText(getPosition());
                     m_soundManager.playSound(SoundName::ExtraLife);
                 }
             }
@@ -143,6 +144,7 @@ namespace ggj
         if (m_inputManager.keyPressed(KeyboardKey::Minus))
         {
             m_world->addPlayerLives(m_playerIndex, 1);
+            m_world->spawnFloatingText(getPosition());
             m_soundManager.playSound(SoundName::ExtraLife);
         }
 #endif

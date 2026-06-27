@@ -400,7 +400,11 @@ namespace ggj
                 m_managers.debugState.gainLife = false;
                 if (m_worlds.count(m_currentStageIndex) > 0)
                 {
-                    m_worlds[m_currentStageIndex]->addPlayerLives(0, 1);
+                    World* world = m_worlds[m_currentStageIndex].get();
+                    world->addPlayerLives(0, 1);
+                    IPlayer* player = world->getPlayer();
+                    if (player != nullptr)
+                        world->spawnFloatingText(player->getPosition());
                     m_soundManager.playSound(SoundName::ExtraLife);
                 }
             }

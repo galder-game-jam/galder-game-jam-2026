@@ -257,6 +257,22 @@ namespace ggj
 
         syncNetworkObjects();
         destroyMarkedObjects();
+
+        for (FloatingTextEntry& e : m_floatingTexts)
+        {
+            e.position.y -= FloatingTextEntry::RISE_SPEED * timeDelta;
+            e.elapsed    += timeDelta;
+        }
+        std::erase_if(m_floatingTexts, [](const FloatingTextEntry& e) {
+            return e.elapsed >= FloatingTextEntry::DURATION;
+        });
+    }
+
+    void World::spawnFloatingText(raylib::Vector2 pos)
+    {
+        FloatingTextEntry e;
+        e.position = raylib::Vector2 { pos.x - 14.f, pos.y - 20.f };
+        m_floatingTexts.push_back(e);
     }
 
     void World::draw()
@@ -268,6 +284,15 @@ namespace ggj
             layer.second.draw();
         }
         drawRemotePlayers();
+
+        for (const FloatingTextEntry& e : m_floatingTexts)
+        {
+            const float progress = e.elapsed / FloatingTextEntry::DURATION;
+            const uint8_t alpha = static_cast<uint8_t>(255 * (1.f - progress));
+            const Color color { 60, 220, 60, alpha };
+            DrawTextEx(GetFontDefault(), "+1 life", { e.position.x, e.position.y }, 12, 1.f, color);
+        }
+
         m_camera.EndMode();
         m_hud.draw();
         m_dialog.draw();

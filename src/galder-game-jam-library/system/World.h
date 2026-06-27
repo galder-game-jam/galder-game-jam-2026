@@ -30,6 +30,7 @@ namespace ggj
 #include "../data/PlayerPersistentState.hpp"
 #include "../interfaces/manager/INetworkManager.h"
 #include <set>
+#include <vector>
 
 namespace ggj
 {
@@ -109,7 +110,18 @@ namespace ggj
 
         template <typename T> T* createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive);
 
-        private:
+            /*! Spawns a floating "+1 life" label in world space above the given position. */
+        void spawnFloatingText(raylib::Vector2 pos);
+
+    private:
+        struct FloatingTextEntry
+        {
+            raylib::Vector2 position;
+            float elapsed { 0.f };
+            static constexpr float DURATION    = 1.2f;  ///< Total lifetime in seconds.
+            static constexpr float RISE_SPEED  = 22.f;  ///< Pixels per second upward drift.
+        };
+
         template <typename T, typename... Args> T* createObject(Args&&... args);
         //Generator logic
         void generatePhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
@@ -174,6 +186,8 @@ namespace ggj
 
         int32_t m_nextPlayerIndex { 0 };
         std::map<int32_t, PlayerStats> m_playerStats;
+
+        std::vector<FloatingTextEntry> m_floatingTexts;
 
         INetworkManager* m_network = nullptr;
         std::map<uint32_t, PhysicsObject*> m_networkObjects; ///< Syncable objects (enemies/coins) by network id.
