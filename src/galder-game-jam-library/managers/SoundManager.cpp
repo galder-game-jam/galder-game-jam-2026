@@ -43,6 +43,10 @@ namespace ggj
         ok &= loadMusic(MusicName::Forest2, ResourceName::MusicForest2);
         ok &= loadMusic(MusicName::Dungeon1, ResourceName::MusicDungeon1);
         ok &= loadMusic(MusicName::Dungeon2, ResourceName::MusicDungeon2);
+        ok &= loadMusic(MusicName::BossBattle1, ResourceName::MusicBossBattle1);
+        ok &= loadMusic(MusicName::BossBattle2, ResourceName::MusicBossBattle2);
+        ok &= loadMusic(MusicName::BossBattle3, ResourceName::MusicBossBattle3);
+        ok &= loadMusic(MusicName::BossBattle4, ResourceName::MusicBossBattle4);
 
         return ok;
     }

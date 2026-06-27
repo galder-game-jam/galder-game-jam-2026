@@ -129,6 +129,10 @@ namespace ggj
         MusicForest2 = 701,
         MusicDungeon1 = 702,
         MusicDungeon2 = 703,
+        MusicBossBattle1 = 704,
+        MusicBossBattle2 = 705,
+        MusicBossBattle3 = 706,
+        MusicBossBattle4 = 707
     };
 } // namespace ggj
 
