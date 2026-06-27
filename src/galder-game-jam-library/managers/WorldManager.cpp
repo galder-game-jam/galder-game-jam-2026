@@ -152,6 +152,7 @@ namespace ggj
 
         if (m_mainMenuScreenActive)
         {
+            m_soundManager.playMusic(MusicName::MainMenu1);
             m_mainMenuScreen.update(timeDelta);
             if (m_mainMenuScreen.isExitGameSelected())
                 exit(0);

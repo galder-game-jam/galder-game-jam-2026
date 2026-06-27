@@ -146,6 +146,7 @@ namespace ggj
         add(ggj::ResourceName::MusicBossBattle2, "audio/music/bossbattle2.mp3");
         add(ggj::ResourceName::MusicBossBattle3, "audio/music/bossbattle3.mp3");
         add(ggj::ResourceName::MusicBossBattle4, "audio/music/bossbattle4.mp3");
+        add(ggj::ResourceName::MusicMainMenu1, "audio/music/mainmenu1.mp3");
     }
 
     template <class T> std::string ResourceManager<T>::getResource(T resourceType)
