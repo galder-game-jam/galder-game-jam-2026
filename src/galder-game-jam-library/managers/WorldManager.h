@@ -23,6 +23,7 @@ namespace ggj
     class CharacterSelectScreen; // Forward declaration
     class MainMenuScreen; // Forward declaration
     class NetplayScreen; // Forward declaration
+    class OptionsScreen; // Forward declaration
 
     class WorldManager : public ggj::IWorldManager
     {
@@ -30,13 +31,15 @@ namespace ggj
 
             WorldManager(ggj::ILogger &logger, IMapper &mapper,
                          raylib::Window &window, ggj::ManagerDiCollection &managers, Hud &hud, Dialog &dialog,
-                         CharacterSelectScreen &characterSelectScreen, MainMenuScreen &mainMenuScreen, NetplayScreen &netplayScreen)
+                         CharacterSelectScreen &characterSelectScreen, MainMenuScreen &mainMenuScreen,
+                         NetplayScreen &netplayScreen, OptionsScreen &optionsScreen)
                     : m_managers {managers}, m_logger{logger},  m_resources {managers.resources}, m_mapper{mapper},
                       m_textures{managers.textures}, m_window{window}, m_input{managers.input}, m_collisionManager {managers.collision},
                       m_debugManager{managers.debug}, m_animationManager{managers.animation}, m_userDataManager{managers.userData},
                       m_soundManager{managers.sound},
                       m_hud {hud}, m_dialog {dialog}, m_characterSelectScreen {characterSelectScreen},
-                      m_mainMenuScreen {mainMenuScreen}, m_netplayScreen {netplayScreen}, m_network {managers.network}
+                      m_mainMenuScreen {mainMenuScreen}, m_netplayScreen {netplayScreen}, m_optionsScreen {optionsScreen},
+                      m_network {managers.network}
             {
 
             }
@@ -73,6 +76,7 @@ namespace ggj
             CharacterSelectScreen &m_characterSelectScreen;
             MainMenuScreen &m_mainMenuScreen;
             NetplayScreen &m_netplayScreen;
+            OptionsScreen &m_optionsScreen;
             INetworkManager &m_network;
 
             std::unique_ptr<tson::Project> m_project{nullptr};
@@ -84,6 +88,7 @@ namespace ggj
             bool m_mainMenuScreenActive{true};
             bool m_characterSelectScreenActive{false};
             bool m_netplayScreenActive{false};
+            bool m_optionsScreenActive{false};
             bool m_isNetplay{false};
             PlayerPickedCharacter m_pickedCharacter { PlayerPickedCharacter::Rogue };
             raylib::Font m_font;

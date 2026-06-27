@@ -25,6 +25,13 @@ namespace ggj
                 return m_audioOptions;
             }
 
+            void setAudioOptions(const AudioOptions& options) override
+            {
+                m_audioOptions = options;
+            }
+
+            bool saveAudioOptions() override;
+
         private:
             ILogger& m_logger;
             IResourceManager<ResourceName>& m_resources;

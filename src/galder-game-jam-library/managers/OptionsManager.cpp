@@ -37,4 +37,27 @@ namespace ggj
 
         return true;
     }
+
+    bool OptionsManager::saveAudioOptions()
+    {
+        const std::string path = m_resources.getResource(ResourceName::ConfigOptions);
+
+        const json11::Json root = json11::Json::object {
+            { "sound", json11::Json::object {
+                { "musicMuted",  m_audioOptions.isMusicMuted },
+                { "musicVolume", static_cast<double>(m_audioOptions.musicVolume) },
+                { "soundMuted",  m_audioOptions.isSoundMuted },
+                { "soundVolume", static_cast<double>(m_audioOptions.soundVolume) }
+            }}
+        };
+
+        std::ofstream file(path);
+        if (!file.is_open())
+        {
+            m_logger.error("OptionsManager: could not write '" + path + "'");
+            return false;
+        }
+        file << root.dump();
+        return true;
+    }
 } // namespace ggj

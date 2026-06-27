@@ -43,6 +43,13 @@ namespace ggj
              * Stops the currently playing music track, if any.
              */
             virtual void stopMusic() = 0;
+
+            /*!
+             * Re-applies the current audio options (volume, mute) to all loaded sounds and
+             * music. Call this after modifying options at runtime via IOptionsManager so that
+             * volume changes are heard immediately without reloading assets.
+             */
+            virtual void applyAudioOptions() = 0;
     };
 } // namespace ggj
 

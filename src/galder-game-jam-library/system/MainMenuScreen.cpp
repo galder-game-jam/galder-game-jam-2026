@@ -26,6 +26,11 @@ namespace ggj
         return m_isNetplaySelected;
     }
 
+    bool MainMenuScreen::isOptionsSelected() const
+    {
+        return m_isOptionsSelected;
+    }
+
     bool MainMenuScreen::isExitGameSelected() const
     {
         return m_isExitGameSelected;
@@ -35,6 +40,7 @@ namespace ggj
     {
         m_isSinglePlayerSelected = false;
         m_isNetplaySelected = false;
+        m_isOptionsSelected = false;
         m_isExitGameSelected = false;
     }
 
@@ -68,6 +74,9 @@ namespace ggj
                     break;
                 case MainMenuOption::Netplay:
                     m_isNetplaySelected = true;
+                    break;
+                case MainMenuOption::Options:
+                    m_isOptionsSelected = true;
                     break;
                 case MainMenuOption::ExitGame:
                     m_isExitGameSelected = true;

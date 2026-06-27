@@ -73,6 +73,7 @@ namespace ggj
     {
         if (!m_audioReady || id == MusicName::None)
             return;
+        m_pendingMusic = id;
         if (m_options.getAudioOptions().isMusicMuted)
             return;
         if (id == m_currentMusic)
@@ -85,6 +86,33 @@ namespace ggj
 
         m_currentMusic = id;
         PlayMusicStream(m_music[id]);
+    }
+
+    void SoundManager::applyAudioOptions()
+    {
+        if (!m_audioReady)
+            return;
+
+        const AudioOptions& opts = m_options.getAudioOptions();
+
+        for (auto& [id, sound] : m_sounds)
+            SetSoundVolume(sound, opts.soundVolume);
+
+        for (auto& [id, music] : m_music)
+            SetMusicVolume(music, opts.musicVolume);
+
+        if (opts.isMusicMuted && m_currentMusic != MusicName::None)
+        {
+            stopMusic();
+        }
+        else if (!opts.isMusicMuted && m_currentMusic == MusicName::None && m_pendingMusic != MusicName::None)
+        {
+            if (m_music.count(m_pendingMusic) > 0)
+            {
+                m_currentMusic = m_pendingMusic;
+                PlayMusicStream(m_music[m_currentMusic]);
+            }
+        }
     }
 
     void SoundManager::stopMusic()

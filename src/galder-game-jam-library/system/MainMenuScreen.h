@@ -27,6 +27,7 @@ namespace ggj
 
             [[nodiscard]] bool isSinglePlayerSelected() const;
             [[nodiscard]] bool isNetplaySelected() const;
+            [[nodiscard]] bool isOptionsSelected() const;
             [[nodiscard]] bool isExitGameSelected() const;
 
             /*! Clears all selection flags so the menu can be shown again (e.g. after going back). */
@@ -58,6 +59,7 @@ namespace ggj
             MainMenuOption m_selectedOption {MainMenuOption::SinglePlayer};
             bool m_isSinglePlayerSelected {false};
             bool m_isNetplaySelected {false};
+            bool m_isOptionsSelected {false};
             bool m_isExitGameSelected {false};
 
             const float SCREEN_WIDTH  = 800.0f;

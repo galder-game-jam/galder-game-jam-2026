@@ -24,6 +24,19 @@ namespace ggj
              * Returns the audio options parsed from the "sound" object.
              */
             [[nodiscard]] virtual const AudioOptions& getAudioOptions() const = 0;
+
+            /*!
+             * Replaces the in-memory audio options without writing to disk.
+             * Call saveAudioOptions() to persist the change.
+             * @param options New audio settings to apply.
+             */
+            virtual void setAudioOptions(const AudioOptions& options) = 0;
+
+            /*!
+             * Writes the current audio options back to options.json.
+             * @return true on success, false if the file could not be written.
+             */
+            virtual bool saveAudioOptions() = 0;
     };
 } // namespace ggj
 
