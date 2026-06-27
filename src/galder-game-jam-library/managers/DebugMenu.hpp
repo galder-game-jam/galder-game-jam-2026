@@ -29,7 +29,9 @@ namespace ggj
         bool showHitboxes { false };
         bool cameraFollowsPlayer { true };
         bool showImGuiDemo { false };
-        int requestedStage { -1 }; ///< -1 = no request; consumer resets to -1 after reading.
+        int  requestedStage { -1 };  ///< -1 = no request; consumer resets to -1 after reading.
+        bool gainXp         { false }; ///< Consumer awards 100 XP to player 0 and resets to false.
+        bool gainLevel      { false }; ///< Consumer awards exactly enough XP to level up player 0, then resets to false.
     };
 
     /*!
@@ -66,6 +68,22 @@ namespace ggj
             ImGui::SameLine();
             if (ImGui::Button("Final"))
                 state.requestedStage = 99999;
+
+            ImGui::Spacing();
+            ImGui::Text("Player");
+            ImGui::Separator();
+            if (state.isGameActive)
+            {
+                if (ImGui::Button("Gain 100 XP"))
+                    state.gainXp = true;
+                ImGui::SameLine();
+                if (ImGui::Button("Increase Level"))
+                    state.gainLevel = true;
+            }
+            else
+            {
+                ImGui::TextDisabled("(start a game first)");
+            }
 
             ImGui::Spacing();
             ImGui::Text("Options");

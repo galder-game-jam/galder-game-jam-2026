@@ -8,6 +8,7 @@
 #include "../system/NetplayScreen.h"
 #include "../system/OptionsScreen.h"
 #include "../system/InGameMenuScreen.h"
+#include "../system/TalentScreen.h"
 #include "ServerInfoMenu.hpp"
 #include <cstdlib>
 
@@ -71,6 +72,7 @@ namespace ggj
             m_inGameMenuScreen.setFont(&m_font);
             m_characterSelectScreen.initialize();
             m_characterSelectScreen.setFont(&m_font);
+            m_talentScreen.setFont(&m_font);
         }
 
         return projectExists;
@@ -227,6 +229,7 @@ namespace ggj
             if (m_characterSelectScreen.isCharacterSelected())
             {
                 m_pickedCharacter = m_characterSelectScreen.getPickedCharacter();
+                m_talentScreen.setPickedCharacter(m_pickedCharacter);
                 parseProject();
                 m_hud.initialize();
                 m_hud.setPickedCharacter(m_pickedCharacter);
@@ -287,10 +290,44 @@ namespace ggj
                 return;
             }
 
+            if (m_talentScreenActive)
+            {
+                m_talentScreen.update(timeDelta);
+                if (m_talentScreen.isDone())
+                {
+                    m_talentScreenActive = false;
+                    if (m_worlds.count(m_currentStageIndex) > 0)
+                    {
+                        m_worlds[m_currentStageIndex]->updatePlayerTalentState(
+                            0,
+                            m_managers.persistentState.talentState,
+                            m_managers.persistentState.talentPoints);
+                    }
+                    m_talentScreen.reset();
+                }
+                return;
+            }
+
             if (m_input.keyPressed(KeyboardKey::Escape))
             {
                 m_inGameMenuActive = true;
                 m_inGameMenuScreen.reset();
+                return;
+            }
+
+            if (m_input.keyPressed(KeyboardKey::N) && m_currentStageIndex != NO_MAP_ID
+                && m_worlds.count(m_currentStageIndex) > 0)
+            {
+                // Sync current talent points from the active world before opening
+                m_managers.persistentState.talentPoints = m_worlds[m_currentStageIndex]->getPlayerTalentPoints(0);
+                m_managers.persistentState.talentState  = m_worlds[m_currentStageIndex]->getPlayerTalentState(0);
+
+                IPlayer* player = m_worlds[m_currentStageIndex]->getPlayer();
+                if (player != nullptr)
+                    m_talentScreen.setCurrentPlayerLevel(player->getLevel());
+
+                m_talentScreenActive = true;
+                m_talentScreen.reset();
                 return;
             }
 
@@ -304,12 +341,14 @@ namespace ggj
                     if (m_worlds.count(m_currentStageIndex) > 0)
                     {
                         IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                        m_managers.persistentState.lives = prevPlayer->getLives();
-                        m_managers.persistentState.score = prevPlayer->getScore();
-                        m_managers.persistentState.level = prevPlayer->getLevel();
-                        m_managers.persistentState.currentXp = prevPlayer->getCurrentXp();
-                        m_managers.persistentState.totalXp = prevPlayer->getTotalXp();
+                        m_managers.persistentState.lives              = prevPlayer->getLives();
+                        m_managers.persistentState.score              = prevPlayer->getScore();
+                        m_managers.persistentState.level              = prevPlayer->getLevel();
+                        m_managers.persistentState.currentXp          = prevPlayer->getCurrentXp();
+                        m_managers.persistentState.totalXp            = prevPlayer->getTotalXp();
                         m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
+                        m_managers.persistentState.talentPoints       = m_worlds[m_currentStageIndex]->getPlayerTalentPoints(0);
+                        m_managers.persistentState.talentState        = m_worlds[m_currentStageIndex]->getPlayerTalentState(0);
                     }
 
                     m_currentStageIndex = requestedStage;
@@ -320,6 +359,23 @@ namespace ggj
                     m_hud.setMinimap(m_worlds[m_currentStageIndex]->getMinimap());
                     m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
+                }
+            }
+
+            if (m_managers.debugState.gainXp)
+            {
+                m_managers.debugState.gainXp = false;
+                if (m_worlds.count(m_currentStageIndex) > 0)
+                    m_worlds[m_currentStageIndex]->addPlayerXp(0, 100);
+            }
+
+            if (m_managers.debugState.gainLevel)
+            {
+                m_managers.debugState.gainLevel = false;
+                if (m_worlds.count(m_currentStageIndex) > 0)
+                {
+                    const int xpNeeded = m_worlds[m_currentStageIndex]->getPlayerXpToNextLevel(0);
+                    m_worlds[m_currentStageIndex]->addPlayerXp(0, xpNeeded);
                 }
             }
 #endif
@@ -342,12 +398,14 @@ namespace ggj
                 if (m_worlds[m_currentStageIndex]->isLevelCleared())
                 {
                     IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                    m_managers.persistentState.lives = prevPlayer->getLives();
-                    m_managers.persistentState.score = prevPlayer->getScore();
-                    m_managers.persistentState.level = prevPlayer->getLevel();
-                    m_managers.persistentState.currentXp = prevPlayer->getCurrentXp();
-                    m_managers.persistentState.totalXp = prevPlayer->getTotalXp();
-                    m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
+                    m_managers.persistentState.lives               = prevPlayer->getLives();
+                    m_managers.persistentState.score               = prevPlayer->getScore();
+                    m_managers.persistentState.level               = prevPlayer->getLevel();
+                    m_managers.persistentState.currentXp           = prevPlayer->getCurrentXp();
+                    m_managers.persistentState.totalXp             = prevPlayer->getTotalXp();
+                    m_managers.persistentState.totalEnemiesKilled  = prevPlayer->getEnemiesKilled();
+                    m_managers.persistentState.talentPoints        = m_worlds[m_currentStageIndex]->getPlayerTalentPoints(0);
+                    m_managers.persistentState.talentState         = m_worlds[m_currentStageIndex]->getPlayerTalentState(0);
 
                     m_worlds[m_currentStageIndex]->setLevelCleared(false);
                     ++m_currentStageIndex;
@@ -417,6 +475,11 @@ namespace ggj
             if (m_inGameMenuActive)
             {
                 m_inGameMenuScreen.draw();
+            }
+
+            if (m_talentScreenActive)
+            {
+                m_talentScreen.draw();
             }
         }
     }

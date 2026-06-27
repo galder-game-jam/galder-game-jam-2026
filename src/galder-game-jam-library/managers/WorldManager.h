@@ -25,6 +25,7 @@ namespace ggj
     class NetplayScreen; // Forward declaration
     class OptionsScreen; // Forward declaration
     class InGameMenuScreen; // Forward declaration
+    class TalentScreen; // Forward declaration
 
     class WorldManager : public ggj::IWorldManager
     {
@@ -34,14 +35,14 @@ namespace ggj
                          raylib::Window &window, ggj::ManagerDiCollection &managers, Hud &hud, Dialog &dialog,
                          CharacterSelectScreen &characterSelectScreen, MainMenuScreen &mainMenuScreen,
                          NetplayScreen &netplayScreen, OptionsScreen &optionsScreen,
-                         InGameMenuScreen &inGameMenuScreen)
+                         InGameMenuScreen &inGameMenuScreen, TalentScreen &talentScreen)
                     : m_managers {managers}, m_logger{logger},  m_resources {managers.resources}, m_mapper{mapper},
                       m_textures{managers.textures}, m_window{window}, m_input{managers.input}, m_collisionManager {managers.collision},
                       m_debugManager{managers.debug}, m_animationManager{managers.animation}, m_userDataManager{managers.userData},
                       m_soundManager{managers.sound},
                       m_hud {hud}, m_dialog {dialog}, m_characterSelectScreen {characterSelectScreen},
                       m_mainMenuScreen {mainMenuScreen}, m_netplayScreen {netplayScreen}, m_optionsScreen {optionsScreen},
-                      m_inGameMenuScreen {inGameMenuScreen}, m_network {managers.network}
+                      m_inGameMenuScreen {inGameMenuScreen}, m_talentScreen {talentScreen}, m_network {managers.network}
             {
 
             }
@@ -80,7 +81,8 @@ namespace ggj
             NetplayScreen &m_netplayScreen;
             OptionsScreen &m_optionsScreen;
             InGameMenuScreen &m_inGameMenuScreen;
-            INetworkManager &m_network;
+            TalentScreen     &m_talentScreen;
+            INetworkManager  &m_network;
 
             std::unique_ptr<tson::Project> m_project{nullptr};
 
@@ -93,6 +95,7 @@ namespace ggj
             bool m_netplayScreenActive{false};
             bool m_optionsScreenActive{false};
             bool m_inGameMenuActive{false};
+            bool m_talentScreenActive{false};
             bool m_optionsReturnToInGame{false};
             bool m_isNetplay{false};
             PlayerPickedCharacter m_pickedCharacter { PlayerPickedCharacter::Rogue };

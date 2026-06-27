@@ -6,6 +6,7 @@
 #define GALDER_GAME_JAM_2026_PLAYERSTATS_HPP
 
 #include "ExperienceConfig.hpp"
+#include "TalentState.hpp"
 #include "../game/ExperienceTracker.hpp"
 
 namespace ggj
@@ -20,8 +21,11 @@ namespace ggj
     {
         int lives { 3 };
         int score { 0 };
-        ExperienceTracker xpTracker {};
-        ExperienceConfig  xpConfig  {};
+        ExperienceTracker xpTracker      {};
+        ExperienceConfig  xpConfig       {};
+        int               talentPoints   { 0 }; ///< Unspent points earned from level-ups.
+        TalentState       talentState    {};     ///< Talents the player has unlocked.
+        TalentEffects     computedEffects{};     ///< Pre-computed talent modifiers — rebuilt on every talent change.
     };
 } // namespace ggj
 

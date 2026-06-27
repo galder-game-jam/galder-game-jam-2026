@@ -64,6 +64,7 @@
 #include "system/NetplayScreen.h"
 #include "system/OptionsScreen.h"
 #include "system/InGameMenuScreen.h"
+#include "system/TalentScreen.h"
 
 //Character select
 

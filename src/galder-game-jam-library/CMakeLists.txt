@@ -62,4 +62,8 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         system/OptionsScreen.cpp
         system/OptionsScreen.h
         system/InGameMenuScreen.cpp
-        system/InGameMenuScreen.h)
+        system/InGameMenuScreen.h
+        system/TalentScreen.cpp
+        system/TalentScreen.h
+        data/TalentData.hpp
+        data/TalentState.hpp)
