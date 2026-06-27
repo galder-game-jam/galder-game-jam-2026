@@ -123,6 +123,13 @@ namespace ggj
                 m_rebindingAction = row.index;
         }
 
+        if (ImGui::Button("Reset to default##kb"))
+        {
+            m_rebindingAction = -1;
+            m_localKeybindingOptions = KeybindingOptions {};
+            m_options.setKeybindingOptions(m_localKeybindingOptions);
+        }
+
         ImGui::Spacing();
         ImGui::Separator();
 

@@ -182,6 +182,11 @@ namespace ggj
                 if (ImGui::Button(btnLabel, { 140.0f, 0.0f }))
                     m_rebindingAction = row.index;
             }
+            if (ImGui::Button("Reset to default##dk"))
+            {
+                m_rebindingAction = -1;
+                options.setKeybindingOptions(KeybindingOptions {});
+            }
 
             ImGui::End();
 
