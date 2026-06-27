@@ -12,6 +12,8 @@ namespace ggj
      */
     struct PlayerPersistentState
     {
+        PlayerPersistentState() = default;
+
         int lives              { 3 };
         int score              { 0 };
         int level              { 1 };

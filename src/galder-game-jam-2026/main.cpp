@@ -20,6 +20,7 @@ auto buildInjector(ggj::ILogger& logger, raylib::Window& window)
 
                                              boost::di::bind<ggj::IExecutableInfo>().to<ggj::ExecutableInfo>(), boost::di::bind<ggj::IDebugManager>().to<ggj::DebugManager>(),
                                              boost::di::bind<ggj::CollisionManager>(),
+                                             boost::di::bind<ggj::PlayerPersistentState>().in(boost::di::singleton),
 #ifdef GAME_DEV_DEBUG
                                              boost::di::bind<ggj::DebugState>().in(boost::di::singleton),
 #endif

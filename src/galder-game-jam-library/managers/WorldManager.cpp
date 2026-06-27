@@ -4,7 +4,6 @@
 
 #include "WorldManager.h"
 #include "../game/Hud.h"
-#include "../data/PlayerPersistentState.hpp"
 
 #ifdef GAME_DEV_DEBUG
     #include "DebugMenu.hpp"
@@ -163,16 +162,19 @@ namespace ggj
                 m_managers.debugState.requestedStage = -1;
                 if (m_worlds.count(requestedStage) > 0)
                 {
-                    PlayerPersistentState savedState {};
                     if (m_worlds.count(m_currentStageIndex) > 0)
                     {
                         IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                        savedState = { prevPlayer->getLives(), prevPlayer->getScore(), prevPlayer->getLevel(),
-                                       prevPlayer->getCurrentXp(), prevPlayer->getTotalXp(), prevPlayer->getEnemiesKilled() };
+                        m_managers.persistentState.lives              = prevPlayer->getLives();
+                        m_managers.persistentState.score              = prevPlayer->getScore();
+                        m_managers.persistentState.level              = prevPlayer->getLevel();
+                        m_managers.persistentState.currentXp          = prevPlayer->getCurrentXp();
+                        m_managers.persistentState.totalXp            = prevPlayer->getTotalXp();
+                        m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
                     }
 
                     m_currentStageIndex = requestedStage;
-                    m_worlds[m_currentStageIndex]->getPlayer()->restoreState(savedState);
+                    m_worlds[m_currentStageIndex]->getPlayer()->restoreState(m_managers.persistentState);
                     startMusicForStage(m_currentStageIndex);
                     m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_hud.setWorld(m_worlds[m_currentStageIndex].get());
@@ -192,14 +194,12 @@ namespace ggj
                 if (m_worlds[m_currentStageIndex]->isLevelCleared())
                 {
                     IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                    PlayerPersistentState savedState {
-                        prevPlayer->getLives(),
-                        prevPlayer->getScore(),
-                        prevPlayer->getLevel(),
-                        prevPlayer->getCurrentXp(),
-                        prevPlayer->getTotalXp(),
-                        prevPlayer->getEnemiesKilled()
-                    };
+                    m_managers.persistentState.lives              = prevPlayer->getLives();
+                    m_managers.persistentState.score              = prevPlayer->getScore();
+                    m_managers.persistentState.level              = prevPlayer->getLevel();
+                    m_managers.persistentState.currentXp          = prevPlayer->getCurrentXp();
+                    m_managers.persistentState.totalXp            = prevPlayer->getTotalXp();
+                    m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
 
                     m_worlds[m_currentStageIndex]->setLevelCleared(false);
                     ++m_currentStageIndex;
@@ -208,7 +208,7 @@ namespace ggj
                         m_currentStageIndex = FINAL_MAP_ID;
 
                     if (m_worlds.count(m_currentStageIndex) > 0)
-                        m_worlds[m_currentStageIndex]->getPlayer()->restoreState(savedState);
+                        m_worlds[m_currentStageIndex]->getPlayer()->restoreState(m_managers.persistentState);
 
                     startMusicForStage(m_currentStageIndex);
 
