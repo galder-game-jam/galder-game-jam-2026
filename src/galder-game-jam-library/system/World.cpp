@@ -845,6 +845,8 @@ namespace ggj
         const int prevLevel = stats.xpTracker.getLevel();
         stats.xpTracker.addXp(scaled > 0 ? scaled : amount, stats.xpConfig);
         const int newLevel  = stats.xpTracker.getLevel();
+        if (newLevel > prevLevel)
+            m_soundManager.playSound(SoundName::LevelUp);
         // Grant 1 talent point for each even level crossed (levels 2, 4, 6 …)
         stats.talentPoints += (newLevel / 2) - (prevLevel / 2);
     }

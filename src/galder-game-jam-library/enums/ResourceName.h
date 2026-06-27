@@ -124,6 +124,7 @@ namespace ggj
         SoundDialogTalking5 = 609,
         SoundDialogTalking6 = 610,
         SoundDialogTalking7 = 611,
+        SoundLevelUp = 612,
 
         MusicForest1 = 700,
         MusicForest2 = 701,

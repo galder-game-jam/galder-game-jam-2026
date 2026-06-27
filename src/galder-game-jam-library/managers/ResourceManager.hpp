@@ -133,6 +133,7 @@ namespace ggj
         add(ggj::ResourceName::SoundDialogTalking5, "audio/sfx/dialog_talking_5.wav");
         add(ggj::ResourceName::SoundDialogTalking6, "audio/sfx/dialog_talking_6.wav");
         add(ggj::ResourceName::SoundDialogTalking7, "audio/sfx/dialog_talking_7.wav");
+        add(ggj::ResourceName::SoundLevelUp, "audio/sfx/level_up.wav");
 
         add(ggj::ResourceName::MusicForest1, "audio/music/forest1.mp3");
         add(ggj::ResourceName::MusicForest2, "audio/music/forest2.mp3");

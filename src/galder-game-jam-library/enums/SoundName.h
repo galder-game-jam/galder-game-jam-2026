@@ -19,7 +19,8 @@ namespace ggj
         DialogTalking4 = 9, ///< Talking syllable — A4, neutral.
         DialogTalking5 = 10, ///< Talking syllable — C#5, mid-high.
         DialogTalking6 = 11, ///< Talking syllable — F5, bright.
-        DialogTalking7 = 12  ///< Talking syllable — A5, high.
+        DialogTalking7 = 12,  ///< Talking syllable — A5, high.
+        LevelUp = 13          ///< Chime played when the player gains a level.
     };
 } // namespace ggj
 
