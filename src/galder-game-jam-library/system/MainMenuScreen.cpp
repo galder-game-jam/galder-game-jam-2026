@@ -21,9 +21,21 @@ namespace ggj
         return m_isSinglePlayerSelected;
     }
 
+    bool MainMenuScreen::isNetplaySelected() const
+    {
+        return m_isNetplaySelected;
+    }
+
     bool MainMenuScreen::isExitGameSelected() const
     {
         return m_isExitGameSelected;
+    }
+
+    void MainMenuScreen::reset()
+    {
+        m_isSinglePlayerSelected = false;
+        m_isNetplaySelected = false;
+        m_isExitGameSelected = false;
     }
 
     void MainMenuScreen::rotate(float degrees) {}
@@ -53,6 +65,9 @@ namespace ggj
             {
                 case MainMenuOption::SinglePlayer:
                     m_isSinglePlayerSelected = true;
+                    break;
+                case MainMenuOption::Netplay:
+                    m_isNetplaySelected = true;
                     break;
                 case MainMenuOption::ExitGame:
                     m_isExitGameSelected = true;

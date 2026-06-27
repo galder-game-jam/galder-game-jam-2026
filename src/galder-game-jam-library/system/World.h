@@ -28,6 +28,8 @@ namespace ggj
 #include "ObjectGeneratorData.hpp"
 #include "../data/PlayerStats.hpp"
 #include "../data/PlayerPersistentState.hpp"
+#include "../interfaces/manager/INetworkManager.h"
+#include <set>
 
 namespace ggj
 {
@@ -38,9 +40,8 @@ namespace ggj
         public:
         World(ggj::ILogger& logger, ggj::IResourceManager<ResourceName>& resources, IMapper& mapper, ggj::ITextureManager<TextureName, raylib::Texture>& textures,
               raylib::Window& window, ggj::IInputManager<ggj::KeyboardKey>& input, CollisionManager& collisionManager, IDebugManager& debugManager,
-              ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IUserDataManager<PhysicsObject*>& userDataManager,
-              ggj::ISoundManager& soundManager, std::unique_ptr<tson::Map> map,
-              ggj::Hud& hud, Dialog& dialog)
+              ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IUserDataManager<PhysicsObject*>& userDataManager, ggj::ISoundManager& soundManager,
+              std::unique_ptr<tson::Map> map, ggj::Hud& hud, Dialog& dialog)
             : m_logger { logger }, m_resources { resources }, m_mapper { mapper }, m_textures { textures }, m_window { window }, m_input { input },
               m_collisionManager { collisionManager }, m_debugManager { debugManager }, m_animationManager { animationManager }, m_userDataManager { userDataManager },
               m_soundManager { soundManager }, m_map { std::move(map) }, m_hud { hud }, m_dialog { dialog }
@@ -58,6 +59,9 @@ namespace ggj
         void setPickedCharacter(PlayerPickedCharacter character);
         IPlayer* getPlayer();
         Minimap* getMinimap() { return &m_minimap; }
+
+        /*! When set, remote players synced by the network manager are drawn into this world. */
+        void setNetworkManager(INetworkManager* network) { m_network = network; }
         [[nodiscard]] int getEnemies() const;
 #ifdef GAME_DEV_DEBUG
         void setDebugState(ggj::DebugState* pState);
@@ -71,7 +75,10 @@ namespace ggj
         [[nodiscard]] int getPlayerLevel(int32_t playerIndex) const { return m_playerStats.at(playerIndex).xpTracker.getLevel(); }
         [[nodiscard]] int getPlayerCurrentXp(int32_t playerIndex) const { return m_playerStats.at(playerIndex).xpTracker.getCurrentXp(); }
         [[nodiscard]] int getPlayerTotalXp(int32_t playerIndex) const { return m_playerStats.at(playerIndex).xpTracker.getTotalXp(); }
-        [[nodiscard]] int getPlayerXpToNextLevel(int32_t playerIndex) const { return m_playerStats.at(playerIndex).xpTracker.getXpToNextLevel(m_playerStats.at(playerIndex).xpConfig); }
+        [[nodiscard]] int getPlayerXpToNextLevel(int32_t playerIndex) const
+        {
+            return m_playerStats.at(playerIndex).xpTracker.getXpToNextLevel(m_playerStats.at(playerIndex).xpConfig);
+        }
         [[nodiscard]] const ExperienceConfig& getXpConfig(int32_t playerIndex) const { return m_playerStats.at(playerIndex).xpConfig; }
 
         // Player stat mutators
@@ -99,6 +106,12 @@ namespace ggj
         void generatePowerUp(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void destroyMarkedObjects();
+        void drawRemotePlayers();
+
+        /*! Assigns a deterministic network id to a syncable object (enemy/coin) and registers it. */
+        void registerNetworkObject(PhysicsObject* obj);
+        /*! Reconciles networked objects with the network manager (report local kills, apply removals, correct positions). */
+        void syncNetworkObjects();
 
         ggj::ILogger& m_logger;
         ggj::IResourceManager<ResourceName>& m_resources;
@@ -142,6 +155,13 @@ namespace ggj
 
         int32_t m_nextPlayerIndex { 0 };
         std::map<int32_t, PlayerStats> m_playerStats;
+
+        INetworkManager* m_network = nullptr;
+        std::map<uint32_t, PhysicsObject*> m_networkObjects; ///< Syncable objects (enemies/coins) by network id.
+        std::set<uint32_t> m_reportedDestroyed;              ///< Ids already reported destroyed to the network.
+        uint32_t m_nextNetworkId { 1 };
+        uint32_t m_enemyStateThrottle { 0 };
+        static constexpr uint32_t ENEMY_STATE_THROTTLE_FRAMES = 3;
     };
 
     template <typename T> T* World::createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive)

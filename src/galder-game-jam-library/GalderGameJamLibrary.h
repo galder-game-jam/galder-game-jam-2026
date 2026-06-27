@@ -61,6 +61,7 @@
 #include "game/Dialog.h"
 #include "system/CharacterSelectScreen.h"
 #include "system/MainMenuScreen.h"
+#include "system/NetplayScreen.h"
 
 //Character select
 
@@ -69,6 +70,8 @@
 //Network
 #include "network/GalderClient.hpp"
 #include "network/GalderServer.hpp"
+#include "interfaces/manager/INetworkManager.h"
+#include "managers/NetworkManager.h"
 
 //System
 #include "system/World.h"

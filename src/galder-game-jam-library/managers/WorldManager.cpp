@@ -5,6 +5,8 @@
 #include "WorldManager.h"
 #include "../game/Hud.h"
 #include "../system/MainMenuScreen.h"
+#include "../system/NetplayScreen.h"
+#include "ServerInfoMenu.hpp"
 #include <cstdlib>
 
 #ifdef GAME_DEV_DEBUG
@@ -62,6 +64,7 @@ namespace ggj
 
             m_mainMenuScreen.initialize();
             m_mainMenuScreen.setFont(&m_font);
+            m_netplayScreen.initialize();
             m_characterSelectScreen.initialize();
             m_characterSelectScreen.setFont(&m_font);
         }
@@ -148,7 +151,39 @@ namespace ggj
                 exit(0);
             if (m_mainMenuScreen.isSinglePlayerSelected())
             {
+                m_isNetplay = false;
                 m_mainMenuScreenActive = false;
+                m_characterSelectScreenActive = true;
+            }
+            else if (m_mainMenuScreen.isNetplaySelected())
+            {
+                m_mainMenuScreen.reset();
+                m_netplayScreen.reset();
+                m_mainMenuScreenActive = false;
+                m_netplayScreenActive = true;
+                m_network.startDiscovery(); // listen for LAN hosts while browsing
+            }
+            return;
+        }
+
+        if (m_netplayScreenActive)
+        {
+            // The dialog itself is driven by ImGui (drawImGui); here we react to its outcome.
+            m_network.pollDiscovery(timeDelta);
+            m_netplayScreen.setDiscoveredServers(m_network.discoveredServers());
+
+            if (m_netplayScreen.isBack())
+            {
+                m_network.stopDiscovery();
+                m_netplayScreen.reset();
+                m_netplayScreenActive = false;
+                m_mainMenuScreenActive = true;
+            }
+            else if (m_netplayScreen.isConfirmed())
+            {
+                m_network.stopDiscovery();
+                m_isNetplay = true;
+                m_netplayScreenActive = false;
                 m_characterSelectScreenActive = true;
             }
             return;
@@ -170,6 +205,19 @@ namespace ggj
                 m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                 m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
                 m_characterSelectScreenActive = false;
+
+                if (m_isNetplay)
+                {
+                    const std::string playerName = m_netplayScreen.getPlayerName();
+                    m_hud.setPlayerName(playerName);
+                    if (m_netplayScreen.isHost())
+                        m_network.startHost(m_netplayScreen.getPort(), playerName, m_pickedCharacter);
+                    else
+                        m_network.startClient(m_netplayScreen.getIpAddress(), m_netplayScreen.getPort(), playerName, m_pickedCharacter);
+
+                    m_worlds[m_currentStageIndex]->setNetworkManager(&m_network);
+                }
+
                 startMusicForStage(m_currentStageIndex);
 #ifdef GAME_DEV_DEBUG
                 m_managers.debugState.isGameActive = true;
@@ -188,11 +236,11 @@ namespace ggj
                     if (m_worlds.count(m_currentStageIndex) > 0)
                     {
                         IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                        m_managers.persistentState.lives              = prevPlayer->getLives();
-                        m_managers.persistentState.score              = prevPlayer->getScore();
-                        m_managers.persistentState.level              = prevPlayer->getLevel();
-                        m_managers.persistentState.currentXp          = prevPlayer->getCurrentXp();
-                        m_managers.persistentState.totalXp            = prevPlayer->getTotalXp();
+                        m_managers.persistentState.lives = prevPlayer->getLives();
+                        m_managers.persistentState.score = prevPlayer->getScore();
+                        m_managers.persistentState.level = prevPlayer->getLevel();
+                        m_managers.persistentState.currentXp = prevPlayer->getCurrentXp();
+                        m_managers.persistentState.totalXp = prevPlayer->getTotalXp();
                         m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
                     }
 
@@ -214,14 +262,23 @@ namespace ggj
             if (m_worlds.count(m_currentStageIndex) > 0)
             {
                 m_worlds[m_currentStageIndex]->update(timeDelta);
+
+                if (m_isNetplay)
+                {
+                    IPlayer* localPlayer = m_worlds[m_currentStageIndex]->getPlayer();
+                    if (localPlayer != nullptr)
+                        m_network.setLocalPlayerPosition(localPlayer->getPosition());
+                    m_network.poll(timeDelta);
+                }
+
                 if (m_worlds[m_currentStageIndex]->isLevelCleared())
                 {
                     IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                    m_managers.persistentState.lives              = prevPlayer->getLives();
-                    m_managers.persistentState.score              = prevPlayer->getScore();
-                    m_managers.persistentState.level              = prevPlayer->getLevel();
-                    m_managers.persistentState.currentXp          = prevPlayer->getCurrentXp();
-                    m_managers.persistentState.totalXp            = prevPlayer->getTotalXp();
+                    m_managers.persistentState.lives = prevPlayer->getLives();
+                    m_managers.persistentState.score = prevPlayer->getScore();
+                    m_managers.persistentState.level = prevPlayer->getLevel();
+                    m_managers.persistentState.currentXp = prevPlayer->getCurrentXp();
+                    m_managers.persistentState.totalXp = prevPlayer->getTotalXp();
                     m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
 
                     m_worlds[m_currentStageIndex]->setLevelCleared(false);
@@ -241,6 +298,14 @@ namespace ggj
 
                     m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
+
+                    if (m_isNetplay)
+                    {
+                        // Each peer changes stage independently; reset per-world sync state so reused
+                        // object ids on the new map are not treated as already-removed.
+                        m_network.clearWorldState();
+                        m_worlds[m_currentStageIndex]->setNetworkManager(&m_network);
+                    }
                 }
             }
         }
@@ -251,6 +316,12 @@ namespace ggj
         if (m_mainMenuScreenActive)
         {
             m_mainMenuScreen.draw();
+            return;
+        }
+
+        if (m_netplayScreenActive)
+        {
+            m_netplayScreen.draw();
             return;
         }
 
@@ -268,6 +339,22 @@ namespace ggj
             {
                 m_worlds[m_currentStageIndex]->draw();
             }
+        }
+    }
+
+    void WorldManager::drawImGui()
+    {
+        if (m_netplayScreenActive)
+        {
+            m_netplayScreen.drawImGui();
+            return;
+        }
+
+        // Host gets an in-game window listing connected players and their stats.
+        if (m_isNetplay && m_network.role() == NetworkRole::Server)
+        {
+            ServerInfoMenu serverInfo;
+            serverInfo.draw(m_network.connectedPlayers());
         }
     }
 

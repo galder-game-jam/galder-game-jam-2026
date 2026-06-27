@@ -38,9 +38,7 @@ namespace ggj
         {
         }
 
-#ifdef GAME_DEV_DEBUG
         ~GameManager() override;
-#endif
 
         bool initialize() override;
         void update(float timeDelta) override;

@@ -255,6 +255,7 @@ namespace ggj
         if (m_camera.target.y < m_cameraMin.y)
             m_camera.target.y = m_cameraMin.y;
 
+        syncNetworkObjects();
         destroyMarkedObjects();
     }
 
@@ -266,9 +267,37 @@ namespace ggj
         {
             layer.second.draw();
         }
+        drawRemotePlayers();
         m_camera.EndMode();
         m_hud.draw();
         m_dialog.draw();
+    }
+
+    void World::drawRemotePlayers()
+    {
+        if (m_network == nullptr || !m_network->isActive())
+            return;
+
+        for (const auto& [playerId, remote] : m_network->remotePlayers())
+        {
+            // Approximate the sprite centre; remote.position is the same space as IPlayer::getPosition().
+            const raylib::Vector2 centre { remote.position.x + 8.0f, remote.position.y + 8.0f };
+            const raylib::Color bodyColor = (remote.character == PlayerPickedCharacter::Wizard) ? VIOLET : SKYBLUE;
+
+            DrawCircleV(centre, 8.0f, bodyColor);
+            DrawCircleLines(static_cast<int>(centre.x), static_cast<int>(centre.y), 8.0f, BLACK);
+
+            // Small facing indicator.
+            const float eyeX = centre.x + (remote.facingLeft ? -3.0f : 3.0f);
+            DrawCircleV(raylib::Vector2 { eyeX, centre.y - 1.0f }, 1.5f, BLACK);
+
+            if (!remote.name.empty())
+            {
+                const int fontSize = 10;
+                const int textWidth = MeasureText(remote.name.c_str(), fontSize);
+                DrawText(remote.name.c_str(), static_cast<int>(centre.x) - textWidth / 2, static_cast<int>(centre.y) - 22, fontSize, WHITE);
+            }
+        }
     }
 
     void World::generatePhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
@@ -308,6 +337,88 @@ namespace ggj
             generatePowerUp(name, body, generatorData);
         else
             generateGenericPhysicsObject(name, body, generatorData);
+
+        // Enemies and coins are synced over the network. They are generated in the same order on
+        // every peer (same map + generators), so a per-spawn counter yields matching ids everywhere.
+        if (name == "bat" || name == "snake" || name == "spider" || name == "thing" || name == "ghost" || name == "coin")
+            registerNetworkObject(m_userDataManager.getUserData(body));
+    }
+
+    void World::registerNetworkObject(PhysicsObject* obj)
+    {
+        if (obj == nullptr)
+            return;
+
+        const uint32_t id = m_nextNetworkId++;
+        obj->setNetworkId(id);
+        m_networkObjects[id] = obj;
+    }
+
+    void World::syncNetworkObjects()
+    {
+        if (m_network == nullptr || !m_network->isActive())
+            return;
+
+        // Feed the local player's authoritative stats out for syncing.
+        if (m_player != nullptr)
+            m_network->setLocalPlayerStats(m_player->getLives(), m_player->getScore(), m_player->getEnemiesKilled());
+
+        // 1. Report objects we destroyed locally (coin picked up / enemy killed) so the server reconciles.
+        for (auto it = m_networkObjects.begin(); it != m_networkObjects.end();)
+        {
+            PhysicsObject* obj = it->second;
+            if (obj->shouldBeDestroyed())
+            {
+                const uint32_t id = it->first;
+                if (m_reportedDestroyed.insert(id).second)
+                {
+                    const bool isCoin = obj->getUserData()->getObjectType() == ObjectType::Coin;
+                    m_network->notifyLocalObjectDestroyed(id, isCoin);
+                }
+                it = m_networkObjects.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        // 2. Apply authoritative removals from the network (objects others destroyed).
+        for (uint32_t id : m_network->removedObjectIds())
+        {
+            auto found = m_networkObjects.find(id);
+            if (found != m_networkObjects.end())
+            {
+                found->second->destroy();
+                m_reportedDestroyed.insert(id);
+                m_networkObjects.erase(found);
+            }
+        }
+
+        // 3. Client: snap enemies to the host's authoritative positions.
+        if (m_network->role() == NetworkRole::Client)
+        {
+            for (const auto& [id, position] : m_network->enemyPositions())
+            {
+                auto found = m_networkObjects.find(id);
+                if (found != m_networkObjects.end())
+                    found->second->setNetworkPosition(position);
+            }
+        }
+
+        // 4. Server: broadcast enemy positions (throttled to ~20 Hz).
+        if (m_network->role() == NetworkRole::Server)
+        {
+            if (m_enemyStateThrottle == 0)
+            {
+                for (const auto& [id, obj] : m_networkObjects)
+                {
+                    if (obj->getUserData()->getObjectType() == ObjectType::Enemy)
+                        m_network->publishEnemyState(id, obj->getPosition(), false);
+                }
+            }
+            m_enemyStateThrottle = (m_enemyStateThrottle + 1) % ENEMY_STATE_THROTTLE_FRAMES;
+        }
     }
 
     void World::setPickedCharacter(PlayerPickedCharacter character)
@@ -344,16 +455,16 @@ namespace ggj
                 {
                     if (raylib::Texture* wizardTex = m_textures.get(TextureName::WizardPlayer); wizardTex != nullptr)
                         tex = wizardTex;
-                    Player2* p2 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player2>(
-                        this, playerIndex, m_input, m_animationManager, m_mapper, body, physicsSize, spriteSize, r, tex, generatorData.userData);
+                    Player2* p2 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player2>(this, playerIndex, m_input, m_animationManager, m_mapper, body, physicsSize,
+                                                                                                    spriteSize, r, tex, generatorData.userData);
                     m_player = p2;
                     m_userDataManager.addUserData(body, p2);
                     m_userDataManager.addUserData(p2->getHitbox()->getBody(), p2->getHitbox());
                 }
                 else
                 {
-                    Player* p1 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player>(
-                        m_input, m_animationManager, m_mapper, m_soundManager, this, playerIndex, body, physicsSize, spriteSize, r, tex, generatorData.userData);
+                    Player* p1 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player>(m_input, m_animationManager, m_mapper, m_soundManager, this, playerIndex, body,
+                                                                                                  physicsSize, spriteSize, r, tex, generatorData.userData);
                     m_player = p1;
                     m_userDataManager.addUserData(body, p1);
                     m_userDataManager.addUserData(p1->getHitbox()->getBody(), p1->getHitbox());
@@ -385,8 +496,8 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Bat>(
-                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
-                    generatorData.velocity);
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
+                    generatorData.userData, generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -460,8 +571,8 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Snake>(
-                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
-                    generatorData.velocity);
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
+                    generatorData.userData, generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -490,8 +601,8 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Coin>(
-                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
-                    generatorData.velocity);
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
+                    generatorData.userData, generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -520,8 +631,8 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Spider>(
-                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
-                    generatorData.velocity);
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
+                    generatorData.userData, generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -550,8 +661,8 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Thing>(
-                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
-                    generatorData.velocity);
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
+                    generatorData.userData, generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -580,8 +691,8 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Ghost>(
-                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex, generatorData.userData,
-                    generatorData.velocity);
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
+                    generatorData.userData, generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
