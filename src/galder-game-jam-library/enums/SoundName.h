@@ -24,7 +24,8 @@ namespace ggj
         PlayerHurt = 14,      ///< Grunt played when the player takes damage.
         PlayerDeath = 15,     ///< Scream played when the player dies.
         PlayerRespawn = 16,   ///< Death scream reversed, played when the player respawns.
-        PortalOpen = 17       ///< Played when all enemies are cleared and the portal activates.
+        PortalOpen = 17,      ///< Played when all enemies are cleared and the portal activates.
+        ExtraLife = 18        ///< 1-up chime played when the player gains an extra life.
     };
 } // namespace ggj
 

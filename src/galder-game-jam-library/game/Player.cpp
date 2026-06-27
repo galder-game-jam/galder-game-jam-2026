@@ -40,7 +40,10 @@ namespace ggj
                 m_world->addPlayerXp(m_playerIndex, GetRandomValue(cfg.xpPerKillMin, cfg.xpPerKillMax));
 
                 if (fx.killsPerExtraLife > 0 && (i + 1) % fx.killsPerExtraLife == 0)
+                {
                     m_world->addPlayerLives(m_playerIndex, 1);
+                    m_soundManager.playSound(SoundName::ExtraLife);
+                }
             }
             m_previousKillCount = currentKills;
         }
@@ -140,6 +143,7 @@ namespace ggj
         if (m_inputManager.keyPressed(KeyboardKey::Minus))
         {
             m_world->addPlayerLives(m_playerIndex, 1);
+            m_soundManager.playSound(SoundName::ExtraLife);
         }
 #endif
 

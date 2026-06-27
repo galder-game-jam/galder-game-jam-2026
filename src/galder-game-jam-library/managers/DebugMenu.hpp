@@ -36,6 +36,7 @@ namespace ggj
         bool gainLevel      { false }; ///< Consumer awards exactly enough XP to level up player 0, then resets to false.
         bool killAllEnemies { false }; ///< Consumer destroys all remaining enemies in the current level and resets to false.
         bool awardCoin      { false }; ///< Consumer adds one coin to player 0's score and resets to false.
+        bool gainLife       { false }; ///< Consumer grants one extra life to player 0 and resets to false.
     };
 
     /*!
@@ -90,6 +91,9 @@ namespace ggj
                 ImGui::SameLine();
                 if (ImGui::Button("Award Coin"))
                     state.awardCoin = true;
+                ImGui::SameLine();
+                if (ImGui::Button("Add Life"))
+                    state.gainLife = true;
             }
             else
             {

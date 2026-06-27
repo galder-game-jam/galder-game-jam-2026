@@ -3,6 +3,7 @@
 //
 
 #include "WorldManager.h"
+#include "../enums/SoundName.h"
 #include "../game/Hud.h"
 #include "../system/MainMenuScreen.h"
 #include "../system/NetplayScreen.h"
@@ -392,6 +393,16 @@ namespace ggj
                 m_managers.debugState.awardCoin = false;
                 if (m_worlds.count(m_currentStageIndex) > 0)
                     m_worlds[m_currentStageIndex]->addPlayerScore(0, 1);
+            }
+
+            if (m_managers.debugState.gainLife)
+            {
+                m_managers.debugState.gainLife = false;
+                if (m_worlds.count(m_currentStageIndex) > 0)
+                {
+                    m_worlds[m_currentStageIndex]->addPlayerLives(0, 1);
+                    m_soundManager.playSound(SoundName::ExtraLife);
+                }
             }
 #endif
 
