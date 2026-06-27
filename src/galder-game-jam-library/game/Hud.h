@@ -10,6 +10,7 @@
 #include "../GalderGameJamLibrary.h"
 #include "../interfaces/game/IPlayer.h"
 #include "../enums/PlayerPickedCharacter.h"
+#include "../interfaces/manager/IOptionsManager.h"
 
 namespace ggj
 {
@@ -19,7 +20,8 @@ namespace ggj
     {
         public:
             Hud(IMapper &mapper, ggj::ITextureManager<TextureName, raylib::Texture> &textures,
-                IInputManager<KeyboardKey> &inputManager) : m_mapper {mapper}, m_textures {textures}, m_inputManager {inputManager}
+                IInputManager<KeyboardKey> &inputManager, IOptionsManager &options)
+                : m_mapper {mapper}, m_textures {textures}, m_inputManager {inputManager}, m_options {options}
             {
                 m_isVisible = true;
             }
@@ -47,9 +49,13 @@ namespace ggj
             void drawXpBar(raylib::Vector2 offset) const;
             void drawPlayerPositionBar(raylib::Vector2 offset) const;
 
+            /*! Returns color with its alpha channel scaled by the current HUD alpha setting. */
+            [[nodiscard]] raylib::Color tinted(raylib::Color color) const;
+
             IMapper &m_mapper;
             ITextureManager<TextureName, raylib::Texture> &m_textures;
             IInputManager<KeyboardKey> &m_inputManager;
+            IOptionsManager &m_options;
 
             raylib::Texture *m_hudTexture {nullptr};
             raylib::Texture *m_playerPortraitTexture {nullptr};
@@ -71,8 +77,6 @@ namespace ggj
 
             const float TILE_UNIT = 16.0f;
             const int FONT_SIZE = 15;
-            const raylib::Color HUD_FONT_COLOR = BLACK;
-            const int HUD_ALPHA = 180;
 
             float m_health{};
             float m_mana{};

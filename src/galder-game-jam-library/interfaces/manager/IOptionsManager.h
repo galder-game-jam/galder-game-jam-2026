@@ -2,6 +2,7 @@
 #define GALDER_GAME_JAM_2026_IOPTIONSMANAGER_H
 
 #include "../../data/AudioOptions.hpp"
+#include "../../data/HudOptions.hpp"
 
 namespace ggj
 {
@@ -33,10 +34,22 @@ namespace ggj
             virtual void setAudioOptions(const AudioOptions& options) = 0;
 
             /*!
-             * Writes the current audio options back to options.json.
+             * Writes all options (sound and HUD) back to options.json.
              * @return true on success, false if the file could not be written.
              */
             virtual bool saveAudioOptions() = 0;
+
+            /*!
+             * Returns the HUD display options parsed from the "hud" object.
+             */
+            [[nodiscard]] virtual const HudOptions& getHudOptions() const = 0;
+
+            /*!
+             * Replaces the in-memory HUD options without writing to disk.
+             * Call saveAudioOptions() to persist the change.
+             * @param options New HUD settings to apply.
+             */
+            virtual void setHudOptions(const HudOptions& options) = 0;
     };
 } // namespace ggj
 

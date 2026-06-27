@@ -8,6 +8,7 @@
 
     #include "rlImGui.h"
     #include "imgui.h"
+    #include "../interfaces/manager/IOptionsManager.h"
 
 namespace ggj
 {
@@ -44,11 +45,12 @@ namespace ggj
         /*!
              * Draws the debug menu window.
              *
-             * @param state Shared debug state to read from and write to.
+             * @param state   Shared debug state to read from and write to.
+             * @param options Options manager for reading and tweaking runtime settings.
              */
-        void draw(DebugState& state)
+        void draw(DebugState& state, IOptionsManager& options)
         {
-            ImGui::SetNextWindowSize({ 300, 200 }, ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize({ 300, 260 }, ImGuiCond_FirstUseEver);
             ImGui::Begin("Debug Menu");
 
             ImGui::Text("Map");
@@ -91,6 +93,13 @@ namespace ggj
             ImGui::Checkbox("Show hitboxes", &state.showHitboxes);
             ImGui::Checkbox("Camera follows player", &state.cameraFollowsPlayer);
             ImGui::Checkbox("Show ImGui demo", &state.showImGuiDemo);
+
+            ImGui::Spacing();
+            ImGui::Text("HUD");
+            ImGui::Separator();
+            HudOptions hudOpts = options.getHudOptions();
+            if (ImGui::SliderFloat("HUD Alpha##hud", &hudOpts.hudAlpha, 0.0f, 1.0f))
+                options.setHudOptions(hudOpts);
 
             ImGui::End();
 

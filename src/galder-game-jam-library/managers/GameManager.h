@@ -12,6 +12,7 @@
 #include "fmt/format.h"
 #include "../enums/TextureName.h"
 #include "../data/PlayerPersistentState.hpp"
+#include "../interfaces/manager/IOptionsManager.h"
 
 #ifdef GAME_DEV_DEBUG
     #include "DebugMenu.hpp"
@@ -23,14 +24,15 @@ namespace ggj
     {
         public:
         explicit GameManager(ggj::ILogger& logger, raylib::Window& window, IInputManager<ggj::KeyboardKey>& input, IWorldManager& worlds,
-                             ggj::ITextureManager<TextureName, raylib::Texture>& textures, IDebugManager& debugManager, PlayerPersistentState& persistentState
+                             ggj::ITextureManager<TextureName, raylib::Texture>& textures, IDebugManager& debugManager,
+                             PlayerPersistentState& persistentState, IOptionsManager& options
 #ifdef GAME_DEV_DEBUG
                              ,
                              ggj::DebugState& debugState
 #endif
                              )
             : m_logger { logger }, m_window { window }, m_input { input }, m_worlds { worlds }, m_textures { textures }, m_debugManager { debugManager },
-              m_persistentState { persistentState }
+              m_persistentState { persistentState }, m_options { options }
 #ifdef GAME_DEV_DEBUG
               ,
               m_debugState { debugState }
@@ -55,6 +57,7 @@ namespace ggj
         IDebugManager& m_debugManager;
 
         PlayerPersistentState& m_persistentState;
+        IOptionsManager& m_options;
         raylib::Vector2 m_originalWindowSize;
         raylib::RenderTexture2D m_renderTexture;
 

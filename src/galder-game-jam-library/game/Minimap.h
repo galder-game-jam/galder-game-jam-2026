@@ -25,7 +25,7 @@ namespace ggj
             ~Minimap();
 
             void initialize(tson::Map& map, std::map<int32_t, WorldLayer>& layers);
-            void draw(raylib::Vector2 playerWorldPos) const;
+            void draw(raylib::Vector2 playerWorldPos, float alpha = 1.0f) const;
 
         private:
             RenderTexture2D m_mapTexture {};
