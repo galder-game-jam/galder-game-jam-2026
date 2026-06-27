@@ -26,6 +26,9 @@ namespace ggj
 #include "../graphics/PhysicsObject.h"
 #include "../GalderGameJamLibrary.h"
 #include "ObjectGeneratorData.hpp"
+#include "../game/ExperienceTracker.hpp"
+#include "../data/ExperienceConfig.hpp"
+#include "../data/PlayerPersistentState.hpp"
 
 namespace ggj
 {
@@ -62,6 +65,23 @@ namespace ggj
 #endif
         void reduceEnemyKillCountByOne();
         [[nodiscard]] int getNumberOfEnemiesLeft() const;
+
+        // Player stat accessors
+        [[nodiscard]] int getPlayerLives() const { return m_playerLives; }
+        [[nodiscard]] int getPlayerScore() const { return m_playerScore; }
+        [[nodiscard]] int getPlayerLevel() const { return m_xpTracker.getLevel(); }
+        [[nodiscard]] int getPlayerCurrentXp() const { return m_xpTracker.getCurrentXp(); }
+        [[nodiscard]] int getPlayerTotalXp() const { return m_xpTracker.getTotalXp(); }
+        [[nodiscard]] int getPlayerXpToNextLevel() const { return m_xpTracker.getXpToNextLevel(m_xpConfig); }
+        [[nodiscard]] const ExperienceConfig& getXpConfig() const { return m_xpConfig; }
+
+        // Player stat mutators
+        void decrementPlayerLives() { --m_playerLives; }
+        void addPlayerLives(int delta) { m_playerLives += delta; }
+        void resetPlayerLives() { m_playerLives = 3; }
+        void addPlayerScore(int delta) { m_playerScore += delta; }
+        void addPlayerXp(int amount) { m_xpTracker.addXp(amount, m_xpConfig); }
+        void restorePlayerStats(const PlayerPersistentState& state);
 
         template <typename T> T* createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive);
 
@@ -120,6 +140,11 @@ namespace ggj
 
         int m_numberOfEnemies { 0 };
         Minimap m_minimap {};
+
+        int m_playerLives { 3 };
+        int m_playerScore { 0 };
+        ExperienceTracker m_xpTracker {};
+        ExperienceConfig  m_xpConfig {};
     };
 
     template <typename T> T* World::createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive)
