@@ -9,6 +9,7 @@
     #include "rlImGui.h"
     #include "imgui.h"
     #include "../interfaces/manager/IOptionsManager.h"
+    #include "../../gamedev-base/interfaces/managers/ISoundManager.h"
 
 namespace ggj
 {
@@ -50,9 +51,9 @@ namespace ggj
              * @param state   Shared debug state to read from and write to.
              * @param options Options manager for reading and tweaking runtime settings.
              */
-        void draw(DebugState& state, IOptionsManager& options)
+        void draw(DebugState& state, IOptionsManager& options, ISoundManager& sound)
         {
-            ImGui::SetNextWindowSize({ 300, 260 }, ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize({ 300, 340 }, ImGuiCond_FirstUseEver);
             ImGui::Begin("Debug Menu");
 
             ImGui::Text("Map");
@@ -108,6 +109,21 @@ namespace ggj
             HudOptions hudOpts = options.getHudOptions();
             if (ImGui::SliderFloat("HUD Alpha##hud", &hudOpts.hudAlpha, 0.0f, 1.0f))
                 options.setHudOptions(hudOpts);
+
+            ImGui::Spacing();
+            ImGui::Text("Audio");
+            ImGui::Separator();
+            AudioOptions audioOpts = options.getAudioOptions();
+            bool audioChanged = false;
+            audioChanged |= ImGui::Checkbox("Mute Music", &audioOpts.isMusicMuted);
+            audioChanged |= ImGui::SliderFloat("Music Volume", &audioOpts.musicVolume, 0.0f, 1.0f);
+            audioChanged |= ImGui::Checkbox("Mute Sounds", &audioOpts.isSoundMuted);
+            audioChanged |= ImGui::SliderFloat("Sound Volume", &audioOpts.soundVolume, 0.0f, 1.0f);
+            if (audioChanged)
+            {
+                options.setAudioOptions(audioOpts);
+                sound.applyAudioOptions();
+            }
 
             ImGui::End();
 
