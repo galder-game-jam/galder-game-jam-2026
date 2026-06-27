@@ -33,6 +33,7 @@ namespace ggj
         int  requestedStage { -1 };  ///< -1 = no request; consumer resets to -1 after reading.
         bool gainXp         { false }; ///< Consumer awards 100 XP to player 0 and resets to false.
         bool gainLevel      { false }; ///< Consumer awards exactly enough XP to level up player 0, then resets to false.
+        bool killAllEnemies { false }; ///< Consumer destroys all remaining enemies in the current level and resets to false.
     };
 
     /*!
@@ -81,6 +82,8 @@ namespace ggj
                 ImGui::SameLine();
                 if (ImGui::Button("Increase Level"))
                     state.gainLevel = true;
+                if (ImGui::Button("Kill All Enemies"))
+                    state.killAllEnemies = true;
             }
             else
             {

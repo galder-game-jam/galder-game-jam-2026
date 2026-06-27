@@ -795,6 +795,23 @@ namespace ggj
     {
         m_pDebugState = pState;
     }
+
+    void World::killAllEnemies()
+    {
+        if (m_player == nullptr)
+            return;
+
+        int killed = 0;
+        for (auto& [id, obj] : m_networkObjects)
+        {
+            if (obj->getUserData()->getObjectType() == ObjectType::Enemy)
+            {
+                obj->destroy();
+                ++killed;
+            }
+        }
+        m_player->getUserData()->enemiesKilled += killed;
+    }
 #endif
 
     int World::getEnemies() const

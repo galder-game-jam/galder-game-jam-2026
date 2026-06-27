@@ -65,6 +65,8 @@ namespace ggj
         [[nodiscard]] int getEnemies() const;
 #ifdef GAME_DEV_DEBUG
         void setDebugState(ggj::DebugState* pState);
+        /*! Instantly destroys all remaining enemies and credits the kills to the local player. */
+        void killAllEnemies();
 #endif
         void reduceEnemyKillCountByOne();
         [[nodiscard]] int getNumberOfEnemiesLeft() const;
