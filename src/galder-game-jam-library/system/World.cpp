@@ -356,24 +356,22 @@ namespace ggj
 
     void World::syncNetworkObjects()
     {
-        if (m_network == nullptr || !m_network->isActive())
-            return;
-
-        // Feed the local player's authoritative stats out for syncing.
-        if (m_player != nullptr)
-            m_network->setLocalPlayerStats(m_player->getLives(), m_player->getScore(), m_player->getEnemiesKilled());
-
-        // 1. Report objects we destroyed locally (coin picked up / enemy killed) so the server reconciles.
+        // Always prune destroyed objects so raw pointers in m_networkObjects never outlive
+        // the unique_ptrs freed by destroyMarkedObjects() — even in single-player where
+        // the network-active guard below would otherwise skip this entirely.
         for (auto it = m_networkObjects.begin(); it != m_networkObjects.end();)
         {
             PhysicsObject* obj = it->second;
             if (obj->shouldBeDestroyed())
             {
-                const uint32_t id = it->first;
-                if (m_reportedDestroyed.insert(id).second)
+                if (m_network != nullptr && m_network->isActive())
                 {
-                    const bool isCoin = obj->getUserData()->getObjectType() == ObjectType::Coin;
-                    m_network->notifyLocalObjectDestroyed(id, isCoin);
+                    const uint32_t id = it->first;
+                    if (m_reportedDestroyed.insert(id).second)
+                    {
+                        const bool isCoin = obj->getUserData()->getObjectType() == ObjectType::Coin;
+                        m_network->notifyLocalObjectDestroyed(id, isCoin);
+                    }
                 }
                 it = m_networkObjects.erase(it);
             }
@@ -383,7 +381,14 @@ namespace ggj
             }
         }
 
-        // 2. Apply authoritative removals from the network (objects others destroyed).
+        if (m_network == nullptr || !m_network->isActive())
+            return;
+
+        // Feed the local player's authoritative stats out for syncing.
+        if (m_player != nullptr)
+            m_network->setLocalPlayerStats(m_player->getLives(), m_player->getScore(), m_player->getEnemiesKilled());
+
+        // 1. Apply authoritative removals from the network (objects others destroyed).
         for (uint32_t id : m_network->removedObjectIds())
         {
             auto found = m_networkObjects.find(id);
@@ -398,7 +403,7 @@ namespace ggj
             }
         }
 
-        // 3. Client: snap enemies to the host's authoritative positions.
+        // 2. Client: snap enemies to the host's authoritative positions.
         if (m_network->role() == NetworkRole::Client)
         {
             for (const auto& [id, position] : m_network->enemyPositions())
@@ -409,7 +414,7 @@ namespace ggj
             }
         }
 
-        // 4. Server: broadcast enemy positions (throttled to ~20 Hz).
+        // 3. Server: broadcast enemy positions (throttled to ~20 Hz).
         if (m_network->role() == NetworkRole::Server)
         {
             if (m_enemyStateThrottle == 0)
@@ -804,7 +809,8 @@ namespace ggj
         int killed = 0;
         for (auto& [id, obj] : m_networkObjects)
         {
-            if (obj->getUserData()->getObjectType() == ObjectType::Enemy)
+            if (obj->getUserData()->getObjectType() == ObjectType::Enemy
+                && !obj->shouldBeDestroyed())
             {
                 obj->destroy();
                 ++killed;
