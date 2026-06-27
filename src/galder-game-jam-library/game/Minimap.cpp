@@ -5,7 +5,6 @@
 #include "Minimap.h"
 #include "tileson.hpp"
 #include <algorithm>
-#include <cmath>
 
 namespace ggj
 {
@@ -45,21 +44,16 @@ namespace ggj
         const float minimapX = static_cast<float>(SCREEN_WIDTH - MINIMAP_WIDTH - MINIMAP_MARGIN);
         const float minimapY = static_cast<float>(MINIMAP_MARGIN);
 
-        const float srcX = std::clamp(playerWorldPos.x - WORLD_VIEW_WIDTH  / 2.0f, 0.0f, static_cast<float>(m_mapPixelWidth  - WORLD_VIEW_WIDTH));
-        const float srcY = std::clamp(playerWorldPos.y - WORLD_VIEW_HEIGHT / 2.0f, 0.0f, static_cast<float>(m_mapPixelHeight - WORLD_VIEW_HEIGHT));
-
-        // raylib 6.0: DrawTexturePro adjusts source.y by subtracting source.height when height<0,
-        // then uses source.y/H for top texcoord and (source.y+source.height)/H for bottom.
-        // Pre-adjustment value to get top=srcY, bottom=srcY+viewH: source.y = H - srcY - viewH, height = -viewH.
-        Rectangle source { srcX, static_cast<float>(m_mapPixelHeight - srcY - WORLD_VIEW_HEIGHT), static_cast<float>(WORLD_VIEW_WIDTH), -static_cast<float>(WORLD_VIEW_HEIGHT) };
-        Rectangle dest   { minimapX, minimapY, static_cast<float>(MINIMAP_WIDTH), static_cast<float>(MINIMAP_HEIGHT) };
+        // Full map: srcY=0, viewH=H → pre-adjusted y = H-0-H = 0, height = -H (y-flip convention).
+        const Rectangle source { 0.f, 0.f, static_cast<float>(m_mapPixelWidth), -static_cast<float>(m_mapPixelHeight) };
+        const Rectangle dest   { minimapX, minimapY, static_cast<float>(MINIMAP_WIDTH), static_cast<float>(MINIMAP_HEIGHT) };
 
         DrawRectangle(static_cast<int>(minimapX) - 2, static_cast<int>(minimapY) - 2, MINIMAP_WIDTH + 4, MINIMAP_HEIGHT + 4, BLACK);
         DrawTexturePro(m_mapTexture.texture, source, dest, { 0.f, 0.f }, 0.f, WHITE);
 
-        DrawCircle(static_cast<int>(minimapX) + MINIMAP_WIDTH  / 2,
-                   static_cast<int>(minimapY) + MINIMAP_HEIGHT / 2,
-                   3.f, RED);
+        const float dotX = minimapX + (playerWorldPos.x / static_cast<float>(m_mapPixelWidth))  * static_cast<float>(MINIMAP_WIDTH);
+        const float dotY = minimapY + (playerWorldPos.y / static_cast<float>(m_mapPixelHeight)) * static_cast<float>(MINIMAP_HEIGHT);
+        DrawCircle(static_cast<int>(dotX), static_cast<int>(dotY), 3.f, RED);
 
         DrawRectangleLines(static_cast<int>(minimapX), static_cast<int>(minimapY), MINIMAP_WIDTH, MINIMAP_HEIGHT, WHITE);
     }

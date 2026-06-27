@@ -33,12 +33,10 @@ namespace ggj
             int m_mapPixelHeight { 0 };
             bool m_isInitialized { false };
 
-            static constexpr int MINIMAP_MARGIN     { 10 };
-            static constexpr int MINIMAP_WIDTH      { 200 };
-            static constexpr int MINIMAP_HEIGHT     { 150 };
-            static constexpr int WORLD_VIEW_WIDTH   { 400 };
-            static constexpr int WORLD_VIEW_HEIGHT  { 300 };
-            static constexpr int SCREEN_WIDTH       { 800 };
+            static constexpr int MINIMAP_MARGIN { 10 };
+            static constexpr int MINIMAP_WIDTH  { 200 };
+            static constexpr int MINIMAP_HEIGHT { 150 };
+            static constexpr int SCREEN_WIDTH   { 800 };
     };
 } // namespace ggj
 
