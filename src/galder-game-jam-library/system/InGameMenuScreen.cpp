@@ -55,10 +55,10 @@ namespace ggj
 
         // Dim the world behind the menu
         DrawRectangle(0, 0, static_cast<int>(SCREEN_WIDTH), static_cast<int>(SCREEN_HEIGHT),
-            Color { 0, 0, 0, 160 });
+            Color { 0, 0, 0, 100 });
 
         // Menu panel
-        DrawRectangle(180, 185, 440, 230, Color { 0, 0, 0, 210 });
+        DrawRectangle(180, 185, 440, 250, Color { 0, 0, 0, 100 });
 
         // "PAUSED" title
         const std::string title = "PAUSED";
