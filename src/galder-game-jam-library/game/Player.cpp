@@ -69,6 +69,7 @@ namespace ggj
                 m_world->resetPlayerLives(m_playerIndex);
                 m_hitbox.setIsActive(true);
                 m_body->SetEnabled(true);
+                m_soundManager.playSound(SoundName::PlayerRespawn);
             }
             else
                 return;

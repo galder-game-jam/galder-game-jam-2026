@@ -22,7 +22,8 @@ namespace ggj
         DialogTalking7 = 12,  ///< Talking syllable — A5, high.
         LevelUp = 13,         ///< Chime played when the player gains a level.
         PlayerHurt = 14,      ///< Grunt played when the player takes damage.
-        PlayerDeath = 15      ///< Scream played when the player dies.
+        PlayerDeath = 15,     ///< Scream played when the player dies.
+        PlayerRespawn = 16    ///< Death scream reversed, played when the player respawns.
     };
 } // namespace ggj
 
