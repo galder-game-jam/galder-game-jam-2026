@@ -60,12 +60,16 @@ namespace ggj
     {
         if (!m_audioReady || m_sounds.count(id) == 0)
             return;
+        if (m_options.getAudioOptions().isSoundMuted)
+            return;
         PlaySound(m_sounds[id]);
     }
 
     void SoundManager::playMusic(MusicName id)
     {
         if (!m_audioReady || id == MusicName::None)
+            return;
+        if (m_options.getAudioOptions().isMusicMuted)
             return;
         if (id == m_currentMusic)
             return;
@@ -97,6 +101,7 @@ namespace ggj
             m_logger.error(fmt::format("SoundManager: failed to load sound '{}' from '{}'", (int)id, path));
             return false;
         }
+        SetSoundVolume(sound, m_options.getAudioOptions().soundVolume);
         m_sounds[id] = sound;
         return true;
     }
@@ -111,6 +116,7 @@ namespace ggj
             return false;
         }
         music.looping = true;
+        SetMusicVolume(music, m_options.getAudioOptions().musicVolume);
         m_music[id] = music;
         return true;
     }
