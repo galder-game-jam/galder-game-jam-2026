@@ -60,6 +60,7 @@
 //Dialog
 #include "game/Dialog.h"
 #include "system/CharacterSelectScreen.h"
+#include "system/MainMenuScreen.h"
 
 //Character select
 

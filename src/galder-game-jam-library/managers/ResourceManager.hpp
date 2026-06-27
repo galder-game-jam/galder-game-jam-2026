@@ -111,6 +111,8 @@ namespace ggj
         add(ggj::ResourceName::CharacterSelectRoguePortrait, "graphics/portraits/character_select_rogue.png");
         add(ggj::ResourceName::CharacterSelectWizardPortrait, "graphics/portraits/character_select_wizard.png");
 
+        add(ggj::ResourceName::GraphicsMainMenuBackground, "graphics/backgrounds/ggj-main-menu.png");
+
         add(ggj::ResourceName::FontDroidSans, "fonts/DroidSans.ttf");
         add(ggj::ResourceName::FontDroidSansBold, "fonts/DroidSansBold.ttf");
         add(ggj::ResourceName::FontPixantiqua, "fonts/pixantiqua.ttf");

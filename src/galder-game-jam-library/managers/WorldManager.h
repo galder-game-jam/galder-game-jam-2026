@@ -20,18 +20,21 @@ namespace ggj
 {
     class Hud; // Forward declaration
     class CharacterSelectScreen; // Forward declaration
+    class MainMenuScreen; // Forward declaration
 
     class WorldManager : public ggj::IWorldManager
     {
         public:
 
             WorldManager(ggj::ILogger &logger, IMapper &mapper,
-                         raylib::Window &window, ggj::ManagerDiCollection &managers, Hud &hud, Dialog &dialog, CharacterSelectScreen &characterSelectScreen)
+                         raylib::Window &window, ggj::ManagerDiCollection &managers, Hud &hud, Dialog &dialog,
+                         CharacterSelectScreen &characterSelectScreen, MainMenuScreen &mainMenuScreen)
                     : m_managers {managers}, m_logger{logger},  m_resources {managers.resources}, m_mapper{mapper},
                       m_textures{managers.textures}, m_window{window}, m_input{managers.input}, m_collisionManager {managers.collision},
                       m_debugManager{managers.debug}, m_animationManager{managers.animation}, m_userDataManager{managers.userData},
                       m_soundManager{managers.sound},
-                      m_hud {hud}, m_dialog {dialog}, m_characterSelectScreen {characterSelectScreen}
+                      m_hud {hud}, m_dialog {dialog}, m_characterSelectScreen {characterSelectScreen},
+                      m_mainMenuScreen {mainMenuScreen}
             {
 
             }
@@ -65,6 +68,7 @@ namespace ggj
             Hud &m_hud;
             Dialog &m_dialog;
             CharacterSelectScreen &m_characterSelectScreen;
+            MainMenuScreen &m_mainMenuScreen;
 
             std::unique_ptr<tson::Project> m_project{nullptr};
 
@@ -72,7 +76,8 @@ namespace ggj
             //Stage m_currentStage{Stage::None};
             int32_t m_startupIndex{-1};
             int32_t m_currentStageIndex {-1};
-            bool m_characterSelectScreenActive{true};
+            bool m_mainMenuScreenActive{true};
+            bool m_characterSelectScreenActive{false};
             PlayerPickedCharacter m_pickedCharacter { PlayerPickedCharacter::Rogue };
             raylib::Font m_font;
             //std::vector<std::unique_ptr<tson::Map>> m_maps;

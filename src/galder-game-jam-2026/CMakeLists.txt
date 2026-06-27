@@ -8,12 +8,13 @@ if(LINUX)
     add_executable(galder-game-jam-2026 main.cpp)
     target_link_libraries(galder-game-jam-2026 galder-game-jam-library gamedev_base raylib_cpp raylib raylib_imgui fmt box2d)
 
-    # Copies game content on compile
-    add_custom_command(TARGET galder-game-jam-2026 POST_BUILD
+    # Copies game content on every build (custom targets are always out-of-date)
+    add_custom_target(copy_content
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/content/game/content"
             "$<TARGET_FILE_DIR:galder-game-jam-2026>/content"
             COMMENT "Copying content files to app directory")
+    add_dependencies(galder-game-jam-2026 copy_content)
 
 elseif(WINDOWS)
     # Copies game content to the executable folder when CMake file is loaded.
@@ -22,12 +23,13 @@ elseif(WINDOWS)
     target_link_libraries(galder-game-jam-2026 galder-game-jam-library gamedev_base raylib_cpp raylib raylib_imgui fmt box2d)
     # target_link_options(galder-game-jam-2026 PRIVATE -mwindows)
 
-    # Copies game content on compile
-    add_custom_command(TARGET galder-game-jam-2026 POST_BUILD
+    # Copies game content on every build (custom targets are always out-of-date)
+    add_custom_target(copy_content
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/content/game/content"
             "$<TARGET_FILE_DIR:galder-game-jam-2026>/content"
             COMMENT "Copying content files to app directory")
+    add_dependencies(galder-game-jam-2026 copy_content)
 else()
     set(MACOSX_BUNDLE_BUNDLE_NAME "GalderGameJam2024")
     set(MACOSX_BUNDLE_GUI_IDENTIFIER "galder.game.jam.2024")
@@ -47,16 +49,14 @@ else()
     # file(COPY ${CMAKE_SOURCE_DIR}/content/game/content DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/GalderGameJam2026.app/Contents/MacOS)
     # file(COPY ${CMAKE_SOURCE_DIR}/content/logo/AppIcon.icns DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/GalderGameJam2026.app/Contents/Resources)
 
-    # Copies game content on compile
-    add_custom_command(TARGET GalderGameJam2026 POST_BUILD
+    # Copies game content on every build (custom targets are always out-of-date)
+    add_custom_target(copy_content
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/content/game/content"
             "${CMAKE_CURRENT_BINARY_DIR}/GalderGameJam2026.app/Contents/MacOS"
-            COMMENT "Copying content files to app directory")
-
-    add_custom_command(TARGET GalderGameJam2026 POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/content/logo/AppIcon.icns"
             "${CMAKE_CURRENT_BINARY_DIR}/GalderGameJam2026.app/Contents/Resources"
-            COMMENT "Copying app icon to MacOS app directory")
+            COMMENT "Copying content and icon to MacOS app bundle")
+    add_dependencies(GalderGameJam2026 copy_content)
 endif()

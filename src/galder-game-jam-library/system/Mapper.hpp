@@ -163,6 +163,8 @@ namespace ggj
 
                 m_texToRes[TextureName::CharacterSelectRoguePortrait] = ResourceName::CharacterSelectRoguePortrait;
                 m_texToRes[TextureName::CharacterSelectWizardPortrait] = ResourceName::CharacterSelectWizardPortrait;
+
+                m_texToRes[TextureName::MainMenuBackground] = ResourceName::GraphicsMainMenuBackground;
             };
 
             TextureName getTextureNameByString(const std::string &id) override

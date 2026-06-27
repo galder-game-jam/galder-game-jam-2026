@@ -102,6 +102,8 @@ namespace ggj
         CharacterSelectRoguePortrait = 330,
         CharacterSelectWizardPortrait = 331,
 
+        GraphicsMainMenuBackground = 340,
+
         FontDroidSans = 400,
         FontDroidSansBold = 401,
         FontPixantiqua = 402,
