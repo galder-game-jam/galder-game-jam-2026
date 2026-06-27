@@ -40,10 +40,32 @@ namespace ggj
             { 0.5f, 0.5f });
         ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse);
 
-        bool audioChanged = false;
+        ImGui::TextUnformatted("UI Scale");
+        ImGui::Separator();
+        {
+            constexpr float SCALES[] = { 1.0f, 1.5f, 2.0f, 4.0f };
+            constexpr const char* LABELS[] = { "1x", "1.5x", "2x", "4x" };
+            for (int i = 0; i < 4; ++i)
+            {
+                if (i > 0) ImGui::SameLine();
+                const bool active = (m_localHudOptions.imguiScale == SCALES[i]);
+                if (active)
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+                if (ImGui::Button(LABELS[i], { 0.0f, 0.0f }))
+                {
+                    m_localHudOptions.imguiScale = SCALES[i];
+                    m_options.setHudOptions(m_localHudOptions);
+                }
+                if (active)
+                    ImGui::PopStyleColor();
+            }
+        }
 
+        ImGui::Spacing();
         ImGui::TextUnformatted("Music");
         ImGui::Separator();
+
+        bool audioChanged = false;
         audioChanged |= ImGui::Checkbox("Mute Music", &m_localOptions.isMusicMuted);
         ImGui::BeginDisabled(m_localOptions.isMusicMuted);
         audioChanged |= ImGui::SliderFloat("Music Volume##music", &m_localOptions.musicVolume, 0.0f, 1.0f);
@@ -68,28 +90,6 @@ namespace ggj
         ImGui::Separator();
         if (ImGui::SliderFloat("HUD Alpha##hud", &m_localHudOptions.hudAlpha, 0.0f, 1.0f))
             m_options.setHudOptions(m_localHudOptions);
-
-        ImGui::Spacing();
-        ImGui::TextUnformatted("UI Scale");
-        ImGui::Separator();
-        {
-            constexpr float SCALES[] = { 1.0f, 1.5f, 2.0f, 4.0f };
-            constexpr const char* LABELS[] = { "1x", "1.5x", "2x", "4x" };
-            for (int i = 0; i < 4; ++i)
-            {
-                if (i > 0) ImGui::SameLine();
-                const bool active = (m_localHudOptions.imguiScale == SCALES[i]);
-                if (active)
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-                if (ImGui::Button(LABELS[i], { 0.0f, 0.0f }))
-                {
-                    m_localHudOptions.imguiScale = SCALES[i];
-                    m_options.setHudOptions(m_localHudOptions);
-                }
-                if (active)
-                    ImGui::PopStyleColor();
-            }
-        }
 
         ImGui::Spacing();
         ImGui::TextUnformatted("Keybindings");

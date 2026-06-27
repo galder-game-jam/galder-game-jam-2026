@@ -80,6 +80,29 @@ namespace ggj
             ImGui::SetNextWindowSize({ 300, 660 }, ImGuiCond_FirstUseEver);
             ImGui::Begin("Debug Menu");
 
+            ImGui::Text("UI Scale");
+            ImGui::Separator();
+            {
+                constexpr float SCALES[] = { 1.0f, 1.5f, 2.0f, 4.0f };
+                constexpr const char* LABELS[] = { "1x", "1.5x", "2x", "4x" };
+                HudOptions scaleOpts = options.getHudOptions();
+                for (int i = 0; i < 4; ++i)
+                {
+                    if (i > 0) ImGui::SameLine();
+                    const bool active = (scaleOpts.imguiScale == SCALES[i]);
+                    if (active)
+                        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+                    if (ImGui::Button(LABELS[i], { 0.0f, 0.0f }))
+                    {
+                        scaleOpts.imguiScale = SCALES[i];
+                        options.setHudOptions(scaleOpts);
+                    }
+                    if (active)
+                        ImGui::PopStyleColor();
+                }
+            }
+
+            ImGui::Spacing();
             ImGui::Text("Map");
             ImGui::Separator();
             if (ImGui::Button("Map 1"))
@@ -140,29 +163,6 @@ namespace ggj
             HudOptions hudOpts = options.getHudOptions();
             if (ImGui::SliderFloat("HUD Alpha##hud", &hudOpts.hudAlpha, 0.0f, 1.0f))
                 options.setHudOptions(hudOpts);
-
-            ImGui::Spacing();
-            ImGui::Text("UI Scale");
-            ImGui::Separator();
-            {
-                constexpr float SCALES[] = { 1.0f, 1.5f, 2.0f, 4.0f };
-                constexpr const char* LABELS[] = { "1x", "1.5x", "2x", "4x" };
-                HudOptions scaleOpts = options.getHudOptions();
-                for (int i = 0; i < 4; ++i)
-                {
-                    if (i > 0) ImGui::SameLine();
-                    const bool active = (scaleOpts.imguiScale == SCALES[i]);
-                    if (active)
-                        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-                    if (ImGui::Button(LABELS[i], { 0.0f, 0.0f }))
-                    {
-                        scaleOpts.imguiScale = SCALES[i];
-                        options.setHudOptions(scaleOpts);
-                    }
-                    if (active)
-                        ImGui::PopStyleColor();
-                }
-            }
 
             ImGui::Spacing();
             ImGui::Text("Audio");
