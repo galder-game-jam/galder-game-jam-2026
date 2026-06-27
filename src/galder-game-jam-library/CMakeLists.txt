@@ -18,8 +18,16 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         game/interactables/PowerUp.cpp game/interactables/PowerUp.h game/Hitbox.hpp
         data/PlayerNetworkData.hpp
         data/ServerNetworkData.hpp
+        data/ClientMessage.hpp
+        data/ServerMessage.hpp
+        data/RemotePlayer.hpp
+        enums/NetMessageType.h
+        enums/NetworkRole.h
+        interfaces/manager/INetworkManager.h
         network/GalderClient.hpp
         network/GalderServer.hpp
+        managers/NetworkManager.cpp
+        managers/NetworkManager.h
         game/projectiles/MageBall.hpp
         game/projectiles/Projectile.cpp
         game/projectiles/Projectile.h
@@ -43,4 +51,6 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         system/CharacterSelectScreen.cpp
         system/CharacterSelectScreen.h
         system/MainMenuScreen.cpp
-        system/MainMenuScreen.h)
+        system/MainMenuScreen.h
+        system/NetplayScreen.cpp
+        system/NetplayScreen.h)

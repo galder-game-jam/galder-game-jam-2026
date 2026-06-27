@@ -28,6 +28,7 @@ namespace ggj
 #include "ObjectGeneratorData.hpp"
 #include "../data/PlayerStats.hpp"
 #include "../data/PlayerPersistentState.hpp"
+#include "../interfaces/manager/INetworkManager.h"
 
 namespace ggj
 {
@@ -58,6 +59,9 @@ namespace ggj
         void setPickedCharacter(PlayerPickedCharacter character);
         IPlayer* getPlayer();
         Minimap* getMinimap() { return &m_minimap; }
+
+        /*! When set, remote players synced by the network manager are drawn into this world. */
+        void setNetworkManager(INetworkManager* network) { m_network = network; }
         [[nodiscard]] int getEnemies() const;
 #ifdef GAME_DEV_DEBUG
         void setDebugState(ggj::DebugState* pState);
@@ -99,6 +103,7 @@ namespace ggj
         void generatePowerUp(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void destroyMarkedObjects();
+        void drawRemotePlayers();
 
         ggj::ILogger& m_logger;
         ggj::IResourceManager<ResourceName>& m_resources;
@@ -142,6 +147,8 @@ namespace ggj
 
         int32_t m_nextPlayerIndex { 0 };
         std::map<int32_t, PlayerStats> m_playerStats;
+
+        INetworkManager* m_network = nullptr;
     };
 
     template <typename T> T* World::createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive)

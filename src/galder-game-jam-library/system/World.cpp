@@ -266,9 +266,37 @@ namespace ggj
         {
             layer.second.draw();
         }
+        drawRemotePlayers();
         m_camera.EndMode();
         m_hud.draw();
         m_dialog.draw();
+    }
+
+    void World::drawRemotePlayers()
+    {
+        if (m_network == nullptr || !m_network->isActive())
+            return;
+
+        for (const auto& [playerId, remote] : m_network->remotePlayers())
+        {
+            // Approximate the sprite centre; remote.position is the same space as IPlayer::getPosition().
+            const raylib::Vector2 centre { remote.position.x + 8.0f, remote.position.y + 8.0f };
+            const raylib::Color bodyColor = (remote.character == PlayerPickedCharacter::Wizard) ? VIOLET : SKYBLUE;
+
+            DrawCircleV(centre, 8.0f, bodyColor);
+            DrawCircleLines(static_cast<int>(centre.x), static_cast<int>(centre.y), 8.0f, BLACK);
+
+            // Small facing indicator.
+            const float eyeX = centre.x + (remote.facingLeft ? -3.0f : 3.0f);
+            DrawCircleV(raylib::Vector2 { eyeX, centre.y - 1.0f }, 1.5f, BLACK);
+
+            if (!remote.name.empty())
+            {
+                const int fontSize = 10;
+                const int textWidth = MeasureText(remote.name.c_str(), fontSize);
+                DrawText(remote.name.c_str(), static_cast<int>(centre.x) - textWidth / 2, static_cast<int>(centre.y) - 22, fontSize, WHITE);
+            }
+        }
     }
 
     void World::generatePhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)

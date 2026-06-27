@@ -36,6 +36,11 @@ namespace ggj
         m_currentPlayer = player;
     }
 
+    void Hud::setPlayerName(const std::string& name)
+    {
+        m_playerName = name;
+    }
+
     void Hud::setPickedCharacter(PlayerPickedCharacter character)
     {
         m_playerPortraitTexture = m_textures.get(
@@ -97,6 +102,9 @@ namespace ggj
 
         drawXpBar(m_xpOffset);
         drawQuestLog(m_questLogOffset, 3, 1);
+
+        if (!m_playerName.empty() && m_font != nullptr)
+            m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, raylib::Color::White());
 
         if (m_minimap != nullptr)
             m_minimap->draw(m_playerPosition);

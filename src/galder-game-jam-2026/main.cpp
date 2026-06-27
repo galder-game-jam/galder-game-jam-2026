@@ -1,3 +1,7 @@
+// Boost.DI caps injected constructors at 10 parameters by default. ManagerDiCollection exceeds
+// that (more so in debug builds with the extra DebugState), so raise the limit before di.hpp.
+#define BOOST_DI_CFG_CTOR_LIMIT_SIZE 16
+
 #include "../galder-game-jam-library/GalderGameJamLibrary.h"
 #include "di.hpp"
 #include "fmt/color.h"
@@ -20,6 +24,8 @@ auto buildInjector(ggj::ILogger& logger, raylib::Window& window)
 
                                              boost::di::bind<ggj::IExecutableInfo>().to<ggj::ExecutableInfo>(), boost::di::bind<ggj::IDebugManager>().to<ggj::DebugManager>(),
                                              boost::di::bind<ggj::CollisionManager>(),
+                                             boost::di::bind<ggj::IIpAddressResolver>().to<ggj::IpAddressResolver>(),
+                                             boost::di::bind<ggj::INetworkManager>().to<ggj::NetworkManager>().in(boost::di::singleton),
                                              boost::di::bind<ggj::PlayerPersistentState>().in(boost::di::singleton),
 #ifdef GAME_DEV_DEBUG
                                              boost::di::bind<ggj::DebugState>().in(boost::di::singleton),

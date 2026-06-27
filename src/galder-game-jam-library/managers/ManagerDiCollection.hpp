@@ -6,6 +6,7 @@
 #define GALDER_GAME_JAM_2025_PROJECT_MANAGERDICOLLECTION_HPP
 
 #include "../data/PlayerPersistentState.hpp"
+#include "../interfaces/manager/INetworkManager.h"
 
 #ifdef GAME_DEV_DEBUG
 namespace ggj
@@ -22,14 +23,14 @@ namespace ggj
         ManagerDiCollection(ggj::IResourceManager<ResourceName>& resourceManager, ggj::ITextureManager<TextureName, raylib::Texture>& textureManager,
                             ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::CollisionManager& collisionManager, ggj::IDebugManager& debugManager,
                             ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IUserDataManager<PhysicsObject*>& userDataManager,
-                            ggj::ISoundManager& soundManager, ggj::PlayerPersistentState& persistentState
+                            ggj::ISoundManager& soundManager, ggj::PlayerPersistentState& persistentState, ggj::INetworkManager& networkManager
 #ifdef GAME_DEV_DEBUG
                             ,
                             ggj::DebugState& debugState
 #endif
                             )
             : resources { resourceManager }, textures { textureManager }, input { inputManager }, collision { collisionManager }, debug { debugManager },
-              animation { animationManager }, userData { userDataManager }, sound { soundManager }, persistentState { persistentState }
+              animation { animationManager }, userData { userDataManager }, sound { soundManager }, persistentState { persistentState }, network { networkManager }
 #ifdef GAME_DEV_DEBUG
               ,
               debugState { debugState }
@@ -46,6 +47,7 @@ namespace ggj
         IUserDataManager<PhysicsObject*>& userData;
         ggj::ISoundManager& sound;
         ggj::PlayerPersistentState& persistentState;
+        ggj::INetworkManager& network;
 #ifdef GAME_DEV_DEBUG
         ggj::DebugState& debugState;
 #endif

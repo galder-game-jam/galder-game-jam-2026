@@ -1,0 +1,90 @@
+//
+// Created by robin on 27.06.2026.
+//
+
+#include "NetplayScreen.h"
+
+#include "imgui.h"
+
+namespace ggj
+{
+    void NetplayScreen::initialize()
+    {
+        m_backgroundTexture = m_textures.get(TextureName::MainMenuBackground);
+    }
+
+    void NetplayScreen::reset()
+    {
+        m_isConfirmed = false;
+        m_isBack = false;
+    }
+
+    void NetplayScreen::draw()
+    {
+        if (!m_isVisible)
+            return;
+
+        m_backgroundTexture->Draw(raylib::Vector2 { 0.0f, 0.0f });
+    }
+
+    void NetplayScreen::drawImGui()
+    {
+        if (!m_isVisible)
+            return;
+
+        const ImVec2 size { 360.0f, 260.0f };
+        ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos({ SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f }, ImGuiCond_FirstUseEver, { 0.5f, 0.5f });
+        ImGui::Begin("Netplay", nullptr, ImGuiWindowFlags_NoCollapse);
+
+        ImGui::TextUnformatted("Choose your role");
+        ImGui::Separator();
+
+        int role = m_isHost ? 0 : 1;
+        ImGui::RadioButton("Host (Server)", &role, 0);
+        ImGui::SameLine();
+        ImGui::RadioButton("Join (Client)", &role, 1);
+        m_isHost = (role == 0);
+
+        ImGui::Spacing();
+        ImGui::TextUnformatted("Player name");
+        ImGui::InputText("##name", m_nameBuffer, sizeof(m_nameBuffer));
+
+        ImGui::Spacing();
+        if (m_isHost)
+        {
+            ImGui::TextUnformatted("Port");
+            ImGui::InputInt("##port", &m_port);
+        }
+        else
+        {
+            ImGui::TextUnformatted("Server IP");
+            ImGui::InputText("##ip", m_ipBuffer, sizeof(m_ipBuffer));
+            ImGui::TextUnformatted("Port");
+            ImGui::InputInt("##port", &m_port);
+        }
+
+        // Clamp the port to a valid range.
+        if (m_port < 1)
+            m_port = 1;
+        if (m_port > 65535)
+            m_port = 65535;
+
+        ImGui::Spacing();
+        ImGui::Separator();
+
+        const bool hasName = m_nameBuffer[0] != '\0';
+        if (!hasName)
+            ImGui::BeginDisabled();
+        if (ImGui::Button(m_isHost ? "Host" : "Connect", { 120.0f, 0.0f }))
+            m_isConfirmed = true;
+        if (!hasName)
+            ImGui::EndDisabled();
+
+        ImGui::SameLine();
+        if (ImGui::Button("Back", { 120.0f, 0.0f }))
+            m_isBack = true;
+
+        ImGui::End();
+    }
+} // namespace ggj

@@ -4,16 +4,12 @@
 
 #include "GameManager.h"
 
-#ifdef GAME_DEV_DEBUG
-    #include "rlImGui.h"
-#endif
+#include "rlImGui.h"
 
-#ifdef GAME_DEV_DEBUG
 ggj::GameManager::~GameManager()
 {
     rlImGuiShutdown();
 }
-#endif
 
 bool ggj::GameManager::initialize()
 {
@@ -26,9 +22,7 @@ bool ggj::GameManager::initialize()
     m_originalWindowSize = raylib::Vector2((float)m_window.GetWidth(), (float)m_window.GetHeight());
     m_renderTexture = raylib::RenderTexture((int)m_originalWindowSize.x, (int)m_originalWindowSize.y);
 
-#ifdef GAME_DEV_DEBUG
     rlImGuiSetup(true);
-#endif
 
     return true;
 }
@@ -64,13 +58,16 @@ void ggj::GameManager::render()
                                      (float)m_originalWindowSize.y * scale),
                    { 0, 0 }, 0.0f, WHITE);
     m_debugManager.draw();
+
+    // ImGui is available in all builds (netplay dialog, server info, ...); the debug menu is
+    // only drawn in debug builds.
+    rlImGuiBegin();
+    m_worlds.drawImGui();
 #ifdef GAME_DEV_DEBUG
     if (m_debugState.isGameActive)
-    {
-        rlImGuiBegin();
         m_debugMenu.draw(m_debugState);
-        rlImGuiEnd();
-    }
 #endif
+    rlImGuiEnd();
+
     EndDrawing();
 }

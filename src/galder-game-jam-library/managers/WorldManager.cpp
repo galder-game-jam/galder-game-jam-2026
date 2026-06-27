@@ -5,6 +5,7 @@
 #include "WorldManager.h"
 #include "../game/Hud.h"
 #include "../system/MainMenuScreen.h"
+#include "../system/NetplayScreen.h"
 #include <cstdlib>
 
 #ifdef GAME_DEV_DEBUG
@@ -56,6 +57,7 @@ namespace ggj
 
             m_mainMenuScreen.initialize();
             m_mainMenuScreen.setFont(&m_font);
+            m_netplayScreen.initialize();
             m_characterSelectScreen.initialize();
             m_characterSelectScreen.setFont(&m_font);
         }
@@ -142,7 +144,33 @@ namespace ggj
                 exit(0);
             if (m_mainMenuScreen.isSinglePlayerSelected())
             {
+                m_isNetplay = false;
                 m_mainMenuScreenActive = false;
+                m_characterSelectScreenActive = true;
+            }
+            else if (m_mainMenuScreen.isNetplaySelected())
+            {
+                m_mainMenuScreen.reset();
+                m_netplayScreen.reset();
+                m_mainMenuScreenActive = false;
+                m_netplayScreenActive = true;
+            }
+            return;
+        }
+
+        if (m_netplayScreenActive)
+        {
+            // The dialog itself is driven by ImGui (drawImGui); here we react to its outcome.
+            if (m_netplayScreen.isBack())
+            {
+                m_netplayScreen.reset();
+                m_netplayScreenActive = false;
+                m_mainMenuScreenActive = true;
+            }
+            else if (m_netplayScreen.isConfirmed())
+            {
+                m_isNetplay = true;
+                m_netplayScreenActive = false;
                 m_characterSelectScreenActive = true;
             }
             return;
@@ -164,6 +192,19 @@ namespace ggj
                 m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                 m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
                 m_characterSelectScreenActive = false;
+
+                if (m_isNetplay)
+                {
+                    const std::string playerName = m_netplayScreen.getPlayerName();
+                    m_hud.setPlayerName(playerName);
+                    if (m_netplayScreen.isHost())
+                        m_network.startHost(m_netplayScreen.getPort(), playerName, m_pickedCharacter);
+                    else
+                        m_network.startClient(m_netplayScreen.getIpAddress(), m_netplayScreen.getPort(), playerName, m_pickedCharacter);
+
+                    m_worlds[m_currentStageIndex]->setNetworkManager(&m_network);
+                }
+
                 startMusicForStage(m_currentStageIndex);
 #ifdef GAME_DEV_DEBUG
                 m_managers.debugState.isGameActive = true;
@@ -208,6 +249,15 @@ namespace ggj
             if (m_worlds.count(m_currentStageIndex) > 0)
             {
                 m_worlds[m_currentStageIndex]->update(timeDelta);
+
+                if (m_isNetplay)
+                {
+                    IPlayer* localPlayer = m_worlds[m_currentStageIndex]->getPlayer();
+                    if (localPlayer != nullptr)
+                        m_network.setLocalPlayerPosition(localPlayer->getPosition());
+                    m_network.poll(timeDelta);
+                }
+
                 if (m_worlds[m_currentStageIndex]->isLevelCleared())
                 {
                     IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
@@ -248,6 +298,12 @@ namespace ggj
             return;
         }
 
+        if (m_netplayScreenActive)
+        {
+            m_netplayScreen.draw();
+            return;
+        }
+
         if (m_characterSelectScreenActive)
         {
             ClearBackground(BLACK);
@@ -263,6 +319,12 @@ namespace ggj
                 m_worlds[m_currentStageIndex]->draw();
             }
         }
+    }
+
+    void WorldManager::drawImGui()
+    {
+        if (m_netplayScreenActive)
+            m_netplayScreen.drawImGui();
     }
 
     //    Stage WorldManager::getStageByFilename(const std::string &filename)
