@@ -48,8 +48,10 @@ namespace ggj
         const float srcX = std::clamp(playerWorldPos.x - WORLD_VIEW_WIDTH  / 2.0f, 0.0f, static_cast<float>(m_mapPixelWidth  - WORLD_VIEW_WIDTH));
         const float srcY = std::clamp(playerWorldPos.y - WORLD_VIEW_HEIGHT / 2.0f, 0.0f, static_cast<float>(m_mapPixelHeight - WORLD_VIEW_HEIGHT));
 
-        // RenderTexture2D is stored Y-flipped in OpenGL; negative height corrects orientation
-        Rectangle source { srcX, static_cast<float>(m_mapPixelHeight) - srcY, static_cast<float>(WORLD_VIEW_WIDTH), -static_cast<float>(WORLD_VIEW_HEIGHT) };
+        // raylib 6.0: DrawTexturePro adjusts source.y by subtracting source.height when height<0,
+        // then uses source.y/H for top texcoord and (source.y+source.height)/H for bottom.
+        // Pre-adjustment value to get top=srcY, bottom=srcY+viewH: source.y = H - srcY - viewH, height = -viewH.
+        Rectangle source { srcX, static_cast<float>(m_mapPixelHeight - srcY - WORLD_VIEW_HEIGHT), static_cast<float>(WORLD_VIEW_WIDTH), -static_cast<float>(WORLD_VIEW_HEIGHT) };
         Rectangle dest   { minimapX, minimapY, static_cast<float>(MINIMAP_WIDTH), static_cast<float>(MINIMAP_HEIGHT) };
 
         DrawRectangle(static_cast<int>(minimapX) - 2, static_cast<int>(minimapY) - 2, MINIMAP_WIDTH + 4, MINIMAP_HEIGHT + 4, BLACK);

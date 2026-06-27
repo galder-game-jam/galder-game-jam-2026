@@ -82,7 +82,7 @@ namespace ggj
         m_currentXp   = m_currentPlayer->getCurrentXp();
         m_totalXp     = m_currentPlayer->getTotalXp();
         m_xpToNextLevel = m_currentPlayer->getXpToNextLevel();
-        m_playerPosition = raylib::Vector2 { m_currentPlayer->getPosition() };
+        m_playerPosition = m_currentPlayer->getVisualCenter();
     }
 
     void Hud::draw()
