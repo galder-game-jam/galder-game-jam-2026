@@ -85,6 +85,8 @@ namespace ggj
                 m_strToTex["MageBall.png"] = TextureName::MageBall;
                 m_strToTex["dungeon_prison.png"] = TextureName::DungeonPrison;
                 m_strToTex["dungeon_prison_props.png"] = TextureName::DungeonPrisonProps;
+                m_strToTex["claude.png"]    = TextureName::EnemyClaude;
+                m_strToTex["claudling.png"] = TextureName::EnemyClaudling;
 
                 m_texToRes[TextureName::Player] = ResourceName::GraphicsPlayer;
                 m_texToRes[TextureName::MagicCliffsTileset] = ResourceName::GraphicsMagicCliffsTileset;
@@ -155,6 +157,8 @@ namespace ggj
                 m_texToRes[TextureName::MageBall] = ResourceName::MageBall;
                 m_texToRes[TextureName::DungeonPrison] = ResourceName::DungeonPrison;
                 m_texToRes[TextureName::DungeonPrisonProps] = ResourceName::DungeonPrisonProps;
+                m_texToRes[TextureName::EnemyClaude]    = ResourceName::GraphicsEnemyClaude;
+                m_texToRes[TextureName::EnemyClaudling] = ResourceName::GraphicsEnemyClaudling;
 
                 m_texToRes[TextureName::HudRpg] = ResourceName::HudRpg;
                 m_texToRes[TextureName::HudRpgSubset] = ResourceName::HudRpgSubset;

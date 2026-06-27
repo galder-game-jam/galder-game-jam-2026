@@ -42,17 +42,11 @@ namespace ggj
             
             void beginContact(PhysicsObject *a, PhysicsObject *b, b2Contact *contact) override
             {
-
                 if(m_isActive && b != m_owner)
                 {
                     if(b->getUserData()->getObjectType() == ObjectType::Enemy)
                     {
-                        if (m_soundManager != nullptr)
-                            m_soundManager->playSound(SoundName::EnemyDie);
-                        b->destroy();
-                        b2Body *body = contact->GetFixtureB()->GetBody();
-                        body->ApplyLinearImpulseToCenter({m_isLeftPos ? -50.f : 50.f, 0.f}, true);
-                        m_owner->getUserData()->enemiesKilled++;
+                        b->onMeleeHit(m_soundManager, m_isLeftPos, m_owner);
                     }
                 }
             }

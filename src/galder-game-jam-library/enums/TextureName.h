@@ -90,6 +90,9 @@ namespace ggj
 
         MainMenuBackground = 340,
 
+        EnemyClaude    = 350,
+        EnemyClaudling = 351,
+
     };
 }
 #endif //GAME_DEV_TEMPLATE_TEXTURENAME_H

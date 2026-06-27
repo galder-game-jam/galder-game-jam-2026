@@ -111,6 +111,13 @@ namespace ggj
 
         template <typename T> T* createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive);
 
+        /*!
+         * Queues a Claudling to be spawned at @p position after the current update loop finishes.
+         * Must be queued (not spawned immediately) because calling createGameObject during layer
+         * iteration would invalidate the vector iterator.
+         */
+        void spawnClaudling(raylib::Vector2 position, float followSpeed);
+
             /*! Spawns a floating "+1 life" label in world space above the given position. */
         void spawnFloatingText(raylib::Vector2 pos);
 
@@ -140,7 +147,11 @@ namespace ggj
         void generateGhost(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generatePortal(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generatePowerUp(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
+        void generateClaude(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
+        void generateClaudling(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
+        void doSpawnClaudling(raylib::Vector2 position, float followSpeed);
+        void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
 
@@ -196,6 +207,9 @@ namespace ggj
         std::map<int32_t, PlayerStats> m_playerStats;
 
         std::vector<FloatingTextEntry> m_floatingTexts;
+
+        struct PendingClaudlingSpawn { raylib::Vector2 position; float followSpeed; };
+        std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;
 
         INetworkManager* m_network = nullptr;
         std::map<uint32_t, PhysicsObject*> m_networkObjects; ///< Syncable objects (enemies/coins) by network id.

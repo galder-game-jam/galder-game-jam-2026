@@ -5,6 +5,8 @@
 #include "World.h"
 #include "../game/Hud.h"
 #include "../graphics/Sprite.h"
+#include "../game/enemies/ClaudeEnemy.h"
+#include "../game/enemies/Claudling.h"
 
 #ifdef GAME_DEV_DEBUG
     #include "../managers/DebugMenu.hpp"
@@ -133,6 +135,10 @@ namespace ggj
                                 userdataCommand = value.getValue<std::string>();
                             else if (key == "userdata_dialog_id")
                                 userdataDialogId = value.getValue<std::string>();
+                            else if (key == "lives")
+                                generatorData.lives = value.getValue<int>();
+                            else if (key == "follow_speed")
+                                generatorData.followSpeed = value.getValue<float>();
                         }
 
                         ObjectType objectType = (ObjectType)userdataObjectType;
@@ -255,6 +261,7 @@ namespace ggj
         if (m_camera.target.y < m_cameraMin.y)
             m_camera.target.y = m_cameraMin.y;
 
+        flushPendingSpawns();
         syncNetworkObjects();
         destroyMarkedObjects();
 
@@ -370,12 +377,23 @@ namespace ggj
             generatePortal(name, body, generatorData);
         else if (name == "powerup")
             generatePowerUp(name, body, generatorData);
+        else if (name == "claude")
+        {
+            generateClaude(name, body, generatorData);
+            ++m_numberOfEnemies;
+        }
+        else if (name == "claudling")
+        {
+            generateClaudling(name, body, generatorData);
+            ++m_numberOfEnemies;
+        }
         else
             generateGenericPhysicsObject(name, body, generatorData);
 
         // Enemies and coins are synced over the network. They are generated in the same order on
         // every peer (same map + generators), so a per-spawn counter yields matching ids everywhere.
-        if (name == "bat" || name == "snake" || name == "spider" || name == "thing" || name == "ghost" || name == "coin")
+        if (name == "bat" || name == "snake" || name == "spider" || name == "thing" || name == "ghost" || name == "coin"
+            || name == "claude" || name == "claudling")
             registerNetworkObject(m_userDataManager.getUserData(body));
     }
 
@@ -900,6 +918,115 @@ namespace ggj
             stats.talentState     = state;
             stats.talentPoints    = talentPoints;
             stats.computedEffects = computeTalentEffects(state);
+        }
+    }
+
+    void World::spawnClaudling(raylib::Vector2 position, float followSpeed)
+    {
+        m_pendingClaudlingSpawns.push_back({ position, followSpeed });
+    }
+
+    void World::flushPendingSpawns()
+    {
+        for (const PendingClaudlingSpawn& spawn : m_pendingClaudlingSpawns)
+            doSpawnClaudling(spawn.position, spawn.followSpeed);
+        m_pendingClaudlingSpawns.clear();
+    }
+
+    void World::doSpawnClaudling(raylib::Vector2 position, float followSpeed)
+    {
+        const raylib::Vector2 SIZE { 32.f, 32.f };
+
+        b2BodyDef bodyDef;
+        bodyDef.type = b2_dynamicBody;
+        const b2Vec2 b2origin = PhysicsObject::ConvertToB2Vec2({ SIZE.x / 2.f, SIZE.y / 2.f });
+        const b2Vec2 b2pos    = PhysicsObject::ConvertToB2Vec2(position);
+        bodyDef.position.Set(b2pos.x + b2origin.x, b2pos.y + b2origin.y);
+        b2Body* body = m_world.CreateBody(&bodyDef);
+
+        b2PolygonShape box;
+        const b2Vec2 b2size = PhysicsObject::ConvertToB2Vec2(SIZE);
+        box.SetAsBox(b2size.x / 2.f - b2_polygonRadius, b2size.y / 2.f - b2_polygonRadius);
+        b2FixtureDef fd;
+        fd.shape    = &box;
+        fd.density  = 1.0f;
+        fd.friction = 0.3f;
+        body->CreateFixture(&fd);
+        body->SetFixedRotation(true);
+
+        raylib::Texture* tex = m_textures.get(TextureName::EnemyClaudling);
+        if (tex == nullptr)
+            return;
+
+        const raylib::Rectangle drawingRect { 0.f, 0.f, SIZE.x, SIZE.y };
+        const UserData userData { ObjectType::Enemy, { 0.f, 0.f }, "", "", "claudling" };
+
+        PhysicsObject* physicsObject = createObject<Claudling>(
+            m_animationManager, m_mapper, m_soundManager, body,
+            SIZE, SIZE, drawingRect, tex, userData, followSpeed, m_player);
+
+        if (physicsObject != nullptr)
+        {
+            m_userDataManager.addUserData(body, physicsObject);
+            ++m_numberOfEnemies;
+            registerNetworkObject(m_userDataManager.getUserData(body));
+        }
+    }
+
+    void World::generateClaude(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
+    {
+        TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
+        if (id != TextureName::None)
+        {
+            raylib::Texture* tex = m_textures.get(id);
+            if (tex != nullptr)
+            {
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
+
+                if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
+                {
+                    r.width = generatorData.spriteSize.x;
+                    r.height = generatorData.spriteSize.y;
+                }
+
+                raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
+
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::ClaudeEnemy>(
+                    m_animationManager, m_mapper, m_soundManager, body,
+                    raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
+                    spriteSize, r, tex, generatorData.userData, generatorData.lives,
+                    generatorData.followSpeed, m_player, this);
+                m_userDataManager.addUserData(body, physicsObject);
+            }
+        }
+    }
+
+    void World::generateClaudling(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
+    {
+        TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
+        if (id != TextureName::None)
+        {
+            raylib::Texture* tex = m_textures.get(id);
+            if (tex != nullptr)
+            {
+                raylib::Rectangle rect = { 0.f, 0.f, (float)generatorData.originalSize.x, (float)generatorData.originalSize.y };
+                raylib::Rectangle r = { (float)rect.x, (float)rect.y, (float)rect.width, (float)rect.height };
+
+                if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
+                {
+                    r.width = generatorData.spriteSize.x;
+                    r.height = generatorData.spriteSize.y;
+                }
+
+                raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
+
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Claudling>(
+                    m_animationManager, m_mapper, m_soundManager, body,
+                    raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
+                    spriteSize, r, tex, generatorData.userData, generatorData.followSpeed, m_player);
+                m_userDataManager.addUserData(body, physicsObject);
+            }
         }
     }
 

@@ -146,6 +146,59 @@ namespace ggj
                         }
                 };
 
+        m_animations[AnimationName::EnemyClaudeIdle] =
+                {
+                        raylib::Vector2(128, 128),
+                        {
+                                {raylib::Vector2(128 * 0, 128 * 0), 150},
+                                {raylib::Vector2(128 * 1, 128 * 0), 150},
+                                {raylib::Vector2(128 * 2, 128 * 0), 150},
+                                {raylib::Vector2(128 * 3, 128 * 0), 150},
+                                {raylib::Vector2(128 * 0, 128 * 1), 150},
+                        }
+                };
+
+        m_animations[AnimationName::EnemyClaudeWalk] =
+                {
+                        raylib::Vector2(128, 128),
+                        {
+                                {raylib::Vector2(128 * 1, 128 * 1), 150},
+                                {raylib::Vector2(128 * 2, 128 * 1), 150},
+                                {raylib::Vector2(128 * 3, 128 * 1), 150},
+                                {raylib::Vector2(128 * 0, 128 * 2), 150},
+                        }
+                };
+
+        m_animations[AnimationName::EnemyClaudeAttack] =
+                {
+                        raylib::Vector2(128, 128),
+                        {
+                                {raylib::Vector2(128 * 1, 128 * 2), 150},
+                                {raylib::Vector2(128 * 2, 128 * 2), 150},
+                                {raylib::Vector2(128 * 3, 128 * 2), 150},
+                                {raylib::Vector2(128 * 0, 128 * 0), 150},
+                        }
+                };
+
+        m_animations[AnimationName::EnemyClaudlingIdle] =
+                {
+                        raylib::Vector2(32, 32),
+                        {
+                                {raylib::Vector2(32 * 0, 32 * 0), 150},
+                        }
+                };
+
+        m_animations[AnimationName::EnemyClaudlingWalk] =
+                {
+                        raylib::Vector2(32, 32),
+                        {
+                                {raylib::Vector2(32 * 1, 32 * 0), 100},
+                                {raylib::Vector2(32 * 2, 32 * 0), 100},
+                                {raylib::Vector2(32 * 3, 32 * 0), 100},
+                                {raylib::Vector2(32 * 4, 32 * 0), 100},
+                        }
+                };
+
         m_animations[AnimationName::PortalActive] =
                 {
                         raylib::Vector2(32, 32),
