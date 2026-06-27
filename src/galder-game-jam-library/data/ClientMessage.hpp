@@ -33,6 +33,15 @@ namespace ggj
         uint8_t animationState { 0 };
         uint8_t animationFrame { 0 };
         bool facingLeft { false };
+
+        // Player stats (PlayerState).
+        int32_t lives { 0 };
+        int32_t score { 0 };
+        int32_t kills { 0 };
+
+        // Local world event report (GameEvent): something this peer destroyed locally.
+        uint32_t objectId { 0 };
+        uint8_t eventKind { 0 }; ///< 0 = none, 1 = coin collected, 2 = enemy killed.
     };
 } // namespace ggj
 

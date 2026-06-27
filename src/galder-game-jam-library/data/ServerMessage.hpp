@@ -36,6 +36,15 @@ namespace ggj
         uint8_t animationFrame { 0 };
         bool facingLeft { false };
         bool isConnected { true };
+
+        // Player stats (PlayerState) - authoritative life/score/kills for HUD & ServerInfo.
+        int32_t lives { 0 };
+        int32_t score { 0 };
+        int32_t kills { 0 };
+
+        // World object sync (EnemyState / CoinState).
+        uint32_t objectId { 0 }; ///< Networked object id this message refers to.
+        bool flag { false };     ///< EnemyState: isAlive. CoinState: collected.
     };
 } // namespace ggj
 

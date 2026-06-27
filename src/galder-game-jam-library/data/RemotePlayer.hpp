@@ -27,6 +27,11 @@ namespace ggj
         raylib::Vector2 targetPosition {}; ///< Latest authoritative position from the network.
         bool facingLeft { false };
         bool isMoving { false }; ///< Derived from movement, drives walk/idle animation.
+
+        // Latest synced stats (for ServerInfo / overhead display).
+        int32_t lives { 0 };
+        int32_t score { 0 };
+        int32_t kills { 0 };
     };
 } // namespace ggj
 

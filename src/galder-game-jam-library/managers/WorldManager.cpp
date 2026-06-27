@@ -223,11 +223,11 @@ namespace ggj
                     if (m_worlds.count(m_currentStageIndex) > 0)
                     {
                         IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                        m_managers.persistentState.lives              = prevPlayer->getLives();
-                        m_managers.persistentState.score              = prevPlayer->getScore();
-                        m_managers.persistentState.level              = prevPlayer->getLevel();
-                        m_managers.persistentState.currentXp          = prevPlayer->getCurrentXp();
-                        m_managers.persistentState.totalXp            = prevPlayer->getTotalXp();
+                        m_managers.persistentState.lives = prevPlayer->getLives();
+                        m_managers.persistentState.score = prevPlayer->getScore();
+                        m_managers.persistentState.level = prevPlayer->getLevel();
+                        m_managers.persistentState.currentXp = prevPlayer->getCurrentXp();
+                        m_managers.persistentState.totalXp = prevPlayer->getTotalXp();
                         m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
                     }
 
@@ -261,11 +261,11 @@ namespace ggj
                 if (m_worlds[m_currentStageIndex]->isLevelCleared())
                 {
                     IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                    m_managers.persistentState.lives              = prevPlayer->getLives();
-                    m_managers.persistentState.score              = prevPlayer->getScore();
-                    m_managers.persistentState.level              = prevPlayer->getLevel();
-                    m_managers.persistentState.currentXp          = prevPlayer->getCurrentXp();
-                    m_managers.persistentState.totalXp            = prevPlayer->getTotalXp();
+                    m_managers.persistentState.lives = prevPlayer->getLives();
+                    m_managers.persistentState.score = prevPlayer->getScore();
+                    m_managers.persistentState.level = prevPlayer->getLevel();
+                    m_managers.persistentState.currentXp = prevPlayer->getCurrentXp();
+                    m_managers.persistentState.totalXp = prevPlayer->getTotalXp();
                     m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
 
                     m_worlds[m_currentStageIndex]->setLevelCleared(false);
@@ -285,6 +285,14 @@ namespace ggj
 
                     m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
+
+                    if (m_isNetplay)
+                    {
+                        // Each peer changes stage independently; reset per-world sync state so reused
+                        // object ids on the new map are not treated as already-removed.
+                        m_network.clearWorldState();
+                        m_worlds[m_currentStageIndex]->setNetworkManager(&m_network);
+                    }
                 }
             }
         }

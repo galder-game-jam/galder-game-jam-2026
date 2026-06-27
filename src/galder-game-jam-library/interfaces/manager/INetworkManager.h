@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <map>
+#include <set>
 #include <string>
 
 namespace ggj
@@ -51,6 +52,22 @@ namespace ggj
 
         /*! Every player except the local one, keyed by player id, for rendering puppets. */
         [[nodiscard]] virtual const std::map<uint32_t, RemotePlayer>& remotePlayers() const = 0;
+
+        // --- World-state sync (Phase 2) ---
+
+        /*! Server: broadcast an enemy's authoritative position. No-op when not hosting. */
+        virtual void publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool facingLeft) = 0;
+        /*! Reports a networked object destroyed locally (coin picked up / enemy killed) so the server can reconcile. */
+        virtual void notifyLocalObjectDestroyed(uint32_t objectId, bool isCoin) = 0;
+        /*! Feeds the local player's authoritative stats (lives/score/kills) for outbound sync. */
+        virtual void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) = 0;
+        /*! Clears per-world synced state. Call when (re)entering a world to avoid id reuse bleed. */
+        virtual void clearWorldState() = 0;
+
+        /*! Client: latest authoritative enemy positions keyed by object id. */
+        [[nodiscard]] virtual const std::map<uint32_t, raylib::Vector2>& enemyPositions() const = 0;
+        /*! Object ids the server has declared gone (collected coins / dead enemies). */
+        [[nodiscard]] virtual const std::set<uint32_t>& removedObjectIds() const = 0;
     };
 } // namespace ggj
 

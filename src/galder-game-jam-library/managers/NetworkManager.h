@@ -43,11 +43,29 @@ namespace ggj
         [[nodiscard]] const std::string& localPlayerName() const override { return m_localName; }
         [[nodiscard]] const std::map<uint32_t, RemotePlayer>& remotePlayers() const override { return m_remotePlayers; }
 
+        void publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool facingLeft) override;
+        void notifyLocalObjectDestroyed(uint32_t objectId, bool isCoin) override;
+        void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) override
+        {
+            m_localLives = lives;
+            m_localScore = score;
+            m_localKills = kills;
+        }
+        void clearWorldState() override
+        {
+            m_enemyPositions.clear();
+            m_removedObjectIds.clear();
+        }
+        [[nodiscard]] const std::map<uint32_t, raylib::Vector2>& enemyPositions() const override { return m_enemyPositions; }
+        [[nodiscard]] const std::set<uint32_t>& removedObjectIds() const override { return m_removedObjectIds; }
+
         private:
         void pollServer(float timeDelta);
         void pollClient(float timeDelta);
-        void applyPlayerSnapshot(uint32_t playerId, const char* name, uint8_t character, const raylib::Vector2& position);
+        void applyPlayerSnapshot(const ServerMessage& message);
+        void applyPlayerSnapshot(uint32_t playerId, const ClientMessage& message);
         void interpolateRemotePlayers(float timeDelta);
+        void broadcastObjectRemoved(uint32_t objectId, bool isCoin);
 
         ILogger& m_logger;
         IIpAddressResolver& m_resolver;
@@ -59,8 +77,15 @@ namespace ggj
         std::string m_localName {};
         PlayerPickedCharacter m_localCharacter { PlayerPickedCharacter::Rogue };
         raylib::Vector2 m_localPosition {};
+        int32_t m_localLives { 0 };
+        int32_t m_localScore { 0 };
+        int32_t m_localKills { 0 };
 
         std::map<uint32_t, RemotePlayer> m_remotePlayers;
+
+        // World-state sync (Phase 2)
+        std::map<uint32_t, raylib::Vector2> m_enemyPositions; ///< Client: latest enemy positions.
+        std::set<uint32_t> m_removedObjectIds;                ///< Authoritative removed object ids.
 
         // Server-only bookkeeping
         std::map<HSteamNetConnection, uint32_t> m_connectionToPlayerId;

@@ -75,10 +75,15 @@ namespace ggj
 
         m_role = NetworkRole::None;
         m_localPlayerId = HOST_PLAYER_ID;
+        m_localLives = 0;
+        m_localScore = 0;
+        m_localKills = 0;
         m_remotePlayers.clear();
         m_connectionToPlayerId.clear();
         m_nextPlayerId = HOST_PLAYER_ID + 1;
         m_hasSentJoinRequest = false;
+        m_enemyPositions.clear();
+        m_removedObjectIds.clear();
     }
 
     ConnectionStatus NetworkManager::status() const
@@ -138,14 +143,22 @@ namespace ggj
                     accept.playerId = playerId;
                     m_server->sendTo(connection, accept);
 
-                    applyPlayerSnapshot(playerId, message.name, message.character, message.position);
+                    applyPlayerSnapshot(playerId, message);
                     break;
                 }
                 case NetMessageType::PlayerState:
                 {
                     auto it = m_connectionToPlayerId.find(connection);
                     if (it != m_connectionToPlayerId.end())
-                        applyPlayerSnapshot(it->second, message.name, message.character, message.position);
+                        applyPlayerSnapshot(it->second, message);
+                    break;
+                }
+                case NetMessageType::GameEvent:
+                {
+                    // A client picked up a coin / killed an enemy. Reconcile and tell everyone.
+                    const bool isCoin = message.eventKind == 1;
+                    if (m_removedObjectIds.insert(message.objectId).second)
+                        broadcastObjectRemoved(message.objectId, isCoin);
                     break;
                 }
                 default:
@@ -178,6 +191,9 @@ namespace ggj
         copyName(hostState.name, m_localName);
         hostState.character = static_cast<uint8_t>(m_localCharacter);
         hostState.position = m_localPosition;
+        hostState.lives = m_localLives;
+        hostState.score = m_localScore;
+        hostState.kills = m_localKills;
         m_server->broadcast(hostState);
 
         for (const auto& [playerId, remote] : m_remotePlayers)
@@ -188,6 +204,9 @@ namespace ggj
             copyName(state.name, remote.name);
             state.character = static_cast<uint8_t>(remote.character);
             state.position = remote.targetPosition;
+            state.lives = remote.lives;
+            state.score = remote.score;
+            state.kills = remote.kills;
             m_server->broadcast(state);
         }
 
@@ -218,6 +237,9 @@ namespace ggj
             copyName(state.name, m_localName);
             state.character = static_cast<uint8_t>(m_localCharacter);
             state.position = m_localPosition;
+            state.lives = m_localLives;
+            state.score = m_localScore;
+            state.kills = m_localKills;
             m_client->sendToServer(state);
         }
 
@@ -230,10 +252,22 @@ namespace ggj
                     m_logger.information(fmt::format("Joined as player id {0}", message.playerId));
                     break;
                 case NetMessageType::PlayerState:
-                    applyPlayerSnapshot(message.playerId, message.name, message.character, message.position);
+                    applyPlayerSnapshot(message);
                     break;
                 case NetMessageType::PlayerLeft:
                     m_remotePlayers.erase(message.playerId);
+                    break;
+                case NetMessageType::EnemyState:
+                    if (message.flag) // alive: update position
+                        m_enemyPositions[message.objectId] = message.position;
+                    else // dead: remove
+                    {
+                        m_enemyPositions.erase(message.objectId);
+                        m_removedObjectIds.insert(message.objectId);
+                    }
+                    break;
+                case NetMessageType::CoinState:
+                    m_removedObjectIds.insert(message.objectId);
                     break;
                 default:
                     break;
@@ -243,20 +277,95 @@ namespace ggj
         interpolateRemotePlayers(timeDelta);
     }
 
-    void NetworkManager::applyPlayerSnapshot(uint32_t playerId, const char* name, uint8_t character, const raylib::Vector2& position)
+    void NetworkManager::applyPlayerSnapshot(const ServerMessage& message)
     {
-        if (playerId == m_localPlayerId)
+        if (message.playerId == m_localPlayerId)
             return; // never track ourselves as a remote player
 
-        RemotePlayer& remote = m_remotePlayers[playerId];
-        remote.playerId = playerId;
-        remote.name = name;
-        remote.character = static_cast<PlayerPickedCharacter>(character);
-        remote.targetPosition = position;
+        RemotePlayer& remote = m_remotePlayers[message.playerId];
+        remote.playerId = message.playerId;
+        remote.name = message.name;
+        remote.character = static_cast<PlayerPickedCharacter>(message.character);
+        remote.targetPosition = message.position;
+        remote.lives = message.lives;
+        remote.score = message.score;
+        remote.kills = message.kills;
 
         // First time we see this player, snap rather than interpolate from origin.
         if (remote.position.x == 0.0f && remote.position.y == 0.0f)
-            remote.position = position;
+            remote.position = message.position;
+    }
+
+    void NetworkManager::applyPlayerSnapshot(uint32_t playerId, const ClientMessage& message)
+    {
+        if (playerId == m_localPlayerId)
+            return;
+
+        RemotePlayer& remote = m_remotePlayers[playerId];
+        remote.playerId = playerId;
+        remote.name = message.name;
+        remote.character = static_cast<PlayerPickedCharacter>(message.character);
+        remote.targetPosition = message.position;
+        remote.lives = message.lives;
+        remote.score = message.score;
+        remote.kills = message.kills;
+
+        if (remote.position.x == 0.0f && remote.position.y == 0.0f)
+            remote.position = message.position;
+    }
+
+    void NetworkManager::publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool facingLeft)
+    {
+        if (m_role != NetworkRole::Server || !m_server)
+            return;
+
+        ServerMessage state {};
+        state.type = NetMessageType::EnemyState;
+        state.objectId = objectId;
+        state.position = position;
+        state.facingLeft = facingLeft;
+        state.flag = true; // alive
+        m_server->broadcast(state);
+    }
+
+    void NetworkManager::broadcastObjectRemoved(uint32_t objectId, bool isCoin)
+    {
+        if (!m_server)
+            return;
+
+        ServerMessage state {};
+        state.objectId = objectId;
+        if (isCoin)
+        {
+            state.type = NetMessageType::CoinState;
+            state.flag = true; // collected
+        }
+        else
+        {
+            state.type = NetMessageType::EnemyState;
+            state.flag = false; // dead
+        }
+        m_server->broadcast(state);
+    }
+
+    void NetworkManager::notifyLocalObjectDestroyed(uint32_t objectId, bool isCoin)
+    {
+        if (m_role == NetworkRole::Server)
+        {
+            // Host is authoritative: record + tell all clients.
+            if (m_removedObjectIds.insert(objectId).second)
+                broadcastObjectRemoved(objectId, isCoin);
+        }
+        else if (m_role == NetworkRole::Client && m_client)
+        {
+            // Report to the host, which reconciles and rebroadcasts.
+            ClientMessage event {};
+            event.type = NetMessageType::GameEvent;
+            event.objectId = objectId;
+            event.eventKind = isCoin ? 1 : 2;
+            m_client->sendToServer(event);
+            m_removedObjectIds.insert(objectId);
+        }
     }
 
     void NetworkManager::interpolateRemotePlayers(float timeDelta)
