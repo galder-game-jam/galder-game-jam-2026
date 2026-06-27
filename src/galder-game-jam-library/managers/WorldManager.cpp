@@ -25,16 +25,10 @@ namespace ggj
                 track = MusicName::Dungeon1;
                 break;
             case 3:
-                track = MusicName::BossBattle1;
-                break;
-            case 4:
-                track = MusicName::Dungeon2;
-                break;
-            case 5:
-                track = MusicName::BossBattle2;
+                track = MusicName::Forest2;
                 break;
             case 99999:
-                track = MusicName::Forest2;
+                track = MusicName::Dungeon2;
                 break;
             default:
                 m_logger.debug(fmt::format("Could not set music track for level {0}. Fallback to Forest2", stageIndex));
@@ -270,6 +264,16 @@ namespace ggj
             }
         }
     }
+
+    //    Stage WorldManager::getStageByFilename(const std::string &filename)
+    //    {
+    //        if (filename == "map3.json") return Stage::Stage1;
+    //        if (filename == "map2.json") return Stage::Stage2;
+    //        if (filename == "map1.json") return Stage::Stage3;
+    //        if (filename == "finalmap.json") return Stage::StageFinal;
+    //
+    //        return Stage::None;
+    //    }
 
     int32_t WorldManager::getStageIndexByFilename(const std::string& filename) const
     {
