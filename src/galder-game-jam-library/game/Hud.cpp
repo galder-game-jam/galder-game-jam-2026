@@ -113,7 +113,7 @@ namespace ggj
             m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, tinted(raylib::Color::White()));
 
         if (m_minimap != nullptr)
-            m_minimap->draw(m_playerPosition);
+            m_minimap->draw(m_playerPosition, m_options.getHudOptions().hudAlpha);
     }
 
     void Hud::drawQuestLog(raylib::Vector2 offset, int width, int height) const

@@ -36,10 +36,12 @@ namespace ggj
         m_isInitialized = true;
     }
 
-    void Minimap::draw(raylib::Vector2 playerWorldPos) const
+    void Minimap::draw(raylib::Vector2 playerWorldPos, float alpha) const
     {
         if (!m_isInitialized)
             return;
+
+        const auto a = static_cast<unsigned char>(alpha * 255.0f);
 
         const float minimapX = static_cast<float>(SCREEN_WIDTH - MINIMAP_WIDTH - MINIMAP_MARGIN);
         const float minimapY = static_cast<float>(MINIMAP_MARGIN);
@@ -48,13 +50,13 @@ namespace ggj
         const Rectangle source { 0.f, 0.f, static_cast<float>(m_mapPixelWidth), -static_cast<float>(m_mapPixelHeight) };
         const Rectangle dest   { minimapX, minimapY, static_cast<float>(MINIMAP_WIDTH), static_cast<float>(MINIMAP_HEIGHT) };
 
-        DrawRectangle(static_cast<int>(minimapX) - 2, static_cast<int>(minimapY) - 2, MINIMAP_WIDTH + 4, MINIMAP_HEIGHT + 4, BLACK);
-        DrawTexturePro(m_mapTexture.texture, source, dest, { 0.f, 0.f }, 0.f, WHITE);
+        DrawRectangle(static_cast<int>(minimapX) - 2, static_cast<int>(minimapY) - 2, MINIMAP_WIDTH + 4, MINIMAP_HEIGHT + 4, Color { 0, 0, 0, a });
+        DrawTexturePro(m_mapTexture.texture, source, dest, { 0.f, 0.f }, 0.f, Color { 255, 255, 255, a });
 
         const float dotX = minimapX + (playerWorldPos.x / static_cast<float>(m_mapPixelWidth))  * static_cast<float>(MINIMAP_WIDTH);
         const float dotY = minimapY + (playerWorldPos.y / static_cast<float>(m_mapPixelHeight)) * static_cast<float>(MINIMAP_HEIGHT);
-        DrawCircle(static_cast<int>(dotX), static_cast<int>(dotY), 3.f, RED);
+        DrawCircle(static_cast<int>(dotX), static_cast<int>(dotY), 3.f, Color { 230, 41, 55, a });
 
-        DrawRectangleLines(static_cast<int>(minimapX), static_cast<int>(minimapY), MINIMAP_WIDTH, MINIMAP_HEIGHT, WHITE);
+        DrawRectangleLines(static_cast<int>(minimapX), static_cast<int>(minimapY), MINIMAP_WIDTH, MINIMAP_HEIGHT, Color { 255, 255, 255, a });
     }
 } // namespace ggj
