@@ -162,7 +162,19 @@ namespace ggj
                 m_managers.debugState.requestedStage = -1;
                 if (m_worlds.count(requestedStage) > 0)
                 {
+                    if (m_worlds.count(m_currentStageIndex) > 0)
+                    {
+                        IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
+                        m_managers.persistentState.lives              = prevPlayer->getLives();
+                        m_managers.persistentState.score              = prevPlayer->getScore();
+                        m_managers.persistentState.level              = prevPlayer->getLevel();
+                        m_managers.persistentState.currentXp          = prevPlayer->getCurrentXp();
+                        m_managers.persistentState.totalXp            = prevPlayer->getTotalXp();
+                        m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
+                    }
+
                     m_currentStageIndex = requestedStage;
+                    m_worlds[m_currentStageIndex]->getPlayer()->restoreState(m_managers.persistentState);
                     startMusicForStage(m_currentStageIndex);
                     m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_hud.setWorld(m_worlds[m_currentStageIndex].get());
@@ -181,11 +193,22 @@ namespace ggj
                 m_worlds[m_currentStageIndex]->update(timeDelta);
                 if (m_worlds[m_currentStageIndex]->isLevelCleared())
                 {
+                    IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
+                    m_managers.persistentState.lives              = prevPlayer->getLives();
+                    m_managers.persistentState.score              = prevPlayer->getScore();
+                    m_managers.persistentState.level              = prevPlayer->getLevel();
+                    m_managers.persistentState.currentXp          = prevPlayer->getCurrentXp();
+                    m_managers.persistentState.totalXp            = prevPlayer->getTotalXp();
+                    m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
+
                     m_worlds[m_currentStageIndex]->setLevelCleared(false);
                     ++m_currentStageIndex;
 
                     if (m_worlds.count(m_currentStageIndex) == 0)
                         m_currentStageIndex = FINAL_MAP_ID;
+
+                    if (m_worlds.count(m_currentStageIndex) > 0)
+                        m_worlds[m_currentStageIndex]->getPlayer()->restoreState(m_managers.persistentState);
 
                     startMusicForStage(m_currentStageIndex);
 

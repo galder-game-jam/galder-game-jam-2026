@@ -14,8 +14,6 @@
 
 #include "Hitbox.hpp"
 #include "projectiles/Projectile.h"
-#include "ExperienceTracker.hpp"
-#include "../data/ExperienceConfig.hpp"
 
 namespace ggj
 {
@@ -25,13 +23,14 @@ namespace ggj
     {
         public:
         Player2() = default;
-        Player2(ggj::World* world, ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager,
-                IMapper& mapper, ExperienceConfig xpConfig, b2Body* body, const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect,
+        Player2(ggj::World* world, int32_t playerIndex, ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager,
+                IMapper& mapper, b2Body* body, const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect,
                 raylib::Texture* texture, const UserData& userData, bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager { inputManager }, m_animationManager { animationManager },
-              m_mapper { mapper }, m_xpConfig { xpConfig }
+              m_mapper { mapper }
         {
             m_world = world;
+            m_playerIndex = playerIndex;
             m_body->SetFixedRotation(true);
             m_animation = m_animationManager.getAnimation(AnimationName::PlayerIdleNG);
             m_startPos = ConvertToVector2(m_body->GetPosition());
@@ -58,6 +57,8 @@ namespace ggj
         [[nodiscard]] int getCurrentXp() const override;
         [[nodiscard]] int getTotalXp() const override;
         [[nodiscard]] int getXpToNextLevel() const override;
+        [[nodiscard]] int getEnemiesKilled() const override;
+        void restoreState(const PlayerPersistentState& state) override;
         Hitbox* getHitbox() override;
         [[nodiscard]] bool isInDialog() const override { return false; }
         std::string getDialogId() override { return {}; }
@@ -73,6 +74,7 @@ namespace ggj
         void setPlayerState(PlayerState playerState);
 
         ggj::World* m_world { nullptr };
+        int32_t m_playerIndex { 0 };
         ggj::IInputManager<ggj::KeyboardKey>& m_inputManager;
         ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& m_animationManager;
         bool m_cameraShouldFollowPlayer { true };
@@ -87,16 +89,13 @@ namespace ggj
 
         ggj::Hitbox m_hitbox {};
         bool m_isAttacking { false };
-        uint16_t m_attackFrames { 20 }; //How many frames an attack takes
-        uint16_t m_attackCounter { 0 }; //Counts attack duration
+        uint16_t m_attackFrames { 20 }; ///< How many frames an attack takes
+        uint16_t m_attackCounter { 0 }; ///< Counts attack duration
 
-        int m_score {};
-        int m_lives { 3 };
         std::vector<std::unique_ptr<Projectile>> m_projectiles {};
 
-        ExperienceConfig  m_xpConfig {};
-        ExperienceTracker m_xpTracker {};
         int m_previousKillCount { 0 };
+        int m_totalEnemiesKilledPrevLevels { 0 };
     };
 
 } // namespace ggj

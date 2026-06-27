@@ -36,6 +36,13 @@ namespace ggj
                 checkLevelUp(cfg);
             }
 
+            void restore(int level, int currentXp, int totalXp)
+            {
+                m_level     = level;
+                m_currentXp = currentXp;
+                m_totalXp   = totalXp;
+            }
+
             [[nodiscard]] int getLevel()    const { return m_level;    }
             [[nodiscard]] int getCurrentXp() const { return m_currentXp; }
             [[nodiscard]] int getTotalXp()  const { return m_totalXp;  }

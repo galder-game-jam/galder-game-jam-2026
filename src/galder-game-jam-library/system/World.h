@@ -26,6 +26,8 @@ namespace ggj
 #include "../graphics/PhysicsObject.h"
 #include "../GalderGameJamLibrary.h"
 #include "ObjectGeneratorData.hpp"
+#include "../data/PlayerStats.hpp"
+#include "../data/PlayerPersistentState.hpp"
 
 namespace ggj
 {
@@ -62,6 +64,23 @@ namespace ggj
 #endif
         void reduceEnemyKillCountByOne();
         [[nodiscard]] int getNumberOfEnemiesLeft() const;
+
+        // Player stat accessors (playerIndex assigned by World on player creation)
+        [[nodiscard]] int getPlayerLives(int32_t playerIndex) const { return m_playerStats.at(playerIndex).lives; }
+        [[nodiscard]] int getPlayerScore(int32_t playerIndex) const { return m_playerStats.at(playerIndex).score; }
+        [[nodiscard]] int getPlayerLevel(int32_t playerIndex) const { return m_playerStats.at(playerIndex).xpTracker.getLevel(); }
+        [[nodiscard]] int getPlayerCurrentXp(int32_t playerIndex) const { return m_playerStats.at(playerIndex).xpTracker.getCurrentXp(); }
+        [[nodiscard]] int getPlayerTotalXp(int32_t playerIndex) const { return m_playerStats.at(playerIndex).xpTracker.getTotalXp(); }
+        [[nodiscard]] int getPlayerXpToNextLevel(int32_t playerIndex) const { return m_playerStats.at(playerIndex).xpTracker.getXpToNextLevel(m_playerStats.at(playerIndex).xpConfig); }
+        [[nodiscard]] const ExperienceConfig& getXpConfig(int32_t playerIndex) const { return m_playerStats.at(playerIndex).xpConfig; }
+
+        // Player stat mutators
+        void decrementPlayerLives(int32_t playerIndex) { --m_playerStats.at(playerIndex).lives; }
+        void addPlayerLives(int32_t playerIndex, int delta) { m_playerStats.at(playerIndex).lives += delta; }
+        void resetPlayerLives(int32_t playerIndex) { m_playerStats.at(playerIndex).lives = 3; }
+        void addPlayerScore(int32_t playerIndex, int delta) { m_playerStats.at(playerIndex).score += delta; }
+        void addPlayerXp(int32_t playerIndex, int amount) { m_playerStats.at(playerIndex).xpTracker.addXp(amount, m_playerStats.at(playerIndex).xpConfig); }
+        void restorePlayerStats(int32_t playerIndex, const PlayerPersistentState& state);
 
         template <typename T> T* createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive);
 
@@ -120,6 +139,9 @@ namespace ggj
 
         int m_numberOfEnemies { 0 };
         Minimap m_minimap {};
+
+        int32_t m_nextPlayerIndex { 0 };
+        std::map<int32_t, PlayerStats> m_playerStats;
     };
 
     template <typename T> T* World::createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive)

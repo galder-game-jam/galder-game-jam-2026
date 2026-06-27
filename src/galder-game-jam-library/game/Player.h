@@ -15,21 +15,21 @@
 #include "../../gamedev-base/interfaces/managers/ISoundManager.h"
 
 #include "Hitbox.hpp"
-#include "ExperienceTracker.hpp"
-#include "../data/ExperienceConfig.hpp"
 
 namespace ggj
 {
+    class World; // forward declaration to avoid circular include
+
     class Player : public PhysicsSprite, public IPlayer
     {
         public:
         Player() = default;
         Player(ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper,
-               ggj::ISoundManager& soundManager, ExperienceConfig xpConfig, b2Body* body,
+               ggj::ISoundManager& soundManager, World* world, int32_t playerIndex, b2Body* body,
                const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
                bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager { inputManager }, m_animationManager { animationManager },
-              m_mapper { mapper }, m_soundManager { soundManager }, m_xpConfig { xpConfig }
+              m_mapper { mapper }, m_soundManager { soundManager }, m_world { world }, m_playerIndex { playerIndex }
         {
             m_body->SetFixedRotation(true);
             m_animation = m_animationManager.getAnimation(AnimationName::PlayerIdleNG);
@@ -58,6 +58,8 @@ namespace ggj
         [[nodiscard]] int getCurrentXp() const override;
         [[nodiscard]] int getTotalXp() const override;
         [[nodiscard]] int getXpToNextLevel() const override;
+        [[nodiscard]] int getEnemiesKilled() const override;
+        void restoreState(const PlayerPersistentState& state) override;
         Hitbox* getHitbox() override;
         [[nodiscard]] bool isInDialog() const override;
         std::string getDialogId() override;
@@ -78,6 +80,8 @@ namespace ggj
         IMapper& m_mapper;
         ggj::ISoundManager& m_soundManager;
         PlayerState m_playerState { PlayerState::Dead };
+        World* m_world { nullptr };
+        int32_t m_playerIndex { 0 };
 
         raylib::Vector2 m_startPos {};
         bool m_hasClearedLevel { false };
@@ -86,17 +90,14 @@ namespace ggj
 
         ggj::Hitbox m_hitbox {};
         bool m_isAttacking { false };
-        uint16_t m_attackFrames { 28 }; //How many frames an attack takes
-        uint16_t m_attackCounter { 0 }; //Counts attack duration
+        uint16_t m_attackFrames { 28 }; ///< How many frames an attack takes
+        uint16_t m_attackCounter { 0 }; ///< Counts attack duration
 
-        int m_score {};
-        int m_lives { 3 };
         bool m_inDialog {};
         std::string m_currentDialogId;
 
-        ExperienceConfig    m_xpConfig {};
-        ExperienceTracker   m_xpTracker {};
         int m_previousKillCount { 0 };
+        int m_totalEnemiesKilledPrevLevels { 0 };
     };
 
 } // namespace ggj

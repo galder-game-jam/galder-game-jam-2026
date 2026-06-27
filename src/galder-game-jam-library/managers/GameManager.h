@@ -11,6 +11,7 @@
 #include "../enums/KeyboardKey.h"
 #include "fmt/format.h"
 #include "../enums/TextureName.h"
+#include "../data/PlayerPersistentState.hpp"
 
 #ifdef GAME_DEV_DEBUG
     #include "DebugMenu.hpp"
@@ -22,13 +23,14 @@ namespace ggj
     {
         public:
         explicit GameManager(ggj::ILogger& logger, raylib::Window& window, IInputManager<ggj::KeyboardKey>& input, IWorldManager& worlds,
-                             ggj::ITextureManager<TextureName, raylib::Texture>& textures, IDebugManager& debugManager
+                             ggj::ITextureManager<TextureName, raylib::Texture>& textures, IDebugManager& debugManager, PlayerPersistentState& persistentState
 #ifdef GAME_DEV_DEBUG
                              ,
                              ggj::DebugState& debugState
 #endif
                              )
-            : m_logger { logger }, m_window { window }, m_input { input }, m_worlds { worlds }, m_textures { textures }, m_debugManager { debugManager }
+            : m_logger { logger }, m_window { window }, m_input { input }, m_worlds { worlds }, m_textures { textures }, m_debugManager { debugManager },
+              m_persistentState { persistentState }
 #ifdef GAME_DEV_DEBUG
               ,
               m_debugState { debugState }
@@ -54,6 +56,7 @@ namespace ggj
         ggj::ITextureManager<TextureName, raylib::Texture>& m_textures;
         IDebugManager& m_debugManager;
 
+        PlayerPersistentState& m_persistentState;
         raylib::Vector2 m_originalWindowSize;
         raylib::RenderTexture2D m_renderTexture;
 
