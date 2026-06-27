@@ -60,9 +60,9 @@ namespace ggj
         [[nodiscard]] int getEnemiesKilled() const override;
         void restoreState(const PlayerPersistentState& state) override;
         Hitbox* getHitbox() override;
-        [[nodiscard]] bool isInDialog() const override { return false; }
-        std::string getDialogId() override { return {}; }
-        void setHasFinishedDialog() override {}
+        [[nodiscard]] bool isInDialog() const override { return m_inDialog; }
+        std::string getDialogId() override { return m_currentDialogId; }
+        void setHasFinishedDialog() override;
 
         void beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) override;
         void update(float timeDelta) override;
@@ -93,6 +93,9 @@ namespace ggj
         uint16_t m_attackCounter { 0 }; ///< Counts attack duration
 
         std::vector<std::unique_ptr<Projectile>> m_projectiles {};
+
+        bool m_inDialog {};
+        std::string m_currentDialogId;
 
         int m_previousKillCount { 0 };
         int m_totalEnemiesKilledPrevLevels { 0 };
