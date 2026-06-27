@@ -337,12 +337,15 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
                 raylib::Vector2 physicsSize = raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y);
 
+                const int32_t playerIndex = m_nextPlayerIndex++;
+                m_playerStats[playerIndex] = PlayerStats {};
+
                 if (m_pickedCharacter == PlayerPickedCharacter::Wizard)
                 {
                     if (raylib::Texture* wizardTex = m_textures.get(TextureName::WizardPlayer); wizardTex != nullptr)
                         tex = wizardTex;
                     Player2* p2 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player2>(
-                        this, m_input, m_animationManager, m_mapper, body, physicsSize, spriteSize, r, tex, generatorData.userData);
+                        this, playerIndex, m_input, m_animationManager, m_mapper, body, physicsSize, spriteSize, r, tex, generatorData.userData);
                     m_player = p2;
                     m_userDataManager.addUserData(body, p2);
                     m_userDataManager.addUserData(p2->getHitbox()->getBody(), p2->getHitbox());
@@ -350,7 +353,7 @@ namespace ggj
                 else
                 {
                     Player* p1 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player>(
-                        m_input, m_animationManager, m_mapper, m_soundManager, this, body, physicsSize, spriteSize, r, tex, generatorData.userData);
+                        m_input, m_animationManager, m_mapper, m_soundManager, this, playerIndex, body, physicsSize, spriteSize, r, tex, generatorData.userData);
                     m_player = p1;
                     m_userDataManager.addUserData(body, p1);
                     m_userDataManager.addUserData(p1->getHitbox()->getBody(), p1->getHitbox());
@@ -689,10 +692,14 @@ namespace ggj
         --m_numberOfEnemies;
     }
 
-    void World::restorePlayerStats(const PlayerPersistentState& state)
+    void World::restorePlayerStats(int32_t playerIndex, const PlayerPersistentState& state)
     {
-        m_playerLives = state.lives;
-        m_playerScore = state.score;
-        m_xpTracker.restore(state.level, state.currentXp, state.totalXp);
+        if (m_playerStats.count(playerIndex) > 0)
+        {
+            PlayerStats& stats = m_playerStats[playerIndex];
+            stats.lives = state.lives;
+            stats.score = state.score;
+            stats.xpTracker.restore(state.level, state.currentXp, state.totalXp);
+        }
     }
 } // namespace ggj

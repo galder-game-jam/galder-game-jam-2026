@@ -33,9 +33,9 @@ namespace ggj
         int currentKills = getUserData()->enemiesKilled;
         if (currentKills > m_previousKillCount)
         {
-            const ExperienceConfig& cfg = m_world->getXpConfig();
+            const ExperienceConfig& cfg = m_world->getXpConfig(m_playerIndex);
             for (int i = m_previousKillCount; i < currentKills; ++i)
-                m_world->addPlayerXp(GetRandomValue(cfg.xpPerKillMin, cfg.xpPerKillMax));
+                m_world->addPlayerXp(m_playerIndex, GetRandomValue(cfg.xpPerKillMin, cfg.xpPerKillMax));
             m_previousKillCount = currentKills;
         }
 
@@ -60,7 +60,7 @@ namespace ggj
                 m_body->SetTransform(ConvertToB2Vec2(m_startPos), m_body->GetAngle());
                 setPlayerState(PlayerState::Idle);
                 m_isDead = false;
-                m_world->resetPlayerLives();
+                m_world->resetPlayerLives(m_playerIndex);
                 m_hitbox.setIsActive(true);
                 m_body->SetEnabled(true);
             }
@@ -129,7 +129,7 @@ namespace ggj
 #ifdef GAME_DEV_DEBUG
         if (m_inputManager.keyPressed(KeyboardKey::Minus))
         {
-            m_world->addPlayerLives(1);
+            m_world->addPlayerLives(m_playerIndex, 1);
         }
 #endif
 
@@ -191,23 +191,23 @@ namespace ggj
 
         if (b->getUserData()->getObjectType() == ObjectType::Enemy)
         {
-            if (m_world->getPlayerScore() != 0)
-                m_world->addPlayerScore(-1);
+            if (m_world->getPlayerScore(m_playerIndex) != 0)
+                m_world->addPlayerScore(m_playerIndex, -1);
 
-            m_world->decrementPlayerLives();
+            m_world->decrementPlayerLives(m_playerIndex);
 
-            if (m_world->getPlayerLives() <= 0)
+            if (m_world->getPlayerLives(m_playerIndex) <= 0)
                 m_isDead = true;
         }
         if (b->getUserData()->getCommand() == "clear_level")
         {
             m_hasClearedLevel = true;
-            m_world->addPlayerXp(m_world->getXpConfig().xpPerPortal);
+            m_world->addPlayerXp(m_playerIndex, m_world->getXpConfig(m_playerIndex).xpPerPortal);
         }
         if (b->getUserData()->getCommand() == "pickup_coin")
         {
-            m_world->addPlayerScore(1);
-            m_world->addPlayerXp(m_world->getXpConfig().xpPerCoin);
+            m_world->addPlayerScore(m_playerIndex, 1);
+            m_world->addPlayerXp(m_playerIndex, m_world->getXpConfig(m_playerIndex).xpPerCoin);
         }
         if (b->getUserData()->getObjectType() == ObjectType::Dialog)
         {
@@ -220,32 +220,32 @@ namespace ggj
 
     int Player::getScore() const
     {
-        return m_world->getPlayerScore();
+        return m_world->getPlayerScore(m_playerIndex);
     }
 
     int Player::getLives() const
     {
-        return m_world->getPlayerLives();
+        return m_world->getPlayerLives(m_playerIndex);
     }
 
     int Player::getLevel() const
     {
-        return m_world->getPlayerLevel();
+        return m_world->getPlayerLevel(m_playerIndex);
     }
 
     int Player::getCurrentXp() const
     {
-        return m_world->getPlayerCurrentXp();
+        return m_world->getPlayerCurrentXp(m_playerIndex);
     }
 
     int Player::getTotalXp() const
     {
-        return m_world->getPlayerTotalXp();
+        return m_world->getPlayerTotalXp(m_playerIndex);
     }
 
     int Player::getXpToNextLevel() const
     {
-        return m_world->getPlayerXpToNextLevel();
+        return m_world->getPlayerXpToNextLevel(m_playerIndex);
     }
 
     int Player::getEnemiesKilled() const
@@ -255,7 +255,7 @@ namespace ggj
 
     void Player::restoreState(const PlayerPersistentState& state)
     {
-        m_world->restorePlayerStats(state);
+        m_world->restorePlayerStats(m_playerIndex, state);
         m_totalEnemiesKilledPrevLevels = state.totalEnemiesKilled;
     }
 

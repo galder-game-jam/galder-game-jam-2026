@@ -25,11 +25,11 @@ namespace ggj
         public:
         Player() = default;
         Player(ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper,
-               ggj::ISoundManager& soundManager, World* world, b2Body* body,
+               ggj::ISoundManager& soundManager, World* world, int32_t playerIndex, b2Body* body,
                const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
                bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager { inputManager }, m_animationManager { animationManager },
-              m_mapper { mapper }, m_soundManager { soundManager }, m_world { world }
+              m_mapper { mapper }, m_soundManager { soundManager }, m_world { world }, m_playerIndex { playerIndex }
         {
             m_body->SetFixedRotation(true);
             m_animation = m_animationManager.getAnimation(AnimationName::PlayerIdleNG);
@@ -81,6 +81,7 @@ namespace ggj
         ggj::ISoundManager& m_soundManager;
         PlayerState m_playerState { PlayerState::Dead };
         World* m_world { nullptr };
+        int32_t m_playerIndex { 0 };
 
         raylib::Vector2 m_startPos {};
         bool m_hasClearedLevel { false };

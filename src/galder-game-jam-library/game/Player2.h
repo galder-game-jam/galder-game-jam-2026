@@ -23,13 +23,14 @@ namespace ggj
     {
         public:
         Player2() = default;
-        Player2(ggj::World* world, ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager,
+        Player2(ggj::World* world, int32_t playerIndex, ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager,
                 IMapper& mapper, b2Body* body, const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect,
                 raylib::Texture* texture, const UserData& userData, bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager { inputManager }, m_animationManager { animationManager },
               m_mapper { mapper }
         {
             m_world = world;
+            m_playerIndex = playerIndex;
             m_body->SetFixedRotation(true);
             m_animation = m_animationManager.getAnimation(AnimationName::PlayerIdleNG);
             m_startPos = ConvertToVector2(m_body->GetPosition());
@@ -73,6 +74,7 @@ namespace ggj
         void setPlayerState(PlayerState playerState);
 
         ggj::World* m_world { nullptr };
+        int32_t m_playerIndex { 0 };
         ggj::IInputManager<ggj::KeyboardKey>& m_inputManager;
         ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& m_animationManager;
         bool m_cameraShouldFollowPlayer { true };
