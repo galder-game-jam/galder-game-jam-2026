@@ -99,7 +99,7 @@ namespace ggj
             }
         }
 
-        if (m_inputManager.keyPressed(KeyboardKey::Space))
+        if (m_inputManager.keyPressed(KeyboardKey::Space) || m_inputManager.keyPressed(KeyboardKey::Enter))
         {
             m_isCharacterSelected = true;
         }

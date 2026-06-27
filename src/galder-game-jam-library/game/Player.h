@@ -13,6 +13,7 @@
 #include "../interfaces/system/IMapper.h"
 #include "../interfaces/game/IPlayer.h"
 #include "../../gamedev-base/interfaces/managers/ISoundManager.h"
+#include "../interfaces/manager/IOptionsManager.h"
 
 #include "Hitbox.hpp"
 
@@ -25,11 +26,11 @@ namespace ggj
         public:
         Player() = default;
         Player(ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper,
-               ggj::ISoundManager& soundManager, World* world, int32_t playerIndex, b2Body* body,
+               ggj::ISoundManager& soundManager, IOptionsManager& optionsManager, World* world, int32_t playerIndex, b2Body* body,
                const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
                bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager { inputManager }, m_animationManager { animationManager },
-              m_mapper { mapper }, m_soundManager { soundManager }, m_world { world }, m_playerIndex { playerIndex }
+              m_mapper { mapper }, m_soundManager { soundManager }, m_optionsManager { optionsManager }, m_world { world }, m_playerIndex { playerIndex }
         {
             m_body->SetFixedRotation(true);
             m_animation = m_animationManager.getAnimation(AnimationName::PlayerIdleNG);
@@ -79,6 +80,7 @@ namespace ggj
         Animation m_animation;
         IMapper& m_mapper;
         ggj::ISoundManager& m_soundManager;
+        IOptionsManager& m_optionsManager;
         PlayerState m_playerState { PlayerState::Dead };
         World* m_world { nullptr };
         int32_t m_playerIndex { 0 };

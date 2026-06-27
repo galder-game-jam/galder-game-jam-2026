@@ -60,9 +60,11 @@ namespace ggj
 
     void Player2::handleInputs(float timeDelta)
     {
+        const KeybindingOptions& kb = m_optionsManager.getKeybindingOptions();
+
         if (m_isDead)
         {
-            if (m_inputManager.keyDown(KeyboardKey::Q))
+            if (m_inputManager.keyDown(kb.respawn))
             {
                 m_body->SetTransform(ConvertToB2Vec2(m_startPos), m_body->GetAngle());
                 setPlayerState(PlayerState::Idle);
@@ -93,7 +95,7 @@ namespace ggj
 
         if (!m_isAttacking || isInAir)
         {
-            if (m_inputManager.keyDown(KeyboardKey::A) && !m_inputManager.keyDown(KeyboardKey::D))
+            if (m_inputManager.keyDown(kb.moveLeft) && !m_inputManager.keyDown(kb.moveRight))
             {
                 m_isLeftPosition = true;
                 m_hitbox.setLeftPosition(true);
@@ -102,7 +104,7 @@ namespace ggj
                 if (m_velocity.y < 0.2f && m_velocity.y > -0.2f)
                     setPlayerState(PlayerState::Walk);
             }
-            else if (m_inputManager.keyDown(KeyboardKey::D) && !m_inputManager.keyDown(KeyboardKey::A))
+            else if (m_inputManager.keyDown(kb.moveRight) && !m_inputManager.keyDown(kb.moveLeft))
             {
                 m_isLeftPosition = false;
                 m_hitbox.setLeftPosition(false);
@@ -116,12 +118,12 @@ namespace ggj
                 m_velocity = raylib::Vector2 { 0.f, m_velocity.y };
             }
 
-            if (m_inputManager.keyDown(KeyboardKey::W) && !m_inputManager.keyDown(KeyboardKey::S))
+            if (m_inputManager.keyDown(kb.moveUp) && !m_inputManager.keyDown(kb.moveDown))
             {
                 m_velocity = raylib::Vector2 { m_velocity.x, -speed };
                 setPlayerState(PlayerState::Walk);
             }
-            else if (m_inputManager.keyDown(KeyboardKey::S) && !m_inputManager.keyDown(KeyboardKey::W))
+            else if (m_inputManager.keyDown(kb.moveDown) && !m_inputManager.keyDown(kb.moveUp))
             {
                 m_velocity = raylib::Vector2 { m_velocity.x, speed };
                 setPlayerState(PlayerState::Walk);
@@ -132,7 +134,7 @@ namespace ggj
             }
         }
 
-        if (m_inputManager.keyPressed(KeyboardKey::C) && !m_isAttacking)
+        if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking)
         {
             setPlayerState(PlayerState::AttackGrounded);
 

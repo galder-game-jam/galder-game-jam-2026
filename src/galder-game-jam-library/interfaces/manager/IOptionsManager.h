@@ -3,6 +3,7 @@
 
 #include "../../data/AudioOptions.hpp"
 #include "../../data/HudOptions.hpp"
+#include "../../data/KeybindingOptions.hpp"
 
 namespace ggj
 {
@@ -50,6 +51,18 @@ namespace ggj
              * @param options New HUD settings to apply.
              */
             virtual void setHudOptions(const HudOptions& options) = 0;
+
+            /*!
+             * Returns the keybinding options parsed from the "keybindings" object.
+             */
+            [[nodiscard]] virtual const KeybindingOptions& getKeybindingOptions() const = 0;
+
+            /*!
+             * Replaces the in-memory keybinding options without writing to disk.
+             * Call saveAudioOptions() to persist the change.
+             * @param options New keybinding settings to apply.
+             */
+            virtual void setKeybindingOptions(const KeybindingOptions& options) = 0;
     };
 } // namespace ggj
 

@@ -1,6 +1,7 @@
 #include "OptionsScreen.h"
 
 #include "imgui.h"
+#include "raylib.h"
 
 namespace ggj
 {
@@ -12,8 +13,10 @@ namespace ggj
     void OptionsScreen::reset()
     {
         m_isBack = false;
+        m_rebindingAction = -1;
         m_localOptions = m_options.getAudioOptions();
         m_localHudOptions = m_options.getHudOptions();
+        m_localKeybindingOptions = m_options.getKeybindingOptions();
     }
 
     void OptionsScreen::draw()
@@ -29,19 +32,40 @@ namespace ggj
         if (!m_isVisible)
             return;
 
-        const ImVec2 size { 360.0f, 290.0f };
-        ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+        const ImVec2 size { 360.0f, 540.0f };
+        ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowPos(
             { SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f },
-            ImGuiCond_Always,
+            ImGuiCond_FirstUseEver,
             { 0.5f, 0.5f });
-        ImGui::Begin("Options", nullptr,
-            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse);
 
-        bool audioChanged = false;
+        ImGui::TextUnformatted("UI Scale");
+        ImGui::Separator();
+        {
+            constexpr float SCALES[] = { 1.0f, 1.5f, 2.0f, 4.0f };
+            constexpr const char* LABELS[] = { "1x", "1.5x", "2x", "4x" };
+            for (int i = 0; i < 4; ++i)
+            {
+                if (i > 0) ImGui::SameLine();
+                const bool active = (m_localHudOptions.imguiScale == SCALES[i]);
+                if (active)
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+                if (ImGui::Button(LABELS[i], { 0.0f, 0.0f }))
+                {
+                    m_localHudOptions.imguiScale = SCALES[i];
+                    m_options.setHudOptions(m_localHudOptions);
+                }
+                if (active)
+                    ImGui::PopStyleColor();
+            }
+        }
 
+        ImGui::Spacing();
         ImGui::TextUnformatted("Music");
         ImGui::Separator();
+
+        bool audioChanged = false;
         audioChanged |= ImGui::Checkbox("Mute Music", &m_localOptions.isMusicMuted);
         ImGui::BeginDisabled(m_localOptions.isMusicMuted);
         audioChanged |= ImGui::SliderFloat("Music Volume##music", &m_localOptions.musicVolume, 0.0f, 1.0f);
@@ -68,10 +92,77 @@ namespace ggj
             m_options.setHudOptions(m_localHudOptions);
 
         ImGui::Spacing();
+        ImGui::TextUnformatted("Keybindings");
+        ImGui::Separator();
+
+        // Capture next key press when a rebind is in progress.
+        if (m_rebindingAction >= 0)
+        {
+            const int rawKey = GetKeyPressed();
+            if (rawKey != 0 && rawKey != static_cast<int>(KeyboardKey::Escape))
+            {
+                KeyboardKey* targets[] = {
+                    &m_localKeybindingOptions.moveUp,
+                    &m_localKeybindingOptions.moveDown,
+                    &m_localKeybindingOptions.moveLeft,
+                    &m_localKeybindingOptions.moveRight,
+                    &m_localKeybindingOptions.attack,
+                    &m_localKeybindingOptions.respawn,
+                };
+                *targets[m_rebindingAction] = static_cast<KeyboardKey>(rawKey);
+                m_options.setKeybindingOptions(m_localKeybindingOptions);
+                m_rebindingAction = -1;
+            }
+            else if (rawKey == static_cast<int>(KeyboardKey::Escape))
+            {
+                m_rebindingAction = -1;
+            }
+        }
+
+        struct KeybindRow { const char* label; KeyboardKey key; int index; };
+        const KeybindRow rows[] = {
+            { "Move Up",    m_localKeybindingOptions.moveUp,    0 },
+            { "Move Down",  m_localKeybindingOptions.moveDown,  1 },
+            { "Move Left",  m_localKeybindingOptions.moveLeft,  2 },
+            { "Move Right", m_localKeybindingOptions.moveRight, 3 },
+            { "Attack",     m_localKeybindingOptions.attack,    4 },
+            { "Respawn",    m_localKeybindingOptions.respawn,   5 },
+        };
+
+        if (ImGui::BeginTable("##kbtable", 2, ImGuiTableFlags_SizingFixedFit))
+        {
+            for (const KeybindRow& row : rows)
+            {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted(row.label);
+                ImGui::TableSetColumnIndex(1);
+
+                char btnLabel[32];
+                if (m_rebindingAction == row.index)
+                    snprintf(btnLabel, sizeof(btnLabel), "Press a key...##kb%d", row.index);
+                else
+                    snprintf(btnLabel, sizeof(btnLabel), "%-10s##kb%d", keyName(row.key), row.index);
+
+                if (ImGui::Button(btnLabel, { 0.0f, 0.0f }))
+                    m_rebindingAction = row.index;
+            }
+            ImGui::EndTable();
+        }
+
+        if (ImGui::Button("Reset to default##kb"))
+        {
+            m_rebindingAction = -1;
+            m_localKeybindingOptions = KeybindingOptions {};
+            m_options.setKeybindingOptions(m_localKeybindingOptions);
+        }
+
+        ImGui::Spacing();
         ImGui::Separator();
 
         if (ImGui::Button("Back", { 120.0f, 0.0f }))
         {
+            m_rebindingAction = -1;
             m_options.saveAudioOptions();
             m_isBack = true;
         }

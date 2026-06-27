@@ -6,6 +6,15 @@
         "soundVolume": 1.0
     },
     "hud": {
-        "alpha": 0.706
+        "alpha": 0.706,
+        "imguiScale": 2.0
+    },
+    "keybindings": {
+        "moveUp": 87,
+        "moveDown": 83,
+        "moveLeft": 65,
+        "moveRight": 68,
+        "attack": 32,
+        "respawn": 81
     }
 }

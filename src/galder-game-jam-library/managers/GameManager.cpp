@@ -5,6 +5,40 @@
 #include "GameManager.h"
 
 #include "rlImGui.h"
+#include "imgui.h"
+
+namespace
+{
+    // Four fonts loaded at startup matching the four UI scale steps.
+    // Index 0 = 1x (13 px), 1 = 1.5x (20 px), 2 = 2x (26 px), 3 = 4x (52 px).
+    ImFont*     g_scaledFonts[4]  {};
+    ImGuiStyle  g_baseStyle;
+    bool        g_initialised     { false };
+
+    constexpr float SCALE_VALUES[] = { 1.0f, 1.5f, 2.0f, 4.0f };
+    constexpr float FONT_SIZES[]   = { 13.0f, 20.0f, 26.0f, 52.0f };
+
+    ImFont* fontForScale(float scale)
+    {
+        // Walk backwards and return the largest font that doesn't exceed the requested scale.
+        for (int i = 3; i >= 0; --i)
+            if (scale >= SCALE_VALUES[i] - 0.01f)
+                return g_scaledFonts[i];
+        return g_scaledFonts[0];
+    }
+
+    void applyImGuiScale(float scale)
+    {
+        ImGui::GetStyle() = g_baseStyle;
+        ImGui::GetStyle().ScaleAllSizes(scale);
+
+        // Switch to the pre-rasterised font for this scale so text is crisp, not stretched.
+        ImFont* font = fontForScale(scale);
+        if (font)
+            ImGui::GetIO().FontDefault = font;
+        ImGui::GetIO().FontGlobalScale = 1.0f;
+    }
+}
 
 ggj::GameManager::~GameManager()
 {
@@ -23,6 +57,27 @@ bool ggj::GameManager::initialize()
     m_renderTexture = raylib::RenderTexture((int)m_originalWindowSize.x, (int)m_originalWindowSize.y);
 
     rlImGuiSetup(true);
+
+    if (!g_initialised)
+    {
+        // rlImGuiSetup already added the 13 px font; grab it as the 1x entry.
+        ImGuiIO& io = ImGui::GetIO();
+        g_scaledFonts[0] = io.Fonts->Fonts.empty() ? nullptr : io.Fonts->Fonts[0];
+
+        // Add the remaining sizes. They will be packed into the atlas on the first frame.
+        for (int i = 1; i < 4; ++i)
+        {
+            ImFontConfig cfg;
+            cfg.SizePixels  = FONT_SIZES[i];
+            cfg.PixelSnapH  = true;
+            g_scaledFonts[i] = io.Fonts->AddFontDefault(&cfg);
+        }
+
+        g_baseStyle  = ImGui::GetStyle();
+        g_initialised = true;
+    }
+
+    applyImGuiScale(m_options.getHudOptions().imguiScale);
     SetExitKey(KEY_NULL); // Esc is handled in-game; don't let raylib close the window
 
     return true;
@@ -59,6 +114,10 @@ void ggj::GameManager::render()
                                      (float)m_originalWindowSize.y * scale),
                    { 0, 0 }, 0.0f, WHITE);
     m_debugManager.draw();
+
+    // Apply scale before rlImGuiBegin so FontGlobalScale is set before NewFrame() computes
+    // g.FontBaseSize — setting it after NewFrame produces stale sizing for that frame.
+    applyImGuiScale(m_options.getHudOptions().imguiScale);
 
     // ImGui is available in all builds (netplay dialog, server info, ...); the debug menu is
     // only drawn in debug builds.

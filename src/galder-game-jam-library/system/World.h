@@ -29,6 +29,7 @@ namespace ggj
 #include "../data/PlayerStats.hpp"
 #include "../data/PlayerPersistentState.hpp"
 #include "../interfaces/manager/INetworkManager.h"
+#include "../interfaces/manager/IOptionsManager.h"
 #include <set>
 #include <vector>
 
@@ -42,10 +43,10 @@ namespace ggj
         World(ggj::ILogger& logger, ggj::IResourceManager<ResourceName>& resources, IMapper& mapper, ggj::ITextureManager<TextureName, raylib::Texture>& textures,
               raylib::Window& window, ggj::IInputManager<ggj::KeyboardKey>& input, CollisionManager& collisionManager, IDebugManager& debugManager,
               ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IUserDataManager<PhysicsObject*>& userDataManager, ggj::ISoundManager& soundManager,
-              std::unique_ptr<tson::Map> map, ggj::Hud& hud, Dialog& dialog)
+              std::unique_ptr<tson::Map> map, ggj::Hud& hud, Dialog& dialog, IOptionsManager& optionsManager)
             : m_logger { logger }, m_resources { resources }, m_mapper { mapper }, m_textures { textures }, m_window { window }, m_input { input },
               m_collisionManager { collisionManager }, m_debugManager { debugManager }, m_animationManager { animationManager }, m_userDataManager { userDataManager },
-              m_soundManager { soundManager }, m_map { std::move(map) }, m_hud { hud }, m_dialog { dialog }
+              m_soundManager { soundManager }, m_map { std::move(map) }, m_hud { hud }, m_dialog { dialog }, m_optionsManager { optionsManager }
         {
             m_camera.target = Vector2 { 0.f, 0.f };
             m_camera.offset = { 0.f, 0.f }; //{8.f, 8.f};//(Vector2){ (float) window.GetWidth() / 2.0f, (float)window.GetHeight() / 2.0f };
@@ -173,6 +174,8 @@ namespace ggj
         Hud& m_hud;
 
         Dialog& m_dialog;
+
+        IOptionsManager& m_optionsManager;
 
         b2World m_world { { 0.f, 0.f } };
         std::unique_ptr<tson::Map> m_map { nullptr };
