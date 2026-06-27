@@ -62,6 +62,7 @@ namespace ggj
             ImGui::SameLine();
             if (ImGui::Button("Map 2"))
                 state.requestedStage = 2;
+            ImGui::SameLine();
             if (ImGui::Button("Map 3"))
                 state.requestedStage = 3;
             ImGui::SameLine();
