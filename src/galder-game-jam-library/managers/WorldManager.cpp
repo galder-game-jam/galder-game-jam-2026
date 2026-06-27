@@ -13,7 +13,27 @@ namespace ggj
 {
     void WorldManager::startMusicForStage(int32_t stageIndex)
     {
-        MusicName track = (stageIndex % 2 == 0) ? MusicName::Level2 : MusicName::Level1;
+        MusicName track;
+        switch (stageIndex)
+        {
+            case 1: // Forest level
+                track = MusicName::Forest1;
+                break;
+            case 2: // Dungeon level
+                track = MusicName::Dungeon1;
+                break;
+            case 3:
+                track = MusicName::Forest2;
+                break;
+            case 99999:
+                track = MusicName::Dungeon2;
+                break;
+            default:
+                m_logger.debug(fmt::format("Could not set music track for level {0}. Fallback to Forest2", stageIndex));
+                track = MusicName::Forest2;
+                break;
+        }
+
         m_soundManager.playMusic(track);
     }
 

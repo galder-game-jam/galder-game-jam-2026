@@ -130,8 +130,10 @@ namespace ggj
         add(ggj::ResourceName::SoundDialogTalking6, "audio/sfx/dialog_talking_6.wav");
         add(ggj::ResourceName::SoundDialogTalking7, "audio/sfx/dialog_talking_7.wav");
 
-        add(ggj::ResourceName::MusicLevel1, "audio/music/forest1.mp3");
-        add(ggj::ResourceName::MusicLevel2, "audio/music/dungeon1.mp3");
+        add(ggj::ResourceName::MusicForest1, "audio/music/forest1.mp3");
+        add(ggj::ResourceName::MusicForest2, "audio/music/forest2.mp3");
+        add(ggj::ResourceName::MusicDungeon1, "audio/music/dungeon1.mp3");
+        add(ggj::ResourceName::MusicDungeon2, "audio/music/dungeon2.mp3");
     }
 
     template <class T> std::string ResourceManager<T>::getResource(T resourceType)
