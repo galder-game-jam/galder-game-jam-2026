@@ -137,6 +137,7 @@ namespace ggj
         add(ggj::ResourceName::SoundPlayerHurt, "audio/sfx/player_hurt.wav");
         add(ggj::ResourceName::SoundPlayerDeath, "audio/sfx/player_death.wav");
         add(ggj::ResourceName::SoundPlayerRespawn, "audio/sfx/player_respawn.wav");
+        add(ggj::ResourceName::SoundPortalOpen, "audio/sfx/portal_open.wav");
 
         add(ggj::ResourceName::MusicForest1, "audio/music/forest1.mp3");
         add(ggj::ResourceName::MusicForest2, "audio/music/forest2.mp3");

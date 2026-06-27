@@ -128,6 +128,7 @@ namespace ggj
         SoundPlayerHurt = 613,
         SoundPlayerDeath = 614,
         SoundPlayerRespawn = 615,
+        SoundPortalOpen = 616,
 
         MusicForest1 = 700,
         MusicForest2 = 701,
