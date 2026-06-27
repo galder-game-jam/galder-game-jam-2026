@@ -1,8 +1,8 @@
 {
     "sound": {
-        "musicMuted": true,
+        "musicMuted": false,
         "musicVolume": 1.0,
-        "soundMuted": true,
+        "soundMuted": false,
         "soundVolume": 1.0
     }
 }
