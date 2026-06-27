@@ -14,6 +14,8 @@ namespace ggj
     void NetplayScreen::initialize()
     {
         m_backgroundTexture = m_textures.get(TextureName::MainMenuBackground);
+        m_localIp = m_resolver.getLocalIpAddress();
+        m_publicIp = m_resolver.getPublicIpAddress();
     }
 
     void NetplayScreen::reset()
@@ -30,12 +32,28 @@ namespace ggj
         m_backgroundTexture->Draw(raylib::Vector2 { 0.0f, 0.0f });
     }
 
+    namespace
+    {
+        void drawIpRow(const char* label, const std::string& ip)
+        {
+            ImGui::TextUnformatted(label);
+            ImGui::SameLine();
+            char buf[46] {};
+            std::strncpy(buf, ip.c_str(), sizeof(buf) - 1);
+            ImGui::SetNextItemWidth(160.0f);
+            ImGui::InputText(fmt::format("##{}", label).c_str(), buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+            ImGui::SameLine();
+            if (ImGui::SmallButton(fmt::format("Copy##{}", label).c_str()))
+                ImGui::SetClipboardText(ip.c_str());
+        }
+    } // namespace
+
     void NetplayScreen::drawImGui()
     {
         if (!m_isVisible)
             return;
 
-        const ImVec2 size { 360.0f, 260.0f };
+        const ImVec2 size { 400.0f, 380.0f };
         ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowPos({ SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f }, ImGuiCond_FirstUseEver, { 0.5f, 0.5f });
         ImGui::Begin("Netplay", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -50,12 +68,18 @@ namespace ggj
         m_isHost = (role == 0);
 
         ImGui::Spacing();
+        drawIpRow("Local IP: ", m_localIp);
+        drawIpRow("Public IP:", m_publicIp);
+
+        ImGui::Spacing();
         ImGui::TextUnformatted("Player name");
         ImGui::InputText("##name", m_nameBuffer, sizeof(m_nameBuffer));
 
         ImGui::Spacing();
         if (m_isHost)
         {
+            ImGui::TextUnformatted("Server name");
+            ImGui::InputText("##servername", m_serverNameBuffer, sizeof(m_serverNameBuffer));
             ImGui::TextUnformatted("Port");
             ImGui::InputInt("##port", &m_port);
         }

@@ -24,24 +24,27 @@ namespace ggj
         }
     } // namespace
 
-    void NetworkManager::startHost(uint16_t port, const std::string& name, PlayerPickedCharacter character)
+    void NetworkManager::startHost(uint16_t port, const std::string& playerName, const std::string& serverName, PlayerPickedCharacter character)
     {
         shutdown();
 
         m_role = NetworkRole::Server;
-        m_localName = name;
+        m_localName = playerName;
+        m_serverName = serverName;
         m_localCharacter = character;
         m_localPlayerId = HOST_PLAYER_ID;
+        m_cachedLocalIp = m_resolver.getLocalIpAddress();
+        m_cachedPublicIp = m_resolver.getPublicIpAddress();
 
         m_server = std::make_unique<GalderServer>(m_logger, m_resolver);
-        if (!m_server->initialize(port, name) || !m_server->startListening())
+        if (!m_server->initialize(port, serverName) || !m_server->startListening())
         {
             m_logger.error("Failed to start host");
             shutdown();
             return;
         }
-        m_beacon.startAdvertising(name, port);
-        m_logger.information(fmt::format("Hosting on port {0} as '{1}'", port, name));
+        m_beacon.startAdvertising(serverName, port);
+        m_logger.information(fmt::format("Hosting on port {0} as '{1}' (server: '{2}')", port, playerName, serverName));
     }
 
     void NetworkManager::startClient(const std::string& ipAddress, uint16_t port, const std::string& name, PlayerPickedCharacter character)
@@ -53,6 +56,8 @@ namespace ggj
         m_localCharacter = character;
         m_localPlayerId = INVALID_PLAYER_ID; // assigned by the server via JoinAccept
         m_hasSentJoinRequest = false;
+        m_cachedLocalIp = m_resolver.getLocalIpAddress();
+        m_cachedPublicIp = m_resolver.getPublicIpAddress();
 
         m_client = std::make_unique<GalderClient>(m_logger, m_resolver);
         if (!m_client->initialize())
@@ -63,6 +68,13 @@ namespace ggj
         }
         m_client->beginConnect(port, ipAddress);
         m_logger.information(fmt::format("Connecting to {0}:{1} as '{2}'", ipAddress, port, name));
+    }
+
+    int32_t NetworkManager::pingToServer() const
+    {
+        if (m_role == NetworkRole::Client && m_client)
+            return m_client->getPing();
+        return -1;
     }
 
     void NetworkManager::shutdown()
@@ -77,6 +89,9 @@ namespace ggj
 
         m_role = NetworkRole::None;
         m_localPlayerId = HOST_PLAYER_ID;
+        m_serverName.clear();
+        m_cachedLocalIp.clear();
+        m_cachedPublicIp.clear();
         m_localLives = 0;
         m_localScore = 0;
         m_localKills = 0;
@@ -150,6 +165,8 @@ namespace ggj
                     m_server->sendTo(connection, accept);
 
                     applyPlayerSnapshot(playerId, message);
+                    m_remotePlayers[playerId].localIp = message.localIp;
+                    m_remotePlayers[playerId].publicIp = message.publicIp;
                     break;
                 }
                 case NetMessageType::PlayerState:
@@ -233,6 +250,8 @@ namespace ggj
                 copyName(join.name, m_localName);
                 join.character = static_cast<uint8_t>(m_localCharacter);
                 join.position = m_localPosition;
+                std::strncpy(join.localIp, m_cachedLocalIp.c_str(), sizeof(join.localIp) - 1);
+                std::strncpy(join.publicIp, m_cachedPublicIp.c_str(), sizeof(join.publicIp) - 1);
                 m_client->sendToServer(join);
                 m_hasSentJoinRequest = true;
             }
@@ -335,6 +354,8 @@ namespace ggj
         host.score = m_localScore;
         host.kills = m_localKills;
         host.pingMs = -1;
+        host.localIp = m_cachedLocalIp;
+        host.publicIp = m_cachedPublicIp;
         result.push_back(host);
 
         for (const auto& [playerId, remote] : m_remotePlayers)
@@ -347,6 +368,8 @@ namespace ggj
             player.lives = remote.lives;
             player.score = remote.score;
             player.kills = remote.kills;
+            player.localIp = remote.localIp;
+            player.publicIp = remote.publicIp;
 
             if (m_server)
             {

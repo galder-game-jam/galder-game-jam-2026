@@ -243,7 +243,7 @@ namespace ggj
                     const std::string playerName = m_netplayScreen.getPlayerName();
                     m_hud.setPlayerName(playerName);
                     if (m_netplayScreen.isHost())
-                        m_network.startHost(m_netplayScreen.getPort(), playerName, m_pickedCharacter);
+                        m_network.startHost(m_netplayScreen.getPort(), playerName, m_netplayScreen.getServerName(), m_pickedCharacter);
                     else
                         m_network.startClient(m_netplayScreen.getIpAddress(), m_netplayScreen.getPort(), playerName, m_pickedCharacter);
 
@@ -439,7 +439,24 @@ namespace ggj
         if (m_isNetplay && m_network.role() == NetworkRole::Server)
         {
             ServerInfoMenu serverInfo;
-            serverInfo.draw(m_network.connectedPlayers());
+            serverInfo.draw(m_network.connectedPlayers(),
+                            m_network.serverName(),
+                            m_network.localIpAddress(),
+                            m_network.publicIpAddress());
+        }
+        else if (m_isNetplay && m_network.role() == NetworkRole::Client
+                 && m_worlds.count(m_currentStageIndex) > 0)
+        {
+            IPlayer* p = m_worlds[m_currentStageIndex]->getPlayer();
+            if (p != nullptr)
+            {
+                ClientInfoMenu clientInfo;
+                clientInfo.draw(m_network,
+                                m_network.localPlayerName(),
+                                p->getVisualCenter(),
+                                p->getLives(),
+                                p->getScore());
+            }
         }
     }
 

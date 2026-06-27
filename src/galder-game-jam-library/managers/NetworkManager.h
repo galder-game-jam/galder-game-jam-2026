@@ -31,7 +31,7 @@ namespace ggj
 
         NetworkManager(ILogger& logger, IIpAddressResolver& ipAddressResolver) : m_logger { logger }, m_resolver { ipAddressResolver } {}
 
-        void startHost(uint16_t port, const std::string& name, PlayerPickedCharacter character) override;
+        void startHost(uint16_t port, const std::string& playerName, const std::string& serverName, PlayerPickedCharacter character) override;
         void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, PlayerPickedCharacter character) override;
         void shutdown() override;
 
@@ -43,6 +43,10 @@ namespace ggj
         [[nodiscard]] ConnectionStatus status() const override;
         [[nodiscard]] uint32_t localPlayerId() const override { return m_localPlayerId; }
         [[nodiscard]] const std::string& localPlayerName() const override { return m_localName; }
+        [[nodiscard]] const std::string& serverName() const override { return m_serverName; }
+        [[nodiscard]] std::string localIpAddress() const override { return m_cachedLocalIp; }
+        [[nodiscard]] std::string publicIpAddress() const override { return m_cachedPublicIp; }
+        [[nodiscard]] int32_t pingToServer() const override;
         [[nodiscard]] const std::map<uint32_t, RemotePlayer>& remotePlayers() const override { return m_remotePlayers; }
 
         void publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool facingLeft) override;
@@ -84,6 +88,9 @@ namespace ggj
         NetworkRole m_role { NetworkRole::None };
         uint32_t m_localPlayerId { HOST_PLAYER_ID };
         std::string m_localName {};
+        std::string m_serverName {};
+        std::string m_cachedLocalIp {};
+        std::string m_cachedPublicIp {};
         PlayerPickedCharacter m_localCharacter { PlayerPickedCharacter::Rogue };
         raylib::Vector2 m_localPosition {};
         int32_t m_localLives { 0 };

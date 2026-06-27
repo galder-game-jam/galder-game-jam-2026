@@ -151,6 +151,7 @@ namespace ggj
         std::map<int32_t, ggj::WorldLayer> m_layers;
 
         int m_numberOfEnemies { 0 };
+        int m_networkRemovedEnemyCount { 0 }; ///< Enemies killed by remote peers (coop quest log).
         Minimap m_minimap {};
 
         int32_t m_nextPlayerIndex { 0 };

@@ -11,6 +11,7 @@
 #include <vector>
 #include "raylib-cpp.hpp"
 #include "../../gamedev-base/GameDevBase.h"
+#include "../../gamedev-base/interfaces/network/IIpAddressResolver.h"
 #include "../enums/TextureName.h"
 #include "../data/DiscoveredServer.hpp"
 #include "../interfaces/manager/INetworkManager.h"
@@ -26,7 +27,8 @@ namespace ggj
     class NetplayScreen : public IGameObject<raylib::Vector2>
     {
         public:
-        explicit NetplayScreen(ITextureManager<TextureName, raylib::Texture>& textures) : m_textures { textures } { m_isVisible = true; }
+        explicit NetplayScreen(ITextureManager<TextureName, raylib::Texture>& textures, IIpAddressResolver& resolver)
+            : m_textures { textures }, m_resolver { resolver } { m_isVisible = true; }
 
         void initialize();
 
@@ -36,6 +38,7 @@ namespace ggj
         [[nodiscard]] bool isBack() const { return m_isBack; }
         [[nodiscard]] bool isHost() const { return m_isHost; }
         [[nodiscard]] std::string getPlayerName() const { return m_nameBuffer; }
+        [[nodiscard]] std::string getServerName() const { return m_serverNameBuffer; }
         [[nodiscard]] std::string getIpAddress() const { return m_ipBuffer; }
         [[nodiscard]] uint16_t getPort() const { return static_cast<uint16_t>(m_port); }
 
@@ -53,12 +56,17 @@ namespace ggj
 
         private:
         ITextureManager<TextureName, raylib::Texture>& m_textures;
+        IIpAddressResolver& m_resolver;
         raylib::Texture* m_backgroundTexture { nullptr };
 
         bool m_isHost { true };
         char m_nameBuffer[21] { "Player" };
+        char m_serverNameBuffer[64] { "Galder Server" };
         char m_ipBuffer[64] { "127.0.0.1" };
         int m_port { INetworkManager::DEFAULT_PORT };
+
+        std::string m_localIp {};
+        std::string m_publicIp {};
 
         bool m_isConfirmed { false };
         bool m_isBack { false };
