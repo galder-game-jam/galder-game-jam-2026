@@ -13,6 +13,8 @@
 
 namespace ggj
 {
+    class ISoundManager;
+
     class PhysicsObject : public ggj::IGameObject<raylib::Vector2>
     {
         public:
@@ -40,6 +42,17 @@ namespace ggj
         virtual void endContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) {}
         virtual void preSolve(PhysicsObject* a, PhysicsObject* b, b2Contact* contact, const b2Manifold* oldManifold) {}
         virtual void postSolve(PhysicsObject* a, PhysicsObject* b, b2Contact* contact, const b2ContactImpulse* impulse) {}
+
+        /*!
+         * Called by the melee hitbox when this object is struck. Default behaviour: play death
+         * sound, apply knockback, destroy self, credit the kill to @p attacker.
+         * Override to implement multi-hit or invulnerability logic.
+         *
+         * @param soundManager Sound manager for playing hit/death sounds.
+         * @param fromLeft     True if the swing came from the left side (determines knockback direction).
+         * @param attacker     The owning PhysicsObject of the hitbox (for kill credits).
+         */
+        virtual void onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker);
 
         b2Body* getBody();
         UserData* getUserData();

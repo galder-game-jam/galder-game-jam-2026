@@ -30,13 +30,21 @@ namespace ggj
             void move(const raylib::Vector2& toMove) override;
             void update(float timeDelta) override;
             void beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) override;
+            void onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker) override;
 
         private:
+            void takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft);
+
             ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& m_animationManager;
             IMapper& m_mapper;
             ggj::ISoundManager& m_soundManager;
             Animation m_animation;
             int m_lives { 3 };
+
+            float m_invulTimer { 0.f };
+            float m_flashTimer { 0.f };
+            static constexpr float INVUL_DURATION  = 1.f;
+            static constexpr float FLASH_INTERVAL  = 0.1f;
     };
 
 } // ggj

@@ -4,6 +4,8 @@
 
 #include "PhysicsObject.h"
 #include "box2d/b2_body.h"
+#include "../../gamedev-base/interfaces/managers/ISoundManager.h"
+#include "../enums/SoundName.h"
 
 namespace ggj
 {
@@ -77,5 +79,16 @@ namespace ggj
     b2Body *PhysicsObject::getBody()
     {
         return m_body;
+    }
+
+    void PhysicsObject::onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker)
+    {
+        if (soundManager != nullptr)
+            soundManager->playSound(SoundName::EnemyDie);
+        if (m_body != nullptr)
+            m_body->ApplyLinearImpulseToCenter({fromLeft ? -50.f : 50.f, 0.f}, true);
+        destroy();
+        if (attacker != nullptr)
+            attacker->getUserData()->enemiesKilled++;
     }
 } // dev
