@@ -121,8 +121,10 @@ namespace ggj
         SoundDialogTalking6 = 610,
         SoundDialogTalking7 = 611,
 
-        MusicLevel1 = 700,
-        MusicLevel2 = 701
+        MusicForest1 = 700,
+        MusicForest2 = 701,
+        MusicDungeon1 = 702,
+        MusicDungeon2 = 703,
     };
 } // namespace ggj
 

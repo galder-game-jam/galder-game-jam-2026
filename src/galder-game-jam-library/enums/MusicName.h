@@ -8,8 +8,10 @@ namespace ggj
     enum class MusicName : uint16_t
     {
         None = 0,
-        Level1 = 1, ///< Background track for the first level set.
-        Level2 = 2  ///< Background track for the second level set.
+        Forest1 = 1,
+        Forest2 = 2,
+        Dungeon1 = 3,
+        Dungeon2 = 4
     };
 } // namespace ggj
 
