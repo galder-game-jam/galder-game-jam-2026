@@ -154,7 +154,7 @@ namespace ggj
                     const bool active = (scaleOpts.imguiScale == SCALES[i]);
                     if (active)
                         ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-                    if (ImGui::Button(LABELS[i], { 55.0f, 0.0f }))
+                    if (ImGui::Button(LABELS[i], { 0.0f, 0.0f }))
                     {
                         scaleOpts.imguiScale = SCALES[i];
                         options.setHudOptions(scaleOpts);
@@ -193,17 +193,23 @@ namespace ggj
                 { "Attack",     kb.attack,    4 },
                 { "Respawn",    kb.respawn,   5 },
             };
-            for (const KeybindRow& row : rows)
+            if (ImGui::BeginTable("##dktable", 2, ImGuiTableFlags_SizingFixedFit))
             {
-                ImGui::TextUnformatted(row.label);
-                ImGui::SameLine(90.0f);
-                char btnLabel[32];
-                if (m_rebindingAction == row.index)
-                    snprintf(btnLabel, sizeof(btnLabel), "Press a key...##dk%d", row.index);
-                else
-                    snprintf(btnLabel, sizeof(btnLabel), "%-10s##dk%d", keyName(row.key), row.index);
-                if (ImGui::Button(btnLabel, { 140.0f, 0.0f }))
-                    m_rebindingAction = row.index;
+                for (const KeybindRow& row : rows)
+                {
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted(row.label);
+                    ImGui::TableSetColumnIndex(1);
+                    char btnLabel[32];
+                    if (m_rebindingAction == row.index)
+                        snprintf(btnLabel, sizeof(btnLabel), "Press a key...##dk%d", row.index);
+                    else
+                        snprintf(btnLabel, sizeof(btnLabel), "%-10s##dk%d", keyName(row.key), row.index);
+                    if (ImGui::Button(btnLabel, { 0.0f, 0.0f }))
+                        m_rebindingAction = row.index;
+                }
+                ImGui::EndTable();
             }
             if (ImGui::Button("Reset to default##dk"))
             {

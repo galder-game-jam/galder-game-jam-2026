@@ -81,7 +81,7 @@ namespace ggj
                 const bool active = (m_localHudOptions.imguiScale == SCALES[i]);
                 if (active)
                     ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-                if (ImGui::Button(LABELS[i], { 60.0f, 0.0f }))
+                if (ImGui::Button(LABELS[i], { 0.0f, 0.0f }))
                 {
                     m_localHudOptions.imguiScale = SCALES[i];
                     m_options.setHudOptions(m_localHudOptions);
@@ -129,19 +129,25 @@ namespace ggj
             { "Respawn",    m_localKeybindingOptions.respawn,   5 },
         };
 
-        for (const KeybindRow& row : rows)
+        if (ImGui::BeginTable("##kbtable", 2, ImGuiTableFlags_SizingFixedFit))
         {
-            ImGui::TextUnformatted(row.label);
-            ImGui::SameLine(120.0f);
+            for (const KeybindRow& row : rows)
+            {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted(row.label);
+                ImGui::TableSetColumnIndex(1);
 
-            char btnLabel[32];
-            if (m_rebindingAction == row.index)
-                snprintf(btnLabel, sizeof(btnLabel), "Press a key...##kb%d", row.index);
-            else
-                snprintf(btnLabel, sizeof(btnLabel), "%-10s##kb%d", keyName(row.key), row.index);
+                char btnLabel[32];
+                if (m_rebindingAction == row.index)
+                    snprintf(btnLabel, sizeof(btnLabel), "Press a key...##kb%d", row.index);
+                else
+                    snprintf(btnLabel, sizeof(btnLabel), "%-10s##kb%d", keyName(row.key), row.index);
 
-            if (ImGui::Button(btnLabel, { 160.0f, 0.0f }))
-                m_rebindingAction = row.index;
+                if (ImGui::Button(btnLabel, { 0.0f, 0.0f }))
+                    m_rebindingAction = row.index;
+            }
+            ImGui::EndTable();
         }
 
         if (ImGui::Button("Reset to default##kb"))
