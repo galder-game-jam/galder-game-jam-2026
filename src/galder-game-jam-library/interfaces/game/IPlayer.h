@@ -26,6 +26,7 @@ namespace ggj
             virtual ~IPlayer() = default;
 
             [[nodiscard]] virtual raylib::Vector2 getPosition() const = 0;
+            [[nodiscard]] virtual raylib::Vector2 getVisualCenter() const = 0;
             virtual UserData* getUserData() = 0;
             [[nodiscard]] virtual int getLives() const = 0;
             [[nodiscard]] virtual int getScore() const = 0;

@@ -21,6 +21,7 @@ namespace ggj
 #include "../interfaces/game/IPlayer.h"
 #include "raylib-cpp.hpp"
 #include "WorldLayer.h"
+#include "../game/Minimap.h"
 #include "../enums/KeyboardKey.h"
 #include "../graphics/PhysicsObject.h"
 #include "../GalderGameJamLibrary.h"
@@ -54,6 +55,7 @@ namespace ggj
         std::string getLeadingPlayer() const;
         void setPickedCharacter(PlayerPickedCharacter character);
         IPlayer* getPlayer();
+        Minimap* getMinimap() { return &m_minimap; }
         [[nodiscard]] int getEnemies() const;
 #ifdef GAME_DEV_DEBUG
         void setDebugState(ggj::DebugState* pState);
@@ -117,6 +119,7 @@ namespace ggj
         std::map<int32_t, ggj::WorldLayer> m_layers;
 
         int m_numberOfEnemies { 0 };
+        Minimap m_minimap {};
     };
 
     template <typename T> T* World::createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive)

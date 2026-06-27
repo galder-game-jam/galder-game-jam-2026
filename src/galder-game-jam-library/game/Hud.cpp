@@ -3,6 +3,7 @@
 //
 
 #include "Hud.h"
+#include "Minimap.h"
 
 namespace ggj
 {
@@ -46,6 +47,11 @@ namespace ggj
         m_currentWorld = world;
     }
 
+    void Hud::setMinimap(Minimap* minimap)
+    {
+        m_minimap = minimap;
+    }
+
     void Hud::rotate(float degrees) {}
 
     void Hud::scale(float scale) {}
@@ -76,7 +82,7 @@ namespace ggj
         m_currentXp   = m_currentPlayer->getCurrentXp();
         m_totalXp     = m_currentPlayer->getTotalXp();
         m_xpToNextLevel = m_currentPlayer->getXpToNextLevel();
-        m_playerPosition = raylib::Vector2 { m_currentPlayer->getPosition() };
+        m_playerPosition = m_currentPlayer->getVisualCenter();
     }
 
     void Hud::draw()
@@ -91,6 +97,9 @@ namespace ggj
 
         drawXpBar(m_xpOffset);
         drawQuestLog(m_questLogOffset, 3, 1);
+
+        if (m_minimap != nullptr)
+            m_minimap->draw(m_playerPosition);
     }
 
     void Hud::drawQuestLog(raylib::Vector2 offset, int width, int height) const

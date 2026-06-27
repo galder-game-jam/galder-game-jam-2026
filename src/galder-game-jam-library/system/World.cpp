@@ -208,6 +208,8 @@ namespace ggj
             ++layerIndex;
         }
 
+        m_minimap.initialize(*m_map, m_layers);
+
         return true;
     }
 

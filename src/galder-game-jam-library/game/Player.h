@@ -46,6 +46,7 @@ namespace ggj
 
         // IPlayer interface
         [[nodiscard]] raylib::Vector2 getPosition() const override { return PhysicsSprite::getPosition(); }
+        [[nodiscard]] raylib::Vector2 getVisualCenter() const override { return { m_position.x, m_position.y - m_origin.y + m_spriteSize.y / 2.f }; }
         UserData* getUserData() override { return PhysicsSprite::getUserData(); }
         [[nodiscard]] bool cameraShouldFollowPlayer() const override;
         void setCameraFollowsPlayer(bool follow) override;

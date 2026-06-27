@@ -37,6 +37,8 @@ namespace ggj
                 return m_name;
             }
 
+            [[nodiscard]] bool isTileLayer() const { return m_disableUpdate; }
+
             void setLayer(int32_t layer);
 
         private:
