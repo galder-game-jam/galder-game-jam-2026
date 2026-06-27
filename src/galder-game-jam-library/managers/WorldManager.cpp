@@ -408,6 +408,16 @@ namespace ggj
                     m_soundManager.playSound(SoundName::ExtraLife);
                 }
             }
+
+            if (m_managers.debugState.loseLife)
+            {
+                m_managers.debugState.loseLife = false;
+                if (m_worlds.count(m_currentStageIndex) > 0
+                    && m_worlds[m_currentStageIndex]->getPlayerLives(0) > 1)
+                {
+                    m_worlds[m_currentStageIndex]->addPlayerLives(0, -1);
+                }
+            }
 #endif
 
             if (m_currentStageIndex == NO_MAP_ID)
