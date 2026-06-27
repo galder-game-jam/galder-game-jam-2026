@@ -90,6 +90,12 @@ void ggj::Dialog::update(float timeDelta)
     if (m_currentWorld->getNumberOfEnemiesLeft() == 0)
         m_dialogManager.setCondition("levelComplete");
 
+    if (m_currentPlayer->getEnemiesKilled() >= 5)
+        m_dialogManager.setCondition("battleHardened");
+
+    if (m_currentPlayer->getLevel() >= 2)
+        m_dialogManager.setCondition("leveledUp");
+
     if (m_currentPlayer->isInDialog())
     {
         if (!m_draw)
