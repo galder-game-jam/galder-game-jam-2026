@@ -573,7 +573,7 @@
         {
          "name":"is_startup_map",
          "type":"bool",
-         "value":true
+         "value":false
         }, 
         {
          "name":"portal_timer",
