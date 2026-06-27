@@ -130,6 +130,7 @@ namespace ggj
         SoundPlayerRespawn = 615,
         SoundPortalOpen = 616,
         SoundExtraLife = 617,
+        SoundWizardShoot = 618,
 
         MusicForest1 = 700,
         MusicForest2 = 701,

@@ -295,6 +295,7 @@ namespace ggj
 
     void Player2::shootMageBall()
     {
+        m_soundManager.playSound(SoundName::WizardShoot);
         const float BASE_PROJ_SPEED = 8.f;
         const float projSpeed = BASE_PROJ_SPEED * m_world->getPlayerTalentEffects(m_playerIndex).projectileSpeedMultiplier;
         const raylib::Vector2 velocity { m_isLeftPosition ? -projSpeed : projSpeed, 0.f };

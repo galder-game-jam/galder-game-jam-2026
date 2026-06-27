@@ -44,7 +44,8 @@ namespace ggj
         ok &= loadSound(SoundName::PlayerDeath, ResourceName::SoundPlayerDeath);
         ok &= loadSound(SoundName::PlayerRespawn, ResourceName::SoundPlayerRespawn);
         ok &= loadSound(SoundName::PortalOpen, ResourceName::SoundPortalOpen);
-        ok &= loadSound(SoundName::ExtraLife,  ResourceName::SoundExtraLife);
+        ok &= loadSound(SoundName::ExtraLife,    ResourceName::SoundExtraLife);
+        ok &= loadSound(SoundName::WizardShoot,  ResourceName::SoundWizardShoot);
         ok &= loadMusic(MusicName::Forest1, ResourceName::MusicForest1);
         ok &= loadMusic(MusicName::Forest2, ResourceName::MusicForest2);
         ok &= loadMusic(MusicName::Dungeon1, ResourceName::MusicDungeon1);

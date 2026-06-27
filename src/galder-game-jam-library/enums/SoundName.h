@@ -25,7 +25,8 @@ namespace ggj
         PlayerDeath = 15,     ///< Scream played when the player dies.
         PlayerRespawn = 16,   ///< Death scream reversed, played when the player respawns.
         PortalOpen = 17,      ///< Played when all enemies are cleared and the portal activates.
-        ExtraLife = 18        ///< 1-up chime played when the player gains an extra life.
+        ExtraLife = 18,       ///< 1-up chime played when the player gains an extra life.
+        WizardShoot = 19      ///< Magic zap played when the wizard fires a mage ball.
     };
 } // namespace ggj
 
