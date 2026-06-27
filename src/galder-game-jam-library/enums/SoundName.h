@@ -20,7 +20,8 @@ namespace ggj
         DialogTalking5 = 10, ///< Talking syllable — C#5, mid-high.
         DialogTalking6 = 11, ///< Talking syllable — F5, bright.
         DialogTalking7 = 12,  ///< Talking syllable — A5, high.
-        LevelUp = 13          ///< Chime played when the player gains a level.
+        LevelUp = 13,         ///< Chime played when the player gains a level.
+        PlayerHurt = 14       ///< Grunt played when the player takes damage.
     };
 } // namespace ggj
 

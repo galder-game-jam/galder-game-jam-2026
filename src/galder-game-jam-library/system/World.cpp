@@ -458,7 +458,7 @@ namespace ggj
                 {
                     if (raylib::Texture* wizardTex = m_textures.get(TextureName::WizardPlayer); wizardTex != nullptr)
                         tex = wizardTex;
-                    Player2* p2 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player2>(this, playerIndex, m_input, m_animationManager, m_mapper, body, physicsSize,
+                    Player2* p2 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player2>(this, playerIndex, m_input, m_animationManager, m_mapper, m_soundManager, body, physicsSize,
                                                                                                     spriteSize, r, tex, generatorData.userData);
                     m_player = p2;
                     m_userDataManager.addUserData(body, p2);

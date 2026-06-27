@@ -205,6 +205,7 @@ namespace ggj
             if (m_world->getPlayerScore(m_playerIndex) != 0)
                 m_world->addPlayerScore(m_playerIndex, -1);
 
+            m_soundManager.playSound(SoundName::PlayerHurt);
             m_world->decrementPlayerLives(m_playerIndex);
 
             if (m_world->getPlayerLives(m_playerIndex) <= 0)
