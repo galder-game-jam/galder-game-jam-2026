@@ -378,6 +378,13 @@ namespace ggj
                     m_worlds[m_currentStageIndex]->addPlayerXp(0, xpNeeded);
                 }
             }
+
+            if (m_managers.debugState.killAllEnemies)
+            {
+                m_managers.debugState.killAllEnemies = false;
+                if (m_worlds.count(m_currentStageIndex) > 0)
+                    m_worlds[m_currentStageIndex]->killAllEnemies();
+            }
 #endif
 
             if (m_currentStageIndex == NO_MAP_ID)
