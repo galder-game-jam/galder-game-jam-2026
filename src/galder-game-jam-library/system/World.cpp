@@ -275,6 +275,15 @@ namespace ggj
         m_floatingTexts.push_back(e);
     }
 
+    void World::spawnCoinFloatingText(raylib::Vector2 pos)
+    {
+        FloatingTextEntry e;
+        e.position = raylib::Vector2 { pos.x - 6.f, pos.y - 20.f };
+        e.text  = "+1";
+        e.color = Color { 255, 215, 0, 255 };
+        m_floatingTexts.push_back(e);
+    }
+
     void World::draw()
     {
         m_window.ClearBackground(m_backgroundColor);
@@ -289,8 +298,9 @@ namespace ggj
         {
             const float progress = e.elapsed / FloatingTextEntry::DURATION;
             const uint8_t alpha = static_cast<uint8_t>(255 * (1.f - progress));
-            const Color color { 60, 220, 60, alpha };
-            DrawTextEx(GetFontDefault(), "+1 life", { e.position.x, e.position.y }, 12, 1.f, color);
+            Color color = e.color;
+            color.a = alpha;
+            DrawTextEx(GetFontDefault(), e.text.c_str(), { e.position.x, e.position.y }, 12, 1.f, color);
         }
 
         m_camera.EndMode();

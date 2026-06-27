@@ -225,6 +225,7 @@ namespace ggj
         {
             m_world->addPlayerScore(m_playerIndex, 1);
             m_world->addPlayerXp(m_playerIndex, m_world->getXpConfig(m_playerIndex).xpPerCoin);
+            m_world->spawnCoinFloatingText(getPosition());
         }
         if (b->getUserData()->getObjectType() == ObjectType::Dialog)
         {

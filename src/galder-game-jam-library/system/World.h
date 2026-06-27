@@ -114,11 +114,16 @@ namespace ggj
             /*! Spawns a floating "+1 life" label in world space above the given position. */
         void spawnFloatingText(raylib::Vector2 pos);
 
+        /*! Spawns a floating yellow "+1" coin label in world space above the given position. */
+        void spawnCoinFloatingText(raylib::Vector2 pos);
+
     private:
         struct FloatingTextEntry
         {
             raylib::Vector2 position;
             float elapsed { 0.f };
+            std::string text { "+1 life" };
+            Color color { 60, 220, 60, 255 };
             static constexpr float DURATION    = 1.2f;  ///< Total lifetime in seconds.
             static constexpr float RISE_SPEED  = 22.f;  ///< Pixels per second upward drift.
         };

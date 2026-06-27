@@ -392,7 +392,14 @@ namespace ggj
             {
                 m_managers.debugState.awardCoin = false;
                 if (m_worlds.count(m_currentStageIndex) > 0)
-                    m_worlds[m_currentStageIndex]->addPlayerScore(0, 1);
+                {
+                    World* world = m_worlds[m_currentStageIndex].get();
+                    world->addPlayerScore(0, 1);
+                    m_soundManager.playSound(SoundName::CoinPickup);
+                    IPlayer* player = world->getPlayer();
+                    if (player != nullptr)
+                        world->spawnCoinFloatingText(player->getPosition());
+                }
             }
 
             if (m_managers.debugState.gainLife)
