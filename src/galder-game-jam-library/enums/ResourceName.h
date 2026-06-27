@@ -124,6 +124,13 @@ namespace ggj
         SoundDialogTalking5 = 609,
         SoundDialogTalking6 = 610,
         SoundDialogTalking7 = 611,
+        SoundLevelUp = 612,
+        SoundPlayerHurt = 613,
+        SoundPlayerDeath = 614,
+        SoundPlayerRespawn = 615,
+        SoundPortalOpen = 616,
+        SoundExtraLife = 617,
+        SoundWizardShoot = 618,
 
         MusicForest1 = 700,
         MusicForest2 = 701,
@@ -132,7 +139,8 @@ namespace ggj
         MusicBossBattle1 = 704,
         MusicBossBattle2 = 705,
         MusicBossBattle3 = 706,
-        MusicBossBattle4 = 707
+        MusicBossBattle4 = 707,
+        MusicMainMenu1 = 708
     };
 } // namespace ggj
 

@@ -18,6 +18,8 @@ namespace ggj
         BossBattle2 = 21,
         BossBattle3 = 22,
         BossBattle4 = 23,
+
+        MainMenu1 = 30,
     };
 } // namespace ggj
 

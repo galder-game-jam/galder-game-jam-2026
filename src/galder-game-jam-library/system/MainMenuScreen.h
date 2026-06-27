@@ -16,8 +16,8 @@ namespace ggj
     {
         public:
             MainMenuScreen(IMapper& mapper, ITextureManager<TextureName, raylib::Texture>& textures,
-                IInputManager<KeyboardKey>& inputManager)
-                : m_mapper{mapper}, m_textures{textures}, m_inputManager{inputManager}
+                IInputManager<KeyboardKey>& inputManager, ISoundManager& soundManager)
+                : m_mapper{mapper}, m_textures{textures}, m_inputManager{inputManager}, m_soundManager{soundManager}
             {
                 m_isVisible = true;
             }
@@ -52,6 +52,7 @@ namespace ggj
             IMapper& m_mapper;
             ITextureManager<TextureName, raylib::Texture>& m_textures;
             IInputManager<KeyboardKey>& m_inputManager;
+            ISoundManager& m_soundManager;
 
             raylib::Texture* m_backgroundTexture {nullptr};
             raylib::Font* m_font {nullptr};

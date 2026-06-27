@@ -62,6 +62,7 @@ namespace ggj
 
     void Portal::activate()
     {
+        m_soundManager.playSound(SoundName::PortalOpen);
         m_animation = m_animationManager.getAnimation(AnimationName::PortalActive);
     }
 

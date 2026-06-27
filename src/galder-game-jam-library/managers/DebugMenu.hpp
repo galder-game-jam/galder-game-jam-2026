@@ -9,6 +9,7 @@
     #include "rlImGui.h"
     #include "imgui.h"
     #include "../interfaces/manager/IOptionsManager.h"
+    #include "../../gamedev-base/interfaces/managers/ISoundManager.h"
 
 namespace ggj
 {
@@ -35,6 +36,8 @@ namespace ggj
         bool gainLevel      { false }; ///< Consumer awards exactly enough XP to level up player 0, then resets to false.
         bool killAllEnemies { false }; ///< Consumer destroys all remaining enemies in the current level and resets to false.
         bool awardCoin      { false }; ///< Consumer adds one coin to player 0's score and resets to false.
+        bool gainLife       { false }; ///< Consumer grants one extra life to player 0 and resets to false.
+        bool loseLife       { false }; ///< Consumer removes one life from player 0 and resets to false.
     };
 
     /*!
@@ -50,9 +53,9 @@ namespace ggj
              * @param state   Shared debug state to read from and write to.
              * @param options Options manager for reading and tweaking runtime settings.
              */
-        void draw(DebugState& state, IOptionsManager& options)
+        void draw(DebugState& state, IOptionsManager& options, ISoundManager& sound)
         {
-            ImGui::SetNextWindowSize({ 300, 260 }, ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize({ 300, 340 }, ImGuiCond_FirstUseEver);
             ImGui::Begin("Debug Menu");
 
             ImGui::Text("Map");
@@ -84,11 +87,18 @@ namespace ggj
                 ImGui::SameLine();
                 if (ImGui::Button("Increase Level"))
                     state.gainLevel = true;
-                if (ImGui::Button("Kill All Enemies"))
-                    state.killAllEnemies = true;
-                ImGui::SameLine();
+
                 if (ImGui::Button("Award Coin"))
                     state.awardCoin = true;
+
+                if (ImGui::Button("Kill All Enemies"))
+                    state.killAllEnemies = true;
+
+                if (ImGui::Button("+1 Life"))
+                    state.gainLife = true;
+                ImGui::SameLine();
+                if (ImGui::Button("-1 Life"))
+                    state.loseLife = true;
             }
             else
             {
@@ -108,6 +118,21 @@ namespace ggj
             HudOptions hudOpts = options.getHudOptions();
             if (ImGui::SliderFloat("HUD Alpha##hud", &hudOpts.hudAlpha, 0.0f, 1.0f))
                 options.setHudOptions(hudOpts);
+
+            ImGui::Spacing();
+            ImGui::Text("Audio");
+            ImGui::Separator();
+            AudioOptions audioOpts = options.getAudioOptions();
+            bool audioChanged = false;
+            audioChanged |= ImGui::Checkbox("Mute Music", &audioOpts.isMusicMuted);
+            audioChanged |= ImGui::SliderFloat("Music Volume", &audioOpts.musicVolume, 0.0f, 1.0f);
+            audioChanged |= ImGui::Checkbox("Mute Sounds", &audioOpts.isSoundMuted);
+            audioChanged |= ImGui::SliderFloat("Sound Volume", &audioOpts.soundVolume, 0.0f, 1.0f);
+            if (audioChanged)
+            {
+                options.setAudioOptions(audioOpts);
+                sound.applyAudioOptions();
+            }
 
             ImGui::End();
 

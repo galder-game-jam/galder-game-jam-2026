@@ -257,6 +257,22 @@ namespace ggj
 
         syncNetworkObjects();
         destroyMarkedObjects();
+
+        for (FloatingTextEntry& e : m_floatingTexts)
+        {
+            e.position.y -= FloatingTextEntry::RISE_SPEED * timeDelta;
+            e.elapsed    += timeDelta;
+        }
+        std::erase_if(m_floatingTexts, [](const FloatingTextEntry& e) {
+            return e.elapsed >= FloatingTextEntry::DURATION;
+        });
+    }
+
+    void World::spawnFloatingText(raylib::Vector2 pos)
+    {
+        FloatingTextEntry e;
+        e.position = raylib::Vector2 { pos.x - 14.f, pos.y - 20.f };
+        m_floatingTexts.push_back(e);
     }
 
     void World::draw()
@@ -268,6 +284,15 @@ namespace ggj
             layer.second.draw();
         }
         drawRemotePlayers();
+
+        for (const FloatingTextEntry& e : m_floatingTexts)
+        {
+            const float progress = e.elapsed / FloatingTextEntry::DURATION;
+            const uint8_t alpha = static_cast<uint8_t>(255 * (1.f - progress));
+            const Color color { 60, 220, 60, alpha };
+            DrawTextEx(GetFontDefault(), "+1 life", { e.position.x, e.position.y }, 12, 1.f, color);
+        }
+
         m_camera.EndMode();
         m_hud.draw();
         m_dialog.draw();
@@ -356,24 +381,22 @@ namespace ggj
 
     void World::syncNetworkObjects()
     {
-        if (m_network == nullptr || !m_network->isActive())
-            return;
-
-        // Feed the local player's authoritative stats out for syncing.
-        if (m_player != nullptr)
-            m_network->setLocalPlayerStats(m_player->getLives(), m_player->getScore(), m_player->getEnemiesKilled());
-
-        // 1. Report objects we destroyed locally (coin picked up / enemy killed) so the server reconciles.
+        // Always prune destroyed objects so raw pointers in m_networkObjects never outlive
+        // the unique_ptrs freed by destroyMarkedObjects() — even in single-player where
+        // the network-active guard below would otherwise skip this entirely.
         for (auto it = m_networkObjects.begin(); it != m_networkObjects.end();)
         {
             PhysicsObject* obj = it->second;
             if (obj->shouldBeDestroyed())
             {
-                const uint32_t id = it->first;
-                if (m_reportedDestroyed.insert(id).second)
+                if (m_network != nullptr && m_network->isActive())
                 {
-                    const bool isCoin = obj->getUserData()->getObjectType() == ObjectType::Coin;
-                    m_network->notifyLocalObjectDestroyed(id, isCoin);
+                    const uint32_t id = it->first;
+                    if (m_reportedDestroyed.insert(id).second)
+                    {
+                        const bool isCoin = obj->getUserData()->getObjectType() == ObjectType::Coin;
+                        m_network->notifyLocalObjectDestroyed(id, isCoin);
+                    }
                 }
                 it = m_networkObjects.erase(it);
             }
@@ -383,7 +406,14 @@ namespace ggj
             }
         }
 
-        // 2. Apply authoritative removals from the network (objects others destroyed).
+        if (m_network == nullptr || !m_network->isActive())
+            return;
+
+        // Feed the local player's authoritative stats out for syncing.
+        if (m_player != nullptr)
+            m_network->setLocalPlayerStats(m_player->getLives(), m_player->getScore(), m_player->getEnemiesKilled());
+
+        // 1. Apply authoritative removals from the network (objects others destroyed).
         for (uint32_t id : m_network->removedObjectIds())
         {
             auto found = m_networkObjects.find(id);
@@ -398,7 +428,7 @@ namespace ggj
             }
         }
 
-        // 3. Client: snap enemies to the host's authoritative positions.
+        // 2. Client: snap enemies to the host's authoritative positions.
         if (m_network->role() == NetworkRole::Client)
         {
             for (const auto& [id, position] : m_network->enemyPositions())
@@ -409,7 +439,7 @@ namespace ggj
             }
         }
 
-        // 4. Server: broadcast enemy positions (throttled to ~20 Hz).
+        // 3. Server: broadcast enemy positions (throttled to ~20 Hz).
         if (m_network->role() == NetworkRole::Server)
         {
             if (m_enemyStateThrottle == 0)
@@ -458,7 +488,7 @@ namespace ggj
                 {
                     if (raylib::Texture* wizardTex = m_textures.get(TextureName::WizardPlayer); wizardTex != nullptr)
                         tex = wizardTex;
-                    Player2* p2 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player2>(this, playerIndex, m_input, m_animationManager, m_mapper, body, physicsSize,
+                    Player2* p2 = m_layers[generatorData.layerIndex].createGameObject<ggj::Player2>(this, playerIndex, m_input, m_animationManager, m_mapper, m_soundManager, body, physicsSize,
                                                                                                     spriteSize, r, tex, generatorData.userData);
                     m_player = p2;
                     m_userDataManager.addUserData(body, p2);
@@ -804,7 +834,8 @@ namespace ggj
         int killed = 0;
         for (auto& [id, obj] : m_networkObjects)
         {
-            if (obj->getUserData()->getObjectType() == ObjectType::Enemy)
+            if (obj->getUserData()->getObjectType() == ObjectType::Enemy
+                && !obj->shouldBeDestroyed())
             {
                 obj->destroy();
                 ++killed;
@@ -845,6 +876,8 @@ namespace ggj
         const int prevLevel = stats.xpTracker.getLevel();
         stats.xpTracker.addXp(scaled > 0 ? scaled : amount, stats.xpConfig);
         const int newLevel  = stats.xpTracker.getLevel();
+        if (newLevel > prevLevel)
+            m_soundManager.playSound(SoundName::LevelUp);
         // Grant 1 talent point for each even level crossed (levels 2, 4, 6 …)
         stats.talentPoints += (newLevel / 2) - (prevLevel / 2);
     }

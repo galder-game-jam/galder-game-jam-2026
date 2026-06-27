@@ -20,6 +20,9 @@ namespace ggj
         if (m_inputManager.keyPressed(KeyboardKey::Down) || m_inputManager.keyPressed(KeyboardKey::S))
             option = (option + 1) % MENU_ITEM_COUNT;
 
+        if (option != static_cast<int>(m_selectedOption))
+            m_soundManager.playSound(SoundName::DialogMumble);
+
         m_selectedOption = static_cast<InGameMenuOption>(option);
 
         if (m_inputManager.keyPressed(KeyboardKey::Escape))

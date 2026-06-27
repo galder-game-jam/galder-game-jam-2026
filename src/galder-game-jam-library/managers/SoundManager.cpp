@@ -39,6 +39,13 @@ namespace ggj
         ok &= loadSound(SoundName::DialogTalking5, ResourceName::SoundDialogTalking5);
         ok &= loadSound(SoundName::DialogTalking6, ResourceName::SoundDialogTalking6);
         ok &= loadSound(SoundName::DialogTalking7, ResourceName::SoundDialogTalking7);
+        ok &= loadSound(SoundName::LevelUp, ResourceName::SoundLevelUp);
+        ok &= loadSound(SoundName::PlayerHurt, ResourceName::SoundPlayerHurt);
+        ok &= loadSound(SoundName::PlayerDeath, ResourceName::SoundPlayerDeath);
+        ok &= loadSound(SoundName::PlayerRespawn, ResourceName::SoundPlayerRespawn);
+        ok &= loadSound(SoundName::PortalOpen, ResourceName::SoundPortalOpen);
+        ok &= loadSound(SoundName::ExtraLife,    ResourceName::SoundExtraLife);
+        ok &= loadSound(SoundName::WizardShoot,  ResourceName::SoundWizardShoot);
         ok &= loadMusic(MusicName::Forest1, ResourceName::MusicForest1);
         ok &= loadMusic(MusicName::Forest2, ResourceName::MusicForest2);
         ok &= loadMusic(MusicName::Dungeon1, ResourceName::MusicDungeon1);
@@ -47,6 +54,7 @@ namespace ggj
         ok &= loadMusic(MusicName::BossBattle2, ResourceName::MusicBossBattle2);
         ok &= loadMusic(MusicName::BossBattle3, ResourceName::MusicBossBattle3);
         ok &= loadMusic(MusicName::BossBattle4, ResourceName::MusicBossBattle4);
+        ok &= loadMusic(MusicName::MainMenu1, ResourceName::MusicMainMenu1);
 
         return ok;
     }

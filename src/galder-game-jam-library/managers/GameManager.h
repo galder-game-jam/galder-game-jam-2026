@@ -25,14 +25,14 @@ namespace ggj
         public:
         explicit GameManager(ggj::ILogger& logger, raylib::Window& window, IInputManager<ggj::KeyboardKey>& input, IWorldManager& worlds,
                              ggj::ITextureManager<TextureName, raylib::Texture>& textures, IDebugManager& debugManager,
-                             PlayerPersistentState& persistentState, IOptionsManager& options
+                             PlayerPersistentState& persistentState, IOptionsManager& options, ISoundManager& sound
 #ifdef GAME_DEV_DEBUG
                              ,
                              ggj::DebugState& debugState
 #endif
                              )
             : m_logger { logger }, m_window { window }, m_input { input }, m_worlds { worlds }, m_textures { textures }, m_debugManager { debugManager },
-              m_persistentState { persistentState }, m_options { options }
+              m_persistentState { persistentState }, m_options { options }, m_sound { sound }
 #ifdef GAME_DEV_DEBUG
               ,
               m_debugState { debugState }
@@ -58,6 +58,7 @@ namespace ggj
 
         PlayerPersistentState& m_persistentState;
         IOptionsManager& m_options;
+        ISoundManager& m_sound;
         raylib::Vector2 m_originalWindowSize;
         raylib::RenderTexture2D m_renderTexture;
 
