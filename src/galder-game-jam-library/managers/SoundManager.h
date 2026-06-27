@@ -7,14 +7,15 @@
 #include "../enums/ResourceName.h"
 #include "../enums/SoundName.h"
 #include "../enums/MusicName.h"
+#include "../interfaces/manager/IOptionsManager.h"
 
 namespace ggj
 {
     class SoundManager : public ISoundManager
     {
         public:
-            SoundManager(ILogger& logger, IResourceManager<ResourceName>& resources)
-                : m_logger { logger }, m_resources { resources }
+            SoundManager(ILogger& logger, IResourceManager<ResourceName>& resources, IOptionsManager& options)
+                : m_logger { logger }, m_resources { resources }, m_options { options }
             {
             }
 
@@ -32,6 +33,7 @@ namespace ggj
 
             ILogger& m_logger;
             IResourceManager<ResourceName>& m_resources;
+            IOptionsManager& m_options;
 
             std::map<SoundName, Sound> m_sounds;
             std::map<MusicName, Music> m_music;

@@ -108,6 +108,8 @@ namespace ggj
 
         DialogNpc = 500,
 
+        ConfigOptions = 550,
+
         SoundCoinPickup = 600,
         SoundEnemyDie = 601,
         SoundPortalUse = 602,

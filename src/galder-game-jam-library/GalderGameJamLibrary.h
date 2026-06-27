@@ -11,6 +11,7 @@
 #include "interfaces/system/IMapper.h"
 
 //Data
+#include "data/AudioOptions.hpp"
 #include "data/PlayerNetworkData.hpp"
 #include "data/ServerNetworkData.hpp"
 
@@ -48,6 +49,7 @@
 #include "managers/DummyDebugManager.hpp"
 #include "managers/DebugManager.h"
 #include "managers/GameManager.h"
+#include "managers/OptionsManager.h"
 #include "managers/ResourceManager.hpp"
 #include "managers/InputManager.h"
 #include "managers/SoundManager.h"
