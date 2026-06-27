@@ -142,6 +142,7 @@ namespace ggj
                 m_hud.setPickedCharacter(m_pickedCharacter);
                 m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                 m_hud.setWorld(m_worlds[m_currentStageIndex].get());
+                m_hud.setMinimap(m_worlds[m_currentStageIndex]->getMinimap());
                 m_dialog.initialize();
                 m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                 m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
@@ -165,6 +166,7 @@ namespace ggj
                     startMusicForStage(m_currentStageIndex);
                     m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_hud.setWorld(m_worlds[m_currentStageIndex].get());
+                    m_hud.setMinimap(m_worlds[m_currentStageIndex]->getMinimap());
                     m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
                 }
@@ -189,6 +191,7 @@ namespace ggj
 
                     m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_hud.setWorld(m_worlds[m_currentStageIndex].get());
+                    m_hud.setMinimap(m_worlds[m_currentStageIndex]->getMinimap());
 
                     m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_dialog.setWorld(m_worlds[m_currentStageIndex].get());

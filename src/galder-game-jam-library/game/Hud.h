@@ -14,6 +14,7 @@
 namespace ggj
 {
     class World;
+    class Minimap;
     class Hud : public IGameObject<raylib::Vector2>
     {
         public:
@@ -26,6 +27,7 @@ namespace ggj
             void setFont(raylib::Font *font);
             void setPlayer(IPlayer *player);
             void setWorld(World *world);
+            void setMinimap(Minimap *minimap);
             void setPickedCharacter(PlayerPickedCharacter character);
             void rotate(float degrees) override;
             void scale(float scale) override;
@@ -55,6 +57,7 @@ namespace ggj
 
             IPlayer *m_currentPlayer = nullptr;
             World *m_currentWorld = nullptr;
+            Minimap *m_minimap    = nullptr;
 
             raylib::Vector2 m_size {};
             raylib::Vector2 m_origin {};

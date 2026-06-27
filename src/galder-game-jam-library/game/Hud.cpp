@@ -3,6 +3,7 @@
 //
 
 #include "Hud.h"
+#include "Minimap.h"
 
 namespace ggj
 {
@@ -44,6 +45,11 @@ namespace ggj
     void Hud::setWorld(World* world)
     {
         m_currentWorld = world;
+    }
+
+    void Hud::setMinimap(Minimap* minimap)
+    {
+        m_minimap = minimap;
     }
 
     void Hud::rotate(float degrees) {}
@@ -91,6 +97,9 @@ namespace ggj
 
         drawXpBar(m_xpOffset);
         drawQuestLog(m_questLogOffset, 3, 1);
+
+        if (m_minimap != nullptr)
+            m_minimap->draw(m_playerPosition);
     }
 
     void Hud::drawQuestLog(raylib::Vector2 offset, int width, int height) const

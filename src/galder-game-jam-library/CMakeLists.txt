@@ -32,6 +32,8 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         enums/MusicName.h
         game/Hud.cpp
         game/Hud.h
+        game/Minimap.cpp
+        game/Minimap.h
         game/Dialog.cpp
         game/Dialog.h
         managers/DialogManager.cpp
