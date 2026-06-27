@@ -15,6 +15,7 @@
 #include "CollisionManager.h"
 #include "UserDataManager.hpp"
 #include "../interfaces/manager/INetworkManager.h"
+#include "../interfaces/manager/IOptionsManager.h"
 #include "ClientInfoMenu.hpp"
 
 
@@ -36,14 +37,16 @@ namespace ggj
                          raylib::Window &window, ggj::ManagerDiCollection &managers, Hud &hud, Dialog &dialog,
                          CharacterSelectScreen &characterSelectScreen, MainMenuScreen &mainMenuScreen,
                          NetplayScreen &netplayScreen, OptionsScreen &optionsScreen,
-                         InGameMenuScreen &inGameMenuScreen, TalentScreen &talentScreen)
+                         InGameMenuScreen &inGameMenuScreen, TalentScreen &talentScreen,
+                         IOptionsManager &optionsManager)
                     : m_managers {managers}, m_logger{logger},  m_resources {managers.resources}, m_mapper{mapper},
                       m_textures{managers.textures}, m_window{window}, m_input{managers.input}, m_collisionManager {managers.collision},
                       m_debugManager{managers.debug}, m_animationManager{managers.animation}, m_userDataManager{managers.userData},
                       m_soundManager{managers.sound},
                       m_hud {hud}, m_dialog {dialog}, m_characterSelectScreen {characterSelectScreen},
                       m_mainMenuScreen {mainMenuScreen}, m_netplayScreen {netplayScreen}, m_optionsScreen {optionsScreen},
-                      m_inGameMenuScreen {inGameMenuScreen}, m_talentScreen {talentScreen}, m_network {managers.network}
+                      m_inGameMenuScreen {inGameMenuScreen}, m_talentScreen {talentScreen}, m_network {managers.network},
+                      m_optionsManager {optionsManager}
             {
 
             }
@@ -84,6 +87,7 @@ namespace ggj
             InGameMenuScreen &m_inGameMenuScreen;
             TalentScreen     &m_talentScreen;
             INetworkManager  &m_network;
+            IOptionsManager  &m_optionsManager;
 
             std::unique_ptr<tson::Project> m_project{nullptr};
 

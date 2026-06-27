@@ -5,6 +5,7 @@
 #include "../../gamedev-base/GameDevBase.h"
 #include "../enums/TextureName.h"
 #include "../data/AudioOptions.hpp"
+#include "../data/KeybindingOptions.hpp"
 #include "../interfaces/manager/IOptionsManager.h"
 
 namespace ggj
@@ -46,8 +47,11 @@ namespace ggj
             ISoundManager& m_sound;
 
             raylib::Texture* m_backgroundTexture { nullptr };
-            AudioOptions m_localOptions {};
-            HudOptions   m_localHudOptions {};
+            AudioOptions      m_localOptions {};
+            HudOptions        m_localHudOptions {};
+            KeybindingOptions m_localKeybindingOptions {};
+
+            int m_rebindingAction { -1 }; ///< Index of the action being rebound, or -1 when idle.
 
             bool m_isBack { false };
 

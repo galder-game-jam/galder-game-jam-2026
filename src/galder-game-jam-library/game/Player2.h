@@ -12,6 +12,7 @@
 #include "../interfaces/system/IMapper.h"
 #include "../interfaces/game/IPlayer.h"
 #include "../../gamedev-base/interfaces/managers/ISoundManager.h"
+#include "../interfaces/manager/IOptionsManager.h"
 
 #include "Hitbox.hpp"
 #include "projectiles/Projectile.h"
@@ -25,10 +26,10 @@ namespace ggj
         public:
         Player2() = default;
         Player2(ggj::World* world, int32_t playerIndex, ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager,
-                IMapper& mapper, ggj::ISoundManager& soundManager, b2Body* body, const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect,
-                raylib::Texture* texture, const UserData& userData, bool isVisible = true)
+                IMapper& mapper, ggj::ISoundManager& soundManager, IOptionsManager& optionsManager, b2Body* body, const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize,
+                const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData, bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_inputManager { inputManager }, m_animationManager { animationManager },
-              m_mapper { mapper }, m_soundManager { soundManager }
+              m_mapper { mapper }, m_soundManager { soundManager }, m_optionsManager { optionsManager }
         {
             m_world = world;
             m_playerIndex = playerIndex;
@@ -79,6 +80,7 @@ namespace ggj
         ggj::IInputManager<ggj::KeyboardKey>& m_inputManager;
         ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& m_animationManager;
         ggj::ISoundManager& m_soundManager;
+        IOptionsManager& m_optionsManager;
         bool m_cameraShouldFollowPlayer { true };
         Animation m_animation;
         IMapper& m_mapper;

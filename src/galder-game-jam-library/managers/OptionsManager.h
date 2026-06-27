@@ -42,12 +42,23 @@ namespace ggj
                 m_hudOptions = options;
             }
 
+            [[nodiscard]] const KeybindingOptions& getKeybindingOptions() const override
+            {
+                return m_keybindingOptions;
+            }
+
+            void setKeybindingOptions(const KeybindingOptions& options) override
+            {
+                m_keybindingOptions = options;
+            }
+
         private:
             ILogger& m_logger;
             IResourceManager<ResourceName>& m_resources;
 
-            AudioOptions m_audioOptions {};
-            HudOptions   m_hudOptions {};
+            AudioOptions      m_audioOptions {};
+            HudOptions        m_hudOptions {};
+            KeybindingOptions m_keybindingOptions {};
     };
 } // namespace ggj
 

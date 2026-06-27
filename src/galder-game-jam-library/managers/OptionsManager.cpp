@@ -41,6 +41,23 @@ namespace ggj
             m_hudOptions.hudAlpha = static_cast<float>(hud["alpha"].number_value());
         }
 
+        const json11::Json& kb = root["keybindings"];
+        if (kb.is_object())
+        {
+            auto readKey = [&](const char* name, KeyboardKey fallback) -> KeyboardKey
+            {
+                if (kb[name].is_number())
+                    return static_cast<KeyboardKey>(static_cast<int16_t>(kb[name].int_value()));
+                return fallback;
+            };
+            m_keybindingOptions.moveUp    = readKey("moveUp",    KeyboardKey::W);
+            m_keybindingOptions.moveDown  = readKey("moveDown",  KeyboardKey::S);
+            m_keybindingOptions.moveLeft  = readKey("moveLeft",  KeyboardKey::A);
+            m_keybindingOptions.moveRight = readKey("moveRight", KeyboardKey::D);
+            m_keybindingOptions.attack    = readKey("attack",    KeyboardKey::C);
+            m_keybindingOptions.respawn   = readKey("respawn",   KeyboardKey::Q);
+        }
+
         return true;
     }
 
@@ -57,6 +74,14 @@ namespace ggj
             }},
             { "hud", json11::Json::object {
                 { "alpha", static_cast<double>(m_hudOptions.hudAlpha) }
+            }},
+            { "keybindings", json11::Json::object {
+                { "moveUp",    static_cast<int>(m_keybindingOptions.moveUp) },
+                { "moveDown",  static_cast<int>(m_keybindingOptions.moveDown) },
+                { "moveLeft",  static_cast<int>(m_keybindingOptions.moveLeft) },
+                { "moveRight", static_cast<int>(m_keybindingOptions.moveRight) },
+                { "attack",    static_cast<int>(m_keybindingOptions.attack) },
+                { "respawn",   static_cast<int>(m_keybindingOptions.respawn) }
             }}
         };
 
