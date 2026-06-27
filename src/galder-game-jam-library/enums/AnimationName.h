@@ -41,6 +41,11 @@ namespace ggj
         MageBallImpactBlue = 32,
         MageBallFlightRed = 33,
         MageBallImpactRed = 34,
+        EnemyClaudeIdle    = 35,
+        EnemyClaudeWalk    = 36,
+        EnemyClaudeAttack  = 37,
+        EnemyClaudlingIdle = 38,
+        EnemyClaudlingWalk = 39,
     };
 
 } // ggj

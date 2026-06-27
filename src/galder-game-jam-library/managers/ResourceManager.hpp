@@ -77,6 +77,8 @@ namespace ggj
         add(ggj::ResourceName::GraphicsEnemyGhostFlying, "graphics/enemies/ghost/Ghost.png");
         add(ggj::ResourceName::GraphicsEnemySpiderWalk, "graphics/enemies/spider/spider.png");
         add(ggj::ResourceName::GraphicsEnemyThingWalk, "graphics/enemies/thing/thing.png");
+        add(ggj::ResourceName::GraphicsEnemyClaude,    "graphics/enemies/claude/claude.png");
+        add(ggj::ResourceName::GraphicsEnemyClaudling, "graphics/enemies/claude/claudling.png");
         add(ggj::ResourceName::GraphicsExplosion1, "graphics/explosions/explosion-1.png");
         add(ggj::ResourceName::GraphicsExplosion2, "graphics/explosions/explosion-2.png");
         add(ggj::ResourceName::GraphicsExplosion3, "graphics/explosions/explosion-3.png");

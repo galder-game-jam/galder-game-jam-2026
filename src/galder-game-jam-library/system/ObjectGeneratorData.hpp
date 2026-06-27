@@ -24,6 +24,9 @@ namespace ggj
         UserData userData{};
         raylib::Vector2 velocity{};
 
+        int   lives       { 3 };
+        float followSpeed { 0.f };
+
         int layerIndex{};
         tson::Object obj{};
         tson::Vector2i pos{};

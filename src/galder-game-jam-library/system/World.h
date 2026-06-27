@@ -134,6 +134,8 @@ namespace ggj
         void generateGhost(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generatePortal(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generatePowerUp(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
+        void generateClaude(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
+        void generateClaudling(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void destroyMarkedObjects();
         void drawRemotePlayers();

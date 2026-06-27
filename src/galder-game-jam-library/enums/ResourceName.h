@@ -104,6 +104,9 @@ namespace ggj
 
         GraphicsMainMenuBackground = 340,
 
+        GraphicsEnemyClaude    = 350,
+        GraphicsEnemyClaudling = 351,
+
         FontDroidSans = 400,
         FontDroidSansBold = 401,
         FontPixantiqua = 402,
