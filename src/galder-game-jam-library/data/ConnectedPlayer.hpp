@@ -25,6 +25,8 @@ namespace ggj
         int32_t score { 0 };
         int32_t kills { 0 };
         int32_t pingMs { -1 }; ///< -1 = unknown (host has no ping to itself).
+        std::string localIp {};  ///< Player's LAN IP.
+        std::string publicIp {}; ///< Player's public IP.
     };
 } // namespace ggj
 

@@ -15,6 +15,7 @@
 #include "CollisionManager.h"
 #include "UserDataManager.hpp"
 #include "../interfaces/manager/INetworkManager.h"
+#include "ClientInfoMenu.hpp"
 
 
 namespace ggj

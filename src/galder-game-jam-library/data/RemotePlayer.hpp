@@ -32,6 +32,9 @@ namespace ggj
         int32_t lives { 0 };
         int32_t score { 0 };
         int32_t kills { 0 };
+
+        std::string localIp {};  ///< Client's LAN IP, populated from JoinRequest.
+        std::string publicIp {}; ///< Client's public IP, populated from JoinRequest.
     };
 } // namespace ggj
 

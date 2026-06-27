@@ -35,7 +35,7 @@ namespace ggj
         virtual ~INetworkManager() = default;
 
         /*! Begins hosting on the given port. The host is also player HOST_PLAYER_ID. */
-        virtual void startHost(uint16_t port, const std::string& name, PlayerPickedCharacter character) = 0;
+        virtual void startHost(uint16_t port, const std::string& playerName, const std::string& serverName, PlayerPickedCharacter character) = 0;
         /*! Begins (non-blocking) connecting to a host. */
         virtual void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, PlayerPickedCharacter character) = 0;
         /*! Tears down any active server/client and returns to NetworkRole::None. */
@@ -52,6 +52,10 @@ namespace ggj
         [[nodiscard]] virtual ConnectionStatus status() const = 0;
         [[nodiscard]] virtual uint32_t localPlayerId() const = 0;
         [[nodiscard]] virtual const std::string& localPlayerName() const = 0;
+        [[nodiscard]] virtual const std::string& serverName() const = 0;
+        [[nodiscard]] virtual std::string localIpAddress() const = 0;
+        [[nodiscard]] virtual std::string publicIpAddress() const = 0;
+        [[nodiscard]] virtual int32_t pingToServer() const = 0;
 
         /*! Every player except the local one, keyed by player id, for rendering puppets. */
         [[nodiscard]] virtual const std::map<uint32_t, RemotePlayer>& remotePlayers() const = 0;

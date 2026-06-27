@@ -27,6 +27,15 @@ namespace ggj
         /*! Sends a message to the server. */
         void sendToServer(const ClientMessage& message) { send(message); }
 
+        /*! Round-trip time to the server in milliseconds, or -1 if unavailable. */
+        int32_t getPing() const
+        {
+            SteamNetConnectionRealTimeStatus_t status {};
+            if (m_netInterface && m_netInterface->GetConnectionRealTimeStatus(m_connection, &status, 0, nullptr) == k_EResultOK)
+                return status.m_nPing;
+            return -1;
+        }
+
         /*! Drains and returns all ServerMessages received since the last call. */
         std::vector<ServerMessage> takeInbound()
         {

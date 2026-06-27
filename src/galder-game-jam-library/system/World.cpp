@@ -389,9 +389,12 @@ namespace ggj
             auto found = m_networkObjects.find(id);
             if (found != m_networkObjects.end())
             {
+                const bool isEnemy = found->second->getUserData()->getObjectType() == ObjectType::Enemy;
                 found->second->destroy();
                 m_reportedDestroyed.insert(id);
                 m_networkObjects.erase(found);
+                if (isEnemy)
+                    ++m_networkRemovedEnemyCount;
             }
         }
 
@@ -768,8 +771,9 @@ namespace ggj
 
     int World::getNumberOfEnemiesLeft() const
     {
-        const int enemiesLeft = m_numberOfEnemies - (m_player->getUserData()->enemiesKilled);
-        return enemiesLeft;
+        return m_numberOfEnemies
+               - (m_player->getUserData()->enemiesKilled)
+               - m_networkRemovedEnemyCount;
     }
 
     std::string World::getLeadingPlayer() const
