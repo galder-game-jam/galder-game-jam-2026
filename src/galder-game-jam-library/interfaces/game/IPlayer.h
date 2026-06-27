@@ -7,6 +7,7 @@
 
 #include "raylib-cpp.hpp"
 #include <string>
+#include "../../data/PlayerPersistentState.hpp"
 
 namespace ggj
 {
@@ -34,6 +35,8 @@ namespace ggj
             [[nodiscard]] virtual int getCurrentXp() const = 0;
             [[nodiscard]] virtual int getTotalXp() const = 0;
             [[nodiscard]] virtual int getXpToNextLevel() const = 0;
+            [[nodiscard]] virtual int getEnemiesKilled() const = 0;
+            virtual void restoreState(const PlayerPersistentState& state) = 0;
             virtual Hitbox* getHitbox() = 0;
             [[nodiscard]] virtual bool cameraShouldFollowPlayer() const = 0;
             virtual void setCameraFollowsPlayer(bool follow) = 0;

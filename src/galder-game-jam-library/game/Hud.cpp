@@ -77,7 +77,7 @@ namespace ggj
         m_mana = 2;   // Implement mana and then: static_cast<float>(m_currentPlayer->getMana());
         m_energy = 3; // Implement energy and then: static_cast<float>(m_currentPlayer->getEnergy());
         m_coins = m_currentPlayer->getScore();
-        m_kills = m_currentPlayer->getUserData()->enemiesKilled;
+        m_kills = m_currentPlayer->getEnemiesKilled();
         m_level       = m_currentPlayer->getLevel();
         m_currentXp   = m_currentPlayer->getCurrentXp();
         m_totalXp     = m_currentPlayer->getTotalXp();

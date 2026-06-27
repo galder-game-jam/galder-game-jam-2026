@@ -58,6 +58,8 @@ namespace ggj
         [[nodiscard]] int getCurrentXp() const override;
         [[nodiscard]] int getTotalXp() const override;
         [[nodiscard]] int getXpToNextLevel() const override;
+        [[nodiscard]] int getEnemiesKilled() const override;
+        void restoreState(const PlayerPersistentState& state) override;
         Hitbox* getHitbox() override;
         [[nodiscard]] bool isInDialog() const override { return false; }
         std::string getDialogId() override { return {}; }
@@ -97,6 +99,7 @@ namespace ggj
         ExperienceConfig  m_xpConfig {};
         ExperienceTracker m_xpTracker {};
         int m_previousKillCount { 0 };
+        int m_totalEnemiesKilledPrevLevels { 0 };
     };
 
 } // namespace ggj

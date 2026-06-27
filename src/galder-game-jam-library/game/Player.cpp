@@ -246,6 +246,19 @@ namespace ggj
         return m_xpTracker.getXpToNextLevel(m_xpConfig);
     }
 
+    int Player::getEnemiesKilled() const
+    {
+        return m_totalEnemiesKilledPrevLevels + m_userData.enemiesKilled;
+    }
+
+    void Player::restoreState(const PlayerPersistentState& state)
+    {
+        m_lives = state.lives;
+        m_score = state.score;
+        m_xpTracker.restore(state.level, state.currentXp, state.totalXp);
+        m_totalEnemiesKilledPrevLevels = state.totalEnemiesKilled;
+    }
+
     bool Player::hasClearedLevel() const
     {
         return m_hasClearedLevel;

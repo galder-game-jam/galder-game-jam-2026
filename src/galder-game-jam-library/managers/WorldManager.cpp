@@ -4,6 +4,7 @@
 
 #include "WorldManager.h"
 #include "../game/Hud.h"
+#include "../data/PlayerPersistentState.hpp"
 
 #ifdef GAME_DEV_DEBUG
     #include "DebugMenu.hpp"
@@ -181,11 +182,24 @@ namespace ggj
                 m_worlds[m_currentStageIndex]->update(timeDelta);
                 if (m_worlds[m_currentStageIndex]->isLevelCleared())
                 {
+                    IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
+                    PlayerPersistentState savedState {
+                        prevPlayer->getLives(),
+                        prevPlayer->getScore(),
+                        prevPlayer->getLevel(),
+                        prevPlayer->getCurrentXp(),
+                        prevPlayer->getTotalXp(),
+                        prevPlayer->getEnemiesKilled()
+                    };
+
                     m_worlds[m_currentStageIndex]->setLevelCleared(false);
                     ++m_currentStageIndex;
 
                     if (m_worlds.count(m_currentStageIndex) == 0)
                         m_currentStageIndex = FINAL_MAP_ID;
+
+                    if (m_worlds.count(m_currentStageIndex) > 0)
+                        m_worlds[m_currentStageIndex]->getPlayer()->restoreState(savedState);
 
                     startMusicForStage(m_currentStageIndex);
 
