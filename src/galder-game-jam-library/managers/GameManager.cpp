@@ -5,6 +5,20 @@
 #include "GameManager.h"
 
 #include "rlImGui.h"
+#include "imgui.h"
+
+namespace
+{
+    ImGuiStyle g_baseStyle;
+    bool       g_baseStyleCaptured { false };
+
+    void applyImGuiScale(float scale)
+    {
+        ImGui::GetStyle() = g_baseStyle;
+        ImGui::GetStyle().ScaleAllSizes(scale);
+        ImGui::GetIO().FontGlobalScale = scale;
+    }
+}
 
 ggj::GameManager::~GameManager()
 {
@@ -23,6 +37,12 @@ bool ggj::GameManager::initialize()
     m_renderTexture = raylib::RenderTexture((int)m_originalWindowSize.x, (int)m_originalWindowSize.y);
 
     rlImGuiSetup(true);
+    if (!g_baseStyleCaptured)
+    {
+        g_baseStyle = ImGui::GetStyle();
+        g_baseStyleCaptured = true;
+    }
+    applyImGuiScale(m_options.getHudOptions().imguiScale);
     SetExitKey(KEY_NULL); // Esc is handled in-game; don't let raylib close the window
 
     return true;
@@ -63,6 +83,7 @@ void ggj::GameManager::render()
     // ImGui is available in all builds (netplay dialog, server info, ...); the debug menu is
     // only drawn in debug builds.
     rlImGuiBegin();
+    applyImGuiScale(m_options.getHudOptions().imguiScale);
     m_worlds.drawImGui();
 #ifdef GAME_DEV_DEBUG
     if (m_debugState.isGameActive)

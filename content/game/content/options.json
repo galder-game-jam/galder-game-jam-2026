@@ -6,7 +6,8 @@
         "soundVolume": 1.0
     },
     "hud": {
-        "alpha": 0.706
+        "alpha": 0.706,
+        "imguiScale": 1.0
     },
     "keybindings": {
         "moveUp": 87,

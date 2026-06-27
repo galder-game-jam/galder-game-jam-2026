@@ -13,7 +13,8 @@ namespace ggj
     {
         HudOptions() = default;
 
-        float hudAlpha { 0.706f }; ///< HUD transparency in [0.0, 1.0]; 0 = fully transparent, 1 = fully opaque. Default matches legacy HUD_ALPHA 180/255.
+        float hudAlpha    { 0.706f }; ///< HUD transparency in [0.0, 1.0]; 0 = fully transparent, 1 = fully opaque. Default matches legacy HUD_ALPHA 180/255.
+        float imguiScale  { 1.0f };  ///< Global ImGui UI scale factor applied to all windows and fonts.
     };
 } // namespace ggj
 

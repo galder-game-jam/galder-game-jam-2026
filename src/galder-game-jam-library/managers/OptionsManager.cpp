@@ -38,7 +38,9 @@ namespace ggj
         const json11::Json& hud = root["hud"];
         if (hud.is_object())
         {
-            m_hudOptions.hudAlpha = static_cast<float>(hud["alpha"].number_value());
+            m_hudOptions.hudAlpha   = static_cast<float>(hud["alpha"].number_value());
+            if (hud["imguiScale"].is_number())
+                m_hudOptions.imguiScale = static_cast<float>(hud["imguiScale"].number_value());
         }
 
         const json11::Json& kb = root["keybindings"];
@@ -73,7 +75,8 @@ namespace ggj
                 { "soundVolume", static_cast<double>(m_audioOptions.soundVolume) }
             }},
             { "hud", json11::Json::object {
-                { "alpha", static_cast<double>(m_hudOptions.hudAlpha) }
+                { "alpha",      static_cast<double>(m_hudOptions.hudAlpha) },
+                { "imguiScale", static_cast<double>(m_hudOptions.imguiScale) }
             }},
             { "keybindings", json11::Json::object {
                 { "moveUp",    static_cast<int>(m_keybindingOptions.moveUp) },

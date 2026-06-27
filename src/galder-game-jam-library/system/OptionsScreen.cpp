@@ -32,14 +32,13 @@ namespace ggj
         if (!m_isVisible)
             return;
 
-        const ImVec2 size { 360.0f, 490.0f };
-        ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+        const ImVec2 size { 360.0f, 540.0f };
+        ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowPos(
             { SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f },
-            ImGuiCond_Always,
+            ImGuiCond_FirstUseEver,
             { 0.5f, 0.5f });
-        ImGui::Begin("Options", nullptr,
-            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse);
 
         bool audioChanged = false;
 
@@ -69,6 +68,28 @@ namespace ggj
         ImGui::Separator();
         if (ImGui::SliderFloat("HUD Alpha##hud", &m_localHudOptions.hudAlpha, 0.0f, 1.0f))
             m_options.setHudOptions(m_localHudOptions);
+
+        ImGui::Spacing();
+        ImGui::TextUnformatted("UI Scale");
+        ImGui::Separator();
+        {
+            constexpr float SCALES[] = { 1.0f, 1.5f, 2.0f, 4.0f };
+            constexpr const char* LABELS[] = { "1x", "1.5x", "2x", "4x" };
+            for (int i = 0; i < 4; ++i)
+            {
+                if (i > 0) ImGui::SameLine();
+                const bool active = (m_localHudOptions.imguiScale == SCALES[i]);
+                if (active)
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+                if (ImGui::Button(LABELS[i], { 60.0f, 0.0f }))
+                {
+                    m_localHudOptions.imguiScale = SCALES[i];
+                    m_options.setHudOptions(m_localHudOptions);
+                }
+                if (active)
+                    ImGui::PopStyleColor();
+            }
+        }
 
         ImGui::Spacing();
         ImGui::TextUnformatted("Keybindings");
