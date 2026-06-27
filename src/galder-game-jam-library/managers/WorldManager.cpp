@@ -4,6 +4,8 @@
 
 #include "WorldManager.h"
 #include "../game/Hud.h"
+#include "../system/MainMenuScreen.h"
+#include <cstdlib>
 
 #ifdef GAME_DEV_DEBUG
     #include "DebugMenu.hpp"
@@ -52,6 +54,8 @@ namespace ggj
             m_hud.setFont(&m_font);
             m_dialog.setFont(&m_font);
 
+            m_mainMenuScreen.initialize();
+            m_mainMenuScreen.setFont(&m_font);
             m_characterSelectScreen.initialize();
             m_characterSelectScreen.setFont(&m_font);
         }
@@ -131,6 +135,19 @@ namespace ggj
     {
         m_soundManager.update(timeDelta);
 
+        if (m_mainMenuScreenActive)
+        {
+            m_mainMenuScreen.update(timeDelta);
+            if (m_mainMenuScreen.isExitGameSelected())
+                exit(0);
+            if (m_mainMenuScreen.isSinglePlayerSelected())
+            {
+                m_mainMenuScreenActive = false;
+                m_characterSelectScreenActive = true;
+            }
+            return;
+        }
+
         if (m_characterSelectScreenActive)
         {
             m_characterSelectScreen.update(timeDelta);
@@ -202,6 +219,12 @@ namespace ggj
 
     void WorldManager::draw()
     {
+        if (m_mainMenuScreenActive)
+        {
+            m_mainMenuScreen.draw();
+            return;
+        }
+
         if (m_characterSelectScreenActive)
         {
             m_characterSelectScreen.draw();

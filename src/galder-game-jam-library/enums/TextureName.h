@@ -88,6 +88,8 @@ namespace ggj
         CharacterSelectRoguePortrait = 330,
         CharacterSelectWizardPortrait = 331,
 
+        MainMenuBackground = 340,
+
     };
 }
 #endif //GAME_DEV_TEMPLATE_TEXTURENAME_H
