@@ -163,7 +163,16 @@ namespace ggj
                 m_managers.debugState.requestedStage = -1;
                 if (m_worlds.count(requestedStage) > 0)
                 {
+                    PlayerPersistentState savedState {};
+                    if (m_worlds.count(m_currentStageIndex) > 0)
+                    {
+                        IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
+                        savedState = { prevPlayer->getLives(), prevPlayer->getScore(), prevPlayer->getLevel(),
+                                       prevPlayer->getCurrentXp(), prevPlayer->getTotalXp(), prevPlayer->getEnemiesKilled() };
+                    }
+
                     m_currentStageIndex = requestedStage;
+                    m_worlds[m_currentStageIndex]->getPlayer()->restoreState(savedState);
                     startMusicForStage(m_currentStageIndex);
                     m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                     m_hud.setWorld(m_worlds[m_currentStageIndex].get());
