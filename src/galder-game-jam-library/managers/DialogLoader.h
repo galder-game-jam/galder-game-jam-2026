@@ -17,17 +17,31 @@ namespace ggj
      * Expected JSON schema:
      * @code
      * {
-     *   "dialogs": [
+     *   "groups": [
      *     {
-     *       "id": "someId",
-     *       "text": "Dialog text here",
-     *       "choices": [
-     *         { "text": "Option A", "nextDialogId": "someOtherId" }
+     *       "npc": "npcName",
+     *       "dialogs": [
+     *         {
+     *           "id": "someId",
+     *           "text": "Dialog text here",
+     *           "affirmCondition": "optionalConditionSetWhenDisplayed",
+     *           "choices": [
+     *             {
+     *               "text": "Option A",
+     *               "nextDialogId": "someOtherId",
+     *               "condition": "optionalRequiredCondition"
+     *             }
+     *           ]
+     *         }
      *       ]
      *     }
      *   ]
      * }
      * @endcode
+     *
+     * Conditions are set either from dialog (@c affirmCondition) or from game state
+     * (e.g. @c levelComplete, @c battleHardened, @c leveledUp).
+     * A choice is visible when its @c condition is empty or has been set.
      */
     class DialogLoader
     {

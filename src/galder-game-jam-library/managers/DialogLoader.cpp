@@ -23,37 +23,47 @@ namespace ggj
         if (!err.empty() || !root.is_object())
             return false;
 
-        const json11::Json& dialogs = root["dialogs"];
-        if (!dialogs.is_array())
+        const json11::Json& groups = root["groups"];
+        if (!groups.is_array())
             return false;
 
-        for (const json11::Json& item : dialogs.array_items())
+        for (const json11::Json& group : groups.array_items())
         {
-            if (!item.is_object())
+            if (!group.is_object())
                 continue;
 
-            DialogItem dialogItem;
-            dialogItem.dialogId = item["id"].string_value();
-            dialogItem.text = item["text"].string_value();
-            dialogItem.affirmCondition = item["affirmCondition"].string_value();
+            const json11::Json& dialogs = group["dialogs"];
+            if (!dialogs.is_array())
+                continue;
 
-            const json11::Json& choices = item["choices"];
-            if (choices.is_array())
+            for (const json11::Json& item : dialogs.array_items())
             {
-                for (const json11::Json& choice : choices.array_items())
+                if (!item.is_object())
+                    continue;
+
+                DialogItem dialogItem;
+                dialogItem.dialogId       = item["id"].string_value();
+                dialogItem.text           = item["text"].string_value();
+                dialogItem.affirmCondition = item["affirmCondition"].string_value();
+
+                const json11::Json& choices = item["choices"];
+                if (choices.is_array())
                 {
-                    if (!choice.is_object())
-                        continue;
+                    for (const json11::Json& choice : choices.array_items())
+                    {
+                        if (!choice.is_object())
+                            continue;
 
-                    DialogChoice dialogChoice;
-                    dialogChoice.text = choice["text"].string_value();
-                    dialogChoice.nextDialogId = choice["nextDialogId"].string_value();
-                    dialogChoice.condition = choice["condition"].string_value();
-                    dialogItem.choices.push_back(std::move(dialogChoice));
+                        DialogChoice dialogChoice;
+                        dialogChoice.text        = choice["text"].string_value();
+                        dialogChoice.nextDialogId = choice["nextDialogId"].string_value();
+                        dialogChoice.condition   = choice["condition"].string_value();
+                        dialogItem.choices.push_back(std::move(dialogChoice));
+                    }
                 }
-            }
 
-            manager.addDialog(dialogItem);
+                manager.addDialog(dialogItem);
+            }
         }
 
         return true;

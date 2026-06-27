@@ -1,84 +1,167 @@
 {
-  "dialogs": [
+  "groups": [
     {
-      "id": "initialGreeting",
-      "affirmCondition": "initialTalk",
-      "text": "Hello my good Traveller!\nWelcome to the world of Galdaria.\nYour first task is to purge these lands of every creature in these woods!\nI am a bit too old to run around and kill, but I have scouted out the area for you.\nCurrently, these pesky creatures are running around. Happy little bastards...\nKill them for me, and I will grant you access to my torture chamber!\nWhen the deed is done, you will find a portal in a cave to the north.\nAre you up for the task?",
-      "choices": [
-        { "text": "Yes",   "nextDialogId": "initialGreetingYes" },
-        { "text": "No",    "nextDialogId": "initialGreetingNo" },
-        { "text": "Maybe", "nextDialogId": "initialGreetingMaybe" },
-        { "text": "I purged everything", "condition": "levelComplete", "nextDialogId": "initialPurged" }
+      "npc": "questGiver",
+      "dialogs": [
+        {
+          "id": "initialGreeting",
+          "affirmCondition": "initialTalk",
+          "text": "Hello my good Traveller!\nWelcome to the world of Galdaria.\nYour first task is to purge these lands of every creature in these woods!\nI am a bit too old to run around and kill, but I have scouted out the area for you.\nCurrently, these pesky creatures are running around. Happy little bastards...\nKill them for me, and I will grant you access to my torture chamber!\nWhen the deed is done, you will find a portal in a cave to the north.\nAre you up for the task?",
+          "choices": [
+            { "text": "Yes",   "nextDialogId": "initialGreetingYes" },
+            { "text": "No",    "nextDialogId": "initialGreetingNo" },
+            { "text": "Maybe", "nextDialogId": "initialGreetingMaybe" },
+            { "text": "I purged everything", "condition": "levelComplete", "nextDialogId": "initialPurged" }
+          ]
+        },
+        {
+          "id": "initialGreetingYes",
+          "text": "Excellent choice!\nI promise you won't regret it!\nTalk to you later.",
+          "choices": []
+        },
+        {
+          "id": "initialGreetingNo",
+          "text": "Uhm ok...\nListen. Here is the issue.\nYou can dwell on this as long as you want.\nBut as long as these creatures are still alive you will not be able to progress.\nUp to you hippie! Peace & Love!\nSo will you help me?",
+          "choices": [
+            { "text": "Yes", "nextDialogId": "initialGreetingYes" }
+          ]
+        },
+        {
+          "id": "initialGreetingMaybe",
+          "text": "Maybe!!??\nHow am I supposed to respond to that??\nAt least have the decency to make up a choice!\nI presume you are capable of that! So spit it out.\nYes or No?",
+          "choices": [
+            { "text": "Yes", "nextDialogId": "initialGreetingYes" },
+            { "text": "No",  "nextDialogId": "initialGreetingNo" }
+          ]
+        },
+        {
+          "id": "initialPurged",
+          "text": "Wow...\nWell done you fucking psycho-killer.\nDid it ever occur to you that some of them have a family??\nOh well, you can now proceed further through the portal into the next level",
+          "choices": []
+        },
+        {
+          "id": "lostMoney",
+          "text": "Oh hello again!\nThese moss-covered zombies attacked me, and I lost all my money when I ran.\nSince you are already running around on your killing spree,\nCan you collect the coins and return to me?",
+          "choices": [
+            { "text": "No",       "nextDialogId": "lostMoneyNo" },
+            { "text": "Hell no",  "nextDialogId": "lostMoneyHellNo" },
+            { "text": "We'll see","nextDialogId": "lostMoneyWellSee" },
+            { "text": "Fuck you", "nextDialogId": "lostMoneyFuckYou" },
+            { "text": "Are you here?", "condition": "initialTalk", "nextDialogId": "lostMoneyDontBother" }
+          ]
+        },
+        {
+          "id": "lostMoneyNo",
+          "text": "Hey!\nThat money belongs to me!\nDidn't your mother teach you stealing is wrong!?\nSo I'm asking again; Can you collect the coins and return to me?",
+          "choices": [
+            { "text": "Hell no",  "nextDialogId": "lostMoneyHellNo" },
+            { "text": "We'll see","nextDialogId": "lostMoneyWellSee" },
+            { "text": "Fuck you", "nextDialogId": "lostMoneyFuckYou" }
+          ]
+        },
+        {
+          "id": "lostMoneyHellNo",
+          "text": "Whoah there!\nNo need to get all pumped up!\nWatch so you don't pop a blood vessel or something.\nSo I'm asking again; Can you collect the coins and return to me?",
+          "choices": [
+            { "text": "We'll see", "nextDialogId": "lostMoneyWellSee" }
+          ]
+        },
+        {
+          "id": "lostMoneyFuckYou",
+          "text": "Watch your tongue traveller!\nI do not respond well to insults\nSo I'm asking again; Can you collect the coins and return to me?",
+          "choices": [
+            { "text": "We'll see", "nextDialogId": "lostMoneyWellSee" }
+          ]
+        },
+        {
+          "id": "lostMoneyWellSee",
+          "text": "Ah well.\nA maybe is better than nothing.\nEspecially coming from such a lowlife like yourself.\nCome see me when you have collected at least 10 gold for me.",
+          "choices": []
+        },
+        {
+          "id": "lostMoneyDontBother",
+          "text": "How about this..\nYou worry about your problems and I deal with mine.\nOK?\nGeez. What's with all the questions detective?\nPiss off!",
+          "choices": []
+        }
       ]
     },
     {
-      "id": "initialGreetingYes",
-      "text": "Excellent choice!\nI promise you won't regret it!\nTalk to you later.",
-      "choices": []
-    },
-    {
-      "id": "initialGreetingNo",
-      "text": "Uhm ok...\nListen. Here is the issue.\nYou can dwell on this as long as you want.\nBut as long as these creatures are still alive you will not be able to progress.\nUp to you hippie! Peace & Love!\nSo will you help me?",
-      "choices": [
-        { "text": "Yes", "nextDialogId": "initialGreetingYes" }
+      "npc": "blacksmith",
+      "dialogs": [
+        {
+          "id": "blacksmithGreeting",
+          "text": "What do you need? I'm in the middle of something.\nThose creatures outside are bad for business —\nnobody dares come out to trade anymore.\nSpeak up.",
+          "choices": [
+            { "text": "What are you forging?",            "nextDialogId": "blacksmithForging" },
+            { "text": "How do I survive out there?",      "nextDialogId": "blacksmithAdvice" },
+            { "text": "I've already killed five of them", "condition": "battleHardened", "nextDialogId": "blacksmithRespect" },
+            { "text": "The area is clear now",            "condition": "levelComplete",   "nextDialogId": "blacksmithCleared" }
+          ]
+        },
+        {
+          "id": "blacksmithForging",
+          "text": "Weapons. Armour. Things that keep people alive,\nwhich is more than most wanderers manage out there.\nIf you're looking to buy, come back when I'm done.\nI don't negotiate mid-swing.",
+          "choices": []
+        },
+        {
+          "id": "blacksmithAdvice",
+          "text": "Don't get hit. Ha!\nIn all seriousness — keep moving, and watch their feet.\nCreatures telegraph their attacks with their body.\nNever fight with your back to a wall.\nAnd if you're outnumbered, run. Pride won't stop a claw.",
+          "choices": []
+        },
+        {
+          "id": "blacksmithRespect",
+          "text": "Five of them? You're tougher than you look.\nMost travellers turn tail at the first snarl.\nFinish the job — wipe out every last one —\nand I'll sharpen something special for you. No charge.\nI respect results.",
+          "choices": []
+        },
+        {
+          "id": "blacksmithCleared",
+          "text": "You got every last one?\nI can tell when someone's bluffing.\n...\nYou're not bluffing, are you.\nGood work. Seriously.\nHere — this whetstone is yours. You've earned it.\nCome find me on the next level if you need more.",
+          "choices": []
+        }
       ]
     },
     {
-      "id": "initialGreetingMaybe",
-      "text": "Maybe!!??\nHow am I supposed to respond to that??\nAt least have the decency to make up a choice!\nI presume you are capable of that! So spit it out.\nYes or No?",
-      "choices": [
-        { "text": "Yes", "nextDialogId": "initialGreetingYes" },
-        { "text": "No",  "nextDialogId": "initialGreetingNo" }
+      "npc": "scholar",
+      "dialogs": [
+        {
+          "id": "scholarGreeting",
+          "affirmCondition": "scholarMet",
+          "text": "Oh! A living specimen — I mean, a visitor! Welcome.\nI am cataloguing the creatures of this region.\nFascinating things, if you can get past the claws and the screaming.\nWhat can I help you with?",
+          "choices": [
+            { "text": "Tell me about the creatures",         "nextDialogId": "scholarCreatureLore" },
+            { "text": "How do I get stronger?",             "nextDialogId": "scholarStrengthAdvice" },
+            { "text": "More about the creatures",           "condition": "scholarAskedCreatures", "nextDialogId": "scholarMoreCreatureLore" },
+            { "text": "They're all dead now",               "condition": "levelComplete",         "nextDialogId": "scholarAllDead" },
+            { "text": "I've grown stronger since we met",   "condition": "leveledUp",             "nextDialogId": "scholarNoticesGrowth" }
+          ]
+        },
+        {
+          "id": "scholarCreatureLore",
+          "affirmCondition": "scholarAskedCreatures",
+          "text": "Excellent question!\nThese creatures shouldn't exist this far from the dark forest.\nSomething is drawing them here — possibly a rift in the ley lines.\nThey are attracted to life energy, which is why they cluster near settlements.\nStay mobile. A stationary target is a dead one.",
+          "choices": []
+        },
+        {
+          "id": "scholarMoreCreatureLore",
+          "text": "More questions! Wonderful, you are thorough.\nMy latest finding: they appear to communicate with each other.\nKill one, and the others sense it somehow.\nAlso — they are weakest at the joints, structurally speaking.\nI would test this hypothesis myself, but I value my limbs.",
+          "choices": []
+        },
+        {
+          "id": "scholarStrengthAdvice",
+          "text": "Strength? It is not only a matter of muscle.\nEvery enemy you face teaches your body something new.\nObserve the patterns, adapt, and do not repeat mistakes.\nKnowledge is the sharpest weapon I know —\nand I know quite a few, both literally and metaphorically.",
+          "choices": []
+        },
+        {
+          "id": "scholarAllDead",
+          "text": "All of them?! You wiped out the entire population?!\nThis is — this is extraordinary.\nI have months of new research material from this alone.\nYou didn't happen to keep notes, did you?\nNo? A shame. I would have valued your field observations.",
+          "choices": []
+        },
+        {
+          "id": "scholarNoticesGrowth",
+          "text": "My word. You have changed since we last spoke.\nYour posture. Your eyes. The way you carry yourself.\nThis confirms my theory entirely —\ncombat experience accelerates growth beyond any book.\nYou are living proof, traveller. Most illuminating.",
+          "choices": []
+        }
       ]
-    },
-    {
-      "id": "initialPurged",
-      "text": "Wow...\nWell done you fucking psycho-killer.\nDid it ever occur to you that some of them have a family??\nOh well, you can now proceed further through the portal into the next level",
-      "choices": []
-    },
-    {
-      "id": "lostMoney",
-      "text": "Oh hello again!\nThese moss-covered zombies attacked me, and I lost all my money when I ran.\nSince you are already running around on your killing spree,\nCan you collect the coins and return to me?",
-      "choices": [
-        { "text": "No",       "nextDialogId": "lostMoneyNo" },
-        { "text": "Hell no",  "nextDialogId": "lostMoneyHellNo" },
-        { "text": "We'll see","nextDialogId": "lostMoneyWellSee" },
-        { "text": "Fuck you", "nextDialogId": "lostMoneyFuckYou" },
-        { "text": "Are you here?", "condition": "initialTalk", "nextDialogId": "lostMoneyDontBother" }
-      ]
-    },
-    {
-      "id": "lostMoneyNo",
-      "text": "Hey!\nThat money belongs to me!\nDidn't your mother teach you stealing is wrong!?\nSo I'm asking again; Can you collect the coins and return to me?",
-      "choices": [
-        { "text": "Hell no",  "nextDialogId": "lostMoneyHellNo" },
-        { "text": "We'll see","nextDialogId": "lostMoneyWellSee" },
-        { "text": "Fuck you", "nextDialogId": "lostMoneyFuckYou" }
-      ]
-    },
-    {
-      "id": "lostMoneyHellNo",
-      "text": "Whoah there!\nNo need to get all pumped up!\nWatch so you don't pop a blood vessel or something.\nSo I'm asking again; Can you collect the coins and return to me?",
-      "choices": [
-        { "text": "We'll see", "nextDialogId": "lostMoneyWellSee" }
-      ]
-    },
-    {
-      "id": "lostMoneyFuckYou",
-      "text": "Watch your tongue traveller!\nI do not respond well to insults\nSo I'm asking again; Can you collect the coins and return to me?",
-      "choices": [
-        { "text": "We'll see", "nextDialogId": "lostMoneyWellSee" }
-      ]
-    },
-    {
-      "id": "lostMoneyWellSee",
-      "text": "Ah well.\nA maybe is better than nothing.\nEspecially coming from such a lowlife like yourself.\nCome see me when you have collected at least 10 gold for me.",
-      "choices": []
-    },
-    {
-      "id": "lostMoneyDontBother",
-      "text": "How about this..\nYou worry about your problems and I deal with mine.\nOK?\nGeez. What's with all the questions detective?\nPiss off!",
-      "choices": []
     }
   ]
 }
