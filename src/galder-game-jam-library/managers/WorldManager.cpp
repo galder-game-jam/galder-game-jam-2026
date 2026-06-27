@@ -6,6 +6,7 @@
 #include "../game/Hud.h"
 #include "../system/MainMenuScreen.h"
 #include "../system/NetplayScreen.h"
+#include "../system/OptionsScreen.h"
 #include "ServerInfoMenu.hpp"
 #include <cstdlib>
 
@@ -65,6 +66,7 @@ namespace ggj
             m_mainMenuScreen.initialize();
             m_mainMenuScreen.setFont(&m_font);
             m_netplayScreen.initialize();
+            m_optionsScreen.initialize();
             m_characterSelectScreen.initialize();
             m_characterSelectScreen.setFont(&m_font);
         }
@@ -162,6 +164,25 @@ namespace ggj
                 m_mainMenuScreenActive = false;
                 m_netplayScreenActive = true;
                 m_network.startDiscovery(); // listen for LAN hosts while browsing
+            }
+            else if (m_mainMenuScreen.isOptionsSelected())
+            {
+                m_mainMenuScreen.reset();
+                m_optionsScreen.reset();
+                m_mainMenuScreenActive = false;
+                m_optionsScreenActive = true;
+            }
+            return;
+        }
+
+        if (m_optionsScreenActive)
+        {
+            if (m_optionsScreen.isBack())
+            {
+                m_optionsScreen.reset();
+                m_optionsScreenActive = false;
+                m_mainMenuScreenActive = true;
+                m_mainMenuScreen.reset();
             }
             return;
         }
@@ -319,6 +340,12 @@ namespace ggj
             return;
         }
 
+        if (m_optionsScreenActive)
+        {
+            m_optionsScreen.draw();
+            return;
+        }
+
         if (m_netplayScreenActive)
         {
             m_netplayScreen.draw();
@@ -344,6 +371,12 @@ namespace ggj
 
     void WorldManager::drawImGui()
     {
+        if (m_optionsScreenActive)
+        {
+            m_optionsScreen.drawImGui();
+            return;
+        }
+
         if (m_netplayScreenActive)
         {
             m_netplayScreen.drawImGui();

@@ -26,6 +26,7 @@ namespace ggj
             void playSound(SoundName id) override;
             void playMusic(MusicName id) override;
             void stopMusic() override;
+            void applyAudioOptions() override;
 
         private:
             bool loadSound(SoundName id, ResourceName resource);
@@ -39,6 +40,7 @@ namespace ggj
             std::map<MusicName, Music> m_music;
 
             MusicName m_currentMusic { MusicName::None };
+            MusicName m_pendingMusic { MusicName::None }; ///< Track requested via playMusic(), regardless of mute state.
             bool m_audioReady { false };
     };
 } // namespace ggj
