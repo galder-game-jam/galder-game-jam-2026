@@ -29,7 +29,7 @@ void ggj::Dialog::initialize()
     m_origin = raylib::Vector2 { 20, 20 };
     m_position = raylib::Vector2 { 5, 0 };
 
-    m_dialogOffset = raylib::Vector2 { 10.0f, m_position.y + 380 };
+    m_dialogOffset = raylib::Vector2 { 10.0f, m_position.y + 420 };
     m_dialogTexture = m_textures.get(TextureName::HudRpgSubset);
 
     DialogLoader loader;
