@@ -29,7 +29,7 @@ void ggj::Dialog::initialize()
     m_origin = raylib::Vector2 { 20, 20 };
     m_position = raylib::Vector2 { 5, 0 };
 
-    m_dialogOffset = raylib::Vector2 { m_position.x + 200, m_position.y + 380 };
+    m_dialogOffset = raylib::Vector2 { 10.0f, m_position.y + 420 };
     m_dialogTexture = m_textures.get(TextureName::HudRpgSubset);
 
     DialogLoader loader;
@@ -188,10 +188,20 @@ void ggj::Dialog::drawDialogBox(raylib::Vector2 offset, int width, int height, c
 
     if (numberOfChoices > 0)
     {
-        raylib::Vector2 choicesOffset(m_dialogOffset.x + grid * 15, m_dialogOffset.y + grid * -2);
-
         int choicesBoxHeight = numberOfChoices < 3 ? 0 : numberOfChoices - 2;
-        int choicesBowWidth = 1;
+
+        float maxTextWidth = 0.0f;
+        for (const DialogChoice& choice : m_visibleChoices)
+            maxTextWidth = std::max(maxTextWidth, MeasureTextEx(*m_font, choice.text.c_str(), static_cast<float>(FONT_SIZE), 0.0f).x);
+        static constexpr float CHOICE_TEXT_PADDING = 50.0f; // arrow (20) + left gap (30)
+        int choicesBowWidth = std::max(1, static_cast<int>(std::ceil((maxTextWidth + CHOICE_TEXT_PADDING) / grid)));
+
+        static constexpr float VIRTUAL_SCREEN_WIDTH = 800.0f;
+        float boxPixelWidth = static_cast<float>(choicesBowWidth + 2) * grid;
+        float preferredX = m_dialogOffset.x + grid * 15.0f;
+        float clampedX = std::min(preferredX, VIRTUAL_SCREEN_WIDTH - boxPixelWidth);
+        raylib::Vector2 choicesOffset(std::max(0.0f, clampedX), m_dialogOffset.y + grid * -2);
+
         DrawBox(choicesOffset, choicesBowWidth, choicesBoxHeight);
 
         m_dialogTexture->Draw(m_dialogSpaceButtonRect, choicesOffset + raylib::Vector2 { grid * choicesBowWidth + 6, grid * (choicesBoxHeight + 1) + 10 });

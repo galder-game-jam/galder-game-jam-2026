@@ -90,6 +90,7 @@ namespace ggj
         bool m_hasClearedLevel { false };
         bool m_isDead { false };
         bool m_isLeftPosition { false };
+        raylib::Vector2 m_lastMoveDirection { 1.f, 0.f }; ///< Last non-zero input direction, used for projectile aim
 
         ggj::Hitbox m_hitbox {};
         bool m_isAttacking { false };

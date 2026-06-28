@@ -15,11 +15,9 @@ namespace ggj
         m_position = raylib::Vector2 { 5, 0 };
 
         m_portraitOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 50 };
-        m_coinOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 120 };
-        m_killsOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 152 };
-        m_xpOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 184 };
-        m_playerPositionOffset = raylib::Vector2 { m_position.x + 570, m_position.y + 570 };
-        m_questLogOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 400 };
+        m_playerPositionOffset = raylib::Vector2 { 704.0f, 556.0f }; // 96 px wide (3×32), right-aligned, just above XP bar
+        // Placed below the minimap (right side): minimap is at x=590, y=10, 200×150.
+        m_questLogOffset = raylib::Vector2 { 590.0f, 10.0f + 150.0f + 6.0f };
         m_playerPortraitOffset = raylib::Vector2 { m_portraitOffset.x + 3, m_portraitOffset.y + 3 };
 
         m_hudTexture = m_textures.get(TextureName::HudRpgSubset);
@@ -71,8 +69,28 @@ namespace ggj
     void Hud::update(float timeDelta)
     {
         if (m_inputManager.keyPressed(KeyboardKey::F8))
-        {
             setVisible(!m_isVisible);
+
+        HudOptions hudOpts = m_options.getHudOptions();
+        bool hudOptsChanged = false;
+        if (m_inputManager.keyPressed(m_options.getKeybindingOptions().toggleQuestLog))
+        {
+            hudOpts.showQuestLog = !hudOpts.showQuestLog;
+            hudOptsChanged = true;
+        }
+        if (m_inputManager.keyPressed(m_options.getKeybindingOptions().toggleMinimap))
+        {
+            hudOpts.showMinimap = !hudOpts.showMinimap;
+            hudOptsChanged = true;
+        }
+        if (hudOptsChanged)
+            m_options.setHudOptions(hudOpts);
+
+        if (m_inputManager.keyPressed(m_options.getKeybindingOptions().toggleInventory))
+        {
+            HudOptions inv = m_options.getHudOptions();
+            inv.showInventory = !inv.showInventory;
+            m_options.setHudOptions(inv);
         }
 
         if (m_currentPlayer == nullptr)
@@ -82,7 +100,6 @@ namespace ggj
         m_mana = 2;   // Implement mana and then: static_cast<float>(m_currentPlayer->getMana());
         m_energy = 3; // Implement energy and then: static_cast<float>(m_currentPlayer->getEnergy());
         m_coins = m_currentPlayer->getScore();
-        m_kills = m_currentPlayer->getEnemiesKilled();
         m_level       = m_currentPlayer->getLevel();
         m_currentXp   = m_currentPlayer->getCurrentXp();
         m_totalXp     = m_currentPlayer->getTotalXp();
@@ -102,18 +119,28 @@ namespace ggj
             return;
 
         drawPlayerPortrait();
-        drawCoinBar(m_coinOffset);
-        drawPlayerPositionBar(m_playerPositionOffset);
-        drawKillsBar(m_killsOffset);
-
-        drawXpBar(m_xpOffset);
-        drawQuestLog(m_questLogOffset, 3, 1);
+        if (m_options.getHudOptions().showInventory)
+            drawPlayerPositionBar(m_playerPositionOffset);
+        drawXpBar();
+        if (m_options.getHudOptions().showQuestLog)
+            drawQuestLog(m_questLogOffset, 4, 1);
 
         if (!m_playerName.empty() && m_font != nullptr)
             m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, tinted(raylib::Color::White()));
 
-        if (m_minimap != nullptr)
+        if (m_minimap != nullptr && m_options.getHudOptions().showMinimap)
+        {
             m_minimap->draw(m_playerPosition, m_options.getHudOptions().hudAlpha);
+
+            if (m_font != nullptr)
+            {
+                static constexpr float MINIMAP_RIGHT        = 800.0f - 10.0f - 2.0f;  // right edge minus padding
+                static constexpr float MINIMAP_BOTTOM = 10.0f + 150.0f - 15.0f - 2.0f; // inside bottom edge
+                const char* posText = TextFormat("Pos: (%i,%i)", static_cast<int>(m_playerPosition.x), static_cast<int>(m_playerPosition.y));
+                const raylib::Vector2 textSize = MeasureTextEx(*m_font, posText, static_cast<float>(FONT_SIZE), 0.0f);
+                m_font->DrawText(posText, raylib::Vector2 { MINIMAP_RIGHT - textSize.x, MINIMAP_BOTTOM }, FONT_SIZE, 0, tinted(WHITE));
+            }
+        }
 
         if (m_currentWorld != nullptr && m_currentWorld->hasBoss())
             drawBossBar();
@@ -177,6 +204,17 @@ namespace ggj
         DrawResourceBar(m_health, m_lifeRect, m_lifeEnd, 0);
         DrawResourceBar(m_mana, m_manaRect, m_manaEnd, 1);
         DrawResourceBar(m_energy, m_energyRect, m_energyEnd, 2);
+
+        static constexpr float BADGE_RADIUS = 12.0f;
+        const float cx = m_portraitOffset.x + m_portraitRect.width - BADGE_RADIUS - 20.0f;
+        const float cy = m_portraitOffset.y + m_portraitRect.height - BADGE_RADIUS;
+        DrawCircle(static_cast<int>(cx), static_cast<int>(cy), BADGE_RADIUS + 1.5f, tinted(BLACK));
+        DrawCircle(static_cast<int>(cx), static_cast<int>(cy), BADGE_RADIUS, tinted(Color { 70, 40, 10, 255 }));
+        const char* levelText = TextFormat("%i", m_level);
+        const raylib::Vector2 textSize = MeasureTextEx(*m_font, levelText, static_cast<float>(FONT_SIZE), 0.0f);
+        m_font->DrawText(levelText,
+                         raylib::Vector2 { cx - textSize.x * 0.5f, cy - textSize.y * 0.5f },
+                         FONT_SIZE, 0, tinted(GOLD));
     }
 
     void Hud::drawBar(raylib::Vector2 offset, int middleParts) const
@@ -191,35 +229,55 @@ namespace ggj
         m_hudTexture->Draw(m_barRectRight, offset + raylib::Vector2 { TILE_UNIT * 2 + TILE_UNIT * 2 * middleParts, 0 }, texTint);
     }
 
-    void Hud::drawCoinBar(raylib::Vector2 offset) const
-    {
-        drawBar(offset, 1);
-        m_hudTexture->Draw(m_coinRect, offset + raylib::Vector2 { TILE_UNIT * 1, 4 }, tinted(WHITE));
-
-        m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)), raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
-    }
-
-    void Hud::drawKillsBar(raylib::Vector2 offset) const
-    {
-        drawBar(offset, 1);
-        m_font->DrawText(TextFormat("Kills: %i", static_cast<int>(m_kills)), raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
-    }
-
     void Hud::drawPlayerPositionBar(raylib::Vector2 offset) const
     {
-        drawBar(offset, 5);
-        m_font->DrawText(TextFormat("Player position: (%i, %i)", static_cast<int>(m_playerPosition.x), static_cast<int>(m_playerPosition.y)),
-                         raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
+        drawBar(offset, 1); // (1+2)×32 = 96 px — compact coin widget
+        m_hudTexture->Draw(m_coinRect, offset + raylib::Vector2 { TILE_UNIT * 1, 4 }, tinted(WHITE));
+        m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)),
+                         raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
     }
 
-    void Hud::drawXpBar(raylib::Vector2 offset) const
+    void Hud::drawXpBar() const
     {
-        drawBar(offset, 3);
-        m_font->DrawText(TextFormat("Lvl: %i", m_level),
-                         raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
-        m_font->DrawText(TextFormat("XP: %i/%i", m_currentXp, m_xpToNextLevel),
-                         raylib::Vector2 { offset.x + TILE_UNIT * 4, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
+        if (m_font == nullptr)
+            return;
+
+        static constexpr float BAR_Y      = 582.0f;
+        static constexpr float BAR_HEIGHT = 18.0f;
+        static constexpr float BAR_WIDTH  = 800.0f;
+        static constexpr int   SEPARATORS = 12;
+
+        DrawRectangle(0, static_cast<int>(BAR_Y), static_cast<int>(BAR_WIDTH), static_cast<int>(BAR_HEIGHT),
+                      tinted(Color { 0, 0, 0, 160 }));
+
+        const float ratio      = m_xpToNextLevel > 0
+                                 ? static_cast<float>(m_currentXp) / static_cast<float>(m_xpToNextLevel)
+                                 : 0.0f;
+        const float safeRatio  = ratio < 0.0f ? 0.0f : (ratio > 1.0f ? 1.0f : ratio);
+        const int   fillWidth  = static_cast<int>(BAR_WIDTH * safeRatio);
+        if (fillWidth > 0)
+        {
+            DrawRectangle(0, static_cast<int>(BAR_Y), fillWidth, static_cast<int>(BAR_HEIGHT),
+                          tinted(Color { 100, 0, 180, 230 }));
+            DrawRectangle(0, static_cast<int>(BAR_Y), fillWidth, 3,
+                          tinted(Color { 170, 80, 255, 180 }));
+        }
+
+        for (int i = 1; i <= SEPARATORS; ++i)
+        {
+            const int x = static_cast<int>(BAR_WIDTH * static_cast<float>(i) / static_cast<float>(SEPARATORS + 1));
+            DrawRectangle(x, static_cast<int>(BAR_Y), 2, static_cast<int>(BAR_HEIGHT),
+                          tinted(Color { 30, 30, 30, 200 }));
+        }
+
+        const char* xpText         = TextFormat("%i / %i XP", m_currentXp, m_xpToNextLevel);
+        const raylib::Vector2 size = MeasureTextEx(*m_font, xpText, static_cast<float>(FONT_SIZE), 0.0f);
+        m_font->DrawText(xpText,
+                         raylib::Vector2 { (BAR_WIDTH - size.x) * 0.5f,
+                                           BAR_Y + (BAR_HEIGHT - size.y) * 0.5f },
+                         FONT_SIZE, 0, tinted(WHITE));
     }
+
     void Hud::drawBossBar() const
     {
         const int maxLives = m_currentWorld->getBossMaxLives();

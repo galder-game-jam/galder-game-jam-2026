@@ -41,6 +41,12 @@ namespace ggj
             m_hudOptions.hudAlpha   = static_cast<float>(hud["alpha"].number_value());
             if (hud["imguiScale"].is_number())
                 m_hudOptions.imguiScale = static_cast<float>(hud["imguiScale"].number_value());
+            if (hud["showMinimap"].is_bool())
+                m_hudOptions.showMinimap = hud["showMinimap"].bool_value();
+            if (hud["showQuestLog"].is_bool())
+                m_hudOptions.showQuestLog = hud["showQuestLog"].bool_value();
+            if (hud["showInventory"].is_bool())
+                m_hudOptions.showInventory = hud["showInventory"].bool_value();
         }
 
         const json11::Json& kb = root["keybindings"];
@@ -56,8 +62,12 @@ namespace ggj
             m_keybindingOptions.moveDown  = readKey("moveDown",  KeyboardKey::S);
             m_keybindingOptions.moveLeft  = readKey("moveLeft",  KeyboardKey::A);
             m_keybindingOptions.moveRight = readKey("moveRight", KeyboardKey::D);
-            m_keybindingOptions.attack    = readKey("attack",    KeyboardKey::C);
-            m_keybindingOptions.respawn   = readKey("respawn",   KeyboardKey::Q);
+            m_keybindingOptions.attack         = readKey("attack",         KeyboardKey::C);
+            m_keybindingOptions.respawn        = readKey("respawn",        KeyboardKey::Q);
+            m_keybindingOptions.toggleQuestLog  = readKey("toggleQuestLog",  KeyboardKey::L);
+            m_keybindingOptions.toggleMinimap   = readKey("toggleMinimap",   KeyboardKey::M);
+            m_keybindingOptions.toggleTalentTree = readKey("toggleTalentTree", KeyboardKey::N);
+            m_keybindingOptions.toggleInventory    = readKey("toggleInventory",    KeyboardKey::B);
         }
 
         return true;
@@ -75,16 +85,23 @@ namespace ggj
                 { "soundVolume", static_cast<double>(m_audioOptions.soundVolume) }
             }},
             { "hud", json11::Json::object {
-                { "alpha",      static_cast<double>(m_hudOptions.hudAlpha) },
-                { "imguiScale", static_cast<double>(m_hudOptions.imguiScale) }
+                { "alpha",        static_cast<double>(m_hudOptions.hudAlpha) },
+                { "imguiScale",   static_cast<double>(m_hudOptions.imguiScale) },
+                { "showMinimap",  m_hudOptions.showMinimap },
+                { "showQuestLog",  m_hudOptions.showQuestLog },
+                { "showInventory", m_hudOptions.showInventory }
             }},
             { "keybindings", json11::Json::object {
                 { "moveUp",    static_cast<int>(m_keybindingOptions.moveUp) },
                 { "moveDown",  static_cast<int>(m_keybindingOptions.moveDown) },
                 { "moveLeft",  static_cast<int>(m_keybindingOptions.moveLeft) },
                 { "moveRight", static_cast<int>(m_keybindingOptions.moveRight) },
-                { "attack",    static_cast<int>(m_keybindingOptions.attack) },
-                { "respawn",   static_cast<int>(m_keybindingOptions.respawn) }
+                { "attack",         static_cast<int>(m_keybindingOptions.attack) },
+                { "respawn",        static_cast<int>(m_keybindingOptions.respawn) },
+                { "toggleQuestLog",   static_cast<int>(m_keybindingOptions.toggleQuestLog) },
+                { "toggleMinimap",    static_cast<int>(m_keybindingOptions.toggleMinimap) },
+                { "toggleTalentTree", static_cast<int>(m_keybindingOptions.toggleTalentTree) },
+                { "toggleInventory",    static_cast<int>(m_keybindingOptions.toggleInventory) }
             }}
         };
 

@@ -7,7 +7,10 @@
     },
     "hud": {
         "alpha": 0.706,
-        "imguiScale": 2.0
+        "imguiScale": 2.0,
+        "showMinimap": true,
+        "showQuestLog": true,
+        "showInventory": true
     },
     "keybindings": {
         "moveUp": 87,
@@ -15,6 +18,10 @@
         "moveLeft": 65,
         "moveRight": 68,
         "attack": 32,
-        "respawn": 81
+        "respawn": 81,
+        "toggleQuestLog": 76,
+        "toggleMinimap": 77,
+        "toggleTalentTree": 78,
+        "toggleInventory": 66
     }
 }

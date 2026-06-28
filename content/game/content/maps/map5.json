@@ -458,6 +458,104 @@
                  "width":1947.79,
                  "x":-6.89499999999999,
                  "y":1913.04166666667
+                }, 
+                {
+                 "height":48,
+                 "id":541,
+                 "name":"mageNpc",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"sprite",
+                         "type":"string",
+                         "value":"mage.png"
+                        }, 
+                        {
+                         "name":"sprite_size_x",
+                         "type":"int",
+                         "value":48
+                        }, 
+                        {
+                         "name":"sprite_size_y",
+                         "type":"int",
+                         "value":48
+                        }, 
+                        {
+                         "name":"userdata_command",
+                         "type":"string",
+                         "value":"dialog_trigger"
+                        }, 
+                        {
+                         "name":"userdata_dialog_id",
+                         "type":"string",
+                         "value":"mageGreeting"
+                        }, 
+                        {
+                         "name":"userdata_objecttype",
+                         "type":"int",
+                         "value":9
+                        }, 
+                        {
+                         "name":"userdata_objecttype_enum",
+                         "propertytype":"ObjectType",
+                         "type":"int",
+                         "value":9
+                        }],
+                 "rotation":0,
+                 "type":"PhysicsObject",
+                 "visible":true,
+                 "width":48,
+                 "x":400.242424242424,
+                 "y":363.878787878788
+                }, 
+                {
+                 "height":48,
+                 "id":542,
+                 "name":"blacksmithNpc",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"sprite",
+                         "type":"string",
+                         "value":"blacksmith.png"
+                        }, 
+                        {
+                         "name":"sprite_size_x",
+                         "type":"int",
+                         "value":48
+                        }, 
+                        {
+                         "name":"sprite_size_y",
+                         "type":"int",
+                         "value":48
+                        }, 
+                        {
+                         "name":"userdata_command",
+                         "type":"string",
+                         "value":"dialog_trigger"
+                        }, 
+                        {
+                         "name":"userdata_dialog_id",
+                         "type":"string",
+                         "value":"blacksmithGreeting"
+                        }, 
+                        {
+                         "name":"userdata_objecttype",
+                         "type":"int",
+                         "value":9
+                        }, 
+                        {
+                         "name":"userdata_objecttype_enum",
+                         "propertytype":"ObjectType",
+                         "type":"int",
+                         "value":9
+                        }],
+                 "rotation":0,
+                 "type":"PhysicsObject",
+                 "visible":true,
+                 "width":48,
+                 "x":1280,
+                 "y":544
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -537,7 +635,7 @@
          "y":0
         }],
  "nextlayerid":10,
- "nextobjectid":541,
+ "nextobjectid":543,
  "orientation":"orthogonal",
  "properties":[
         {

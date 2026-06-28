@@ -85,6 +85,11 @@ namespace ggj
                 m_strToTex["MageBall.png"] = TextureName::MageBall;
                 m_strToTex["dungeon_prison.png"] = TextureName::DungeonPrison;
                 m_strToTex["dungeon_prison_props.png"] = TextureName::DungeonPrisonProps;
+                m_strToTex["blacksmith.png"] = TextureName::NpcBlacksmith;
+                m_strToTex["scholar.png"] = TextureName::NpcScholar;
+                m_strToTex["treant.png"] = TextureName::NpcTreant;
+                m_strToTex["butcher.png"] = TextureName::NpcButcher;
+                m_strToTex["mage.png"] = TextureName::NpcMage;
                 m_strToTex["claude.png"]    = TextureName::EnemyClaude;
                 m_strToTex["claudling.png"] = TextureName::EnemyClaudling;
 
@@ -157,6 +162,11 @@ namespace ggj
                 m_texToRes[TextureName::MageBall] = ResourceName::MageBall;
                 m_texToRes[TextureName::DungeonPrison] = ResourceName::DungeonPrison;
                 m_texToRes[TextureName::DungeonPrisonProps] = ResourceName::DungeonPrisonProps;
+                m_texToRes[TextureName::NpcBlacksmith] = ResourceName::GraphicsNpcBlacksmith;
+                m_texToRes[TextureName::NpcScholar] = ResourceName::GraphicsNpcScholar;
+                m_texToRes[TextureName::NpcTreant] = ResourceName::GraphicsNpcTreant;
+                m_texToRes[TextureName::NpcButcher] = ResourceName::GraphicsNpcButcher;
+                m_texToRes[TextureName::NpcMage] = ResourceName::GraphicsNpcMage;
                 m_texToRes[TextureName::EnemyClaude]    = ResourceName::GraphicsEnemyClaude;
                 m_texToRes[TextureName::EnemyClaudling] = ResourceName::GraphicsEnemyClaudling;
 

@@ -1,7 +1,7 @@
 {
   "groups": [
     {
-      "npc": "questGiver",
+      "npc": "ninja",
       "dialogs": [
         {
           "id": "initialGreeting",
@@ -159,6 +159,184 @@
         {
           "id": "scholarNoticesGrowth",
           "text": "My word. You have changed since we last spoke.\nYour posture. Your eyes. The way you carry yourself.\nThis confirms my theory entirely —\ncombat experience accelerates growth beyond any book.\nYou are living proof, traveller. Most illuminating.",
+          "choices": []
+        }
+      ]
+    }
+    ,
+    {
+      "npc": "butcher",
+      "dialogs": [
+        {
+          "id": "butcherGreeting",
+          "affirmCondition": "butcherMet",
+          "text": "Ho there! Come in, come in!\nDon't mind the smell — you get used to it. I got used to it.\nAlthough my wife says I never did and that's why she left.\nAnyway! What can I do for you?",
+          "choices": [
+            { "text": "What do you sell?",                    "nextDialogId": "butcherWares" },
+            { "text": "Those creatures outside look nasty",   "nextDialogId": "butcherCreatures" },
+            { "text": "Any tips for surviving out there?",    "nextDialogId": "butcherAdvice" },
+            { "text": "I killed all the creatures",          "condition": "levelComplete", "nextDialogId": "butcherCleared" },
+            { "text": "I've been in a few fights now",       "condition": "battleHardened", "nextDialogId": "butcherRespect" }
+          ]
+        },
+        {
+          "id": "butcherWares",
+          "text": "Finest cuts in Galdaria!\nWell. Formerly finest cuts.\nThe creatures killed my last two delivery men, so I'm running a bit low.\nBut when this mess is sorted I'll have a full stock.\nChops, roasts, sausages — you name it.\nI do a lovely smoked haunch if you're interested.\nPresumably not right now though. Given everything.",
+          "choices": []
+        },
+        {
+          "id": "butcherCreatures",
+          "text": "Nasty? Ha!\nFrom a purely professional standpoint I'd call them interesting.\nUnusual skeletal structure. Dense muscle fibre.\nI am not saying I've thought about it.\nI'm just saying hypothetically the cuts would be challenging.\nPlease don't repeat that. People misunderstand me.",
+          "choices": [
+            { "text": "That's disturbing", "nextDialogId": "butcherDisturbing" }
+          ]
+        },
+        {
+          "id": "butcherDisturbing",
+          "text": "Is it??\nI've been a butcher for thirty years!\nThis is just how my brain works!\nYou look at a horse and think 'lovely animal'.\nI look at a horse and think 'fifteen good cuts, maybe sixteen'.\nOccupational hazard. I'm a perfectly nice person.",
+          "choices": []
+        },
+        {
+          "id": "butcherAdvice",
+          "text": "You want survival advice from a butcher?\nFair enough, I've thought about anatomy more than most.\nHit them somewhere that matters.\nEvery creature has a soft spot — find it early.\nAlso: don't fight hungry. I cannot stress this enough.\nBad decisions happen on an empty stomach.\nI once saw a man charge a bear because he skipped breakfast.\nHe did not survive. The bear did. Tragic all around.",
+          "choices": []
+        },
+        {
+          "id": "butcherCleared",
+          "text": "Every last one?!\nMarvellous! This calls for a celebration!\nI've got a cut of something in the back I've been saving for a special occasion.\nI won't tell you what animal it's from because you'll ask questions.\nJust know it smells incredible and tastes even better.\nYou've done this town a genuine service, friend.\nCome back when I've restocked. First purchase on me.",
+          "choices": []
+        },
+        {
+          "id": "butcherRespect",
+          "text": "Ha! I can tell, you know.\nIt's the hands. And the eyes.\nPeople who've been in fights carry themselves differently.\nMore deliberate. Like they know what it costs.\nYou've got that look now.\nKind of unsettling on someone your size, to be honest.\nI mean that as a compliment. Mostly.",
+          "choices": []
+        }
+      ]
+    }
+    ,
+    {
+      "npc": "mage",
+      "dialogs": [
+        {
+          "id": "mageGreeting",
+          "affirmCondition": "mageMet",
+          "text": "Ah. A visitor.\nI sensed your approach, of course.\nI sense most things. It is a burden as much as a gift.\nRight now I am sensing that you want something from me.\nI am also sensing you haven't bathed recently, but we'll move past that.\nWhat is it?",
+          "choices": [
+            { "text": "Can you help me fight the creatures?",   "nextDialogId": "mageHelp" },
+            { "text": "What do you know about the creatures?", "nextDialogId": "mageCreatures" },
+            { "text": "Teach me some magic",                   "nextDialogId": "mageTechMagic" },
+            { "text": "The creatures are all dead",           "condition": "levelComplete", "nextDialogId": "mageCleared" },
+            { "text": "I feel different. Stronger.",          "condition": "leveledUp",     "nextDialogId": "mageSensesGrowth" }
+          ]
+        },
+        {
+          "id": "mageHelp",
+          "text": "Fight? Me?\nI am a mage of the Seventh Conclave.\nI do not fight. I illuminate. I advise. I occasionally curse people who deserve it.\nDirect combat is beneath my station and also very dangerous.\nNot for them. For me. I bruise easily.\nBut I can offer you something more valuable than a fireball.\nI can offer you knowledge.",
+          "choices": [
+            { "text": "Fine. What do you know?", "nextDialogId": "mageCreatures" }
+          ]
+        },
+        {
+          "id": "mageCreatures",
+          "text": "These creatures are drawn by a resonance in the ley lines.\nSomething below this land is singing the wrong note —\na dark frequency that calls them like moths to a flame.\nThe source is deeper. Further in.\nDefeating the creatures here is necessary but not sufficient.\nYou are treating the symptom, not the disease.\nBut it is a start. Even mages have to start somewhere.\nI started by accidentally turning my tutor into a frog. We all have our journeys.",
+          "choices": [
+            { "text": "How do I stop it at the source?", "nextDialogId": "mageSource" }
+          ]
+        },
+        {
+          "id": "mageSource",
+          "text": "That is an excellent question and I respect you for asking it.\nUnfortunately I do not entirely know.\nI know it is deep. I know it is old. I know it is angry.\nBeyond that my scrying has been... cloudy.\nSomething is blocking my vision, which is extremely rude.\nClear this place first. Then seek the next portal.\nEach step will reveal more. Probably.",
+          "choices": []
+        },
+        {
+          "id": "mageTechMagic",
+          "text": "Teach you magic.\nIn one conversation.\nRight.\nMagic takes twelve years of dedicated study, seventeen failed attempts at basic fire conjuring,\none crisis of faith, and at least two very bad haircuts from the stress.\nI cannot give you that.\nWhat I can give you is this: trust your instincts in the field.\nThe body knows things the mind is too slow to process.\nThat is essentially magic. Don't tell the Conclave I said that.",
+          "choices": []
+        },
+        {
+          "id": "mageCleared",
+          "text": "I know.\nI felt the resonance shift the moment the last one fell.\nLike a chord resolving. Rather beautiful, in a morbid way.\nYou have done well, traveller.\nI confess I did not think you would manage it.\nI am recalibrating my assessment of you upward.\nThat does not happen often. Enjoy the moment.",
+          "choices": [
+            { "text": "What happens next?", "nextDialogId": "mageWhatNext" }
+          ]
+        },
+        {
+          "id": "mageWhatNext",
+          "text": "The portal will take you deeper.\nThe source of the disturbance awaits.\nI would come with you but — \nwell.\nConclaveregulations. Insurance reasons. Also a prior engagement.\nBut I will be watching. Scrying, technically.\nYou will not see me but I will be there.\nThat is either comforting or unsettling. I leave that to you.",
+          "choices": []
+        },
+        {
+          "id": "mageSensesGrowth",
+          "text": "Yes.\nI can see it.\nYour aura has changed — deeper colour, sharper edges.\nIn magical terms you are considerably more dangerous than when we first spoke.\nIn practical terms: good. You will need it.\nWhatever is down there has been waiting a long time.\nIt will not be impressed by someone who hasn't grown.\nFortunately for you — you have.",
+          "choices": []
+        }
+      ]
+    }
+    ,
+    {
+      "npc": "treant",
+      "dialogs": [
+        {
+          "id": "treantGreeting",
+          "affirmCondition": "treantMet",
+          "text": "...\n...\nAh.\nA small warm thing.\nI have not spoken in... forty-three winters, I believe.\nPossibly forty-four. Time moves differently when you are rooted.\nSpeak, then. I am listening.\nI have nowhere else to be.",
+          "choices": [
+            { "text": "What are you?",                        "nextDialogId": "treantWhatAreYou" },
+            { "text": "Tell me about this forest",            "nextDialogId": "treantForest" },
+            { "text": "What are those creatures out there?",  "nextDialogId": "treantCreatures" },
+            { "text": "The creatures are gone",              "condition": "levelComplete", "nextDialogId": "treantCleared" },
+            { "text": "You seem different than before",      "condition": "leveledUp",     "nextDialogId": "treantNoticesGrowth" }
+          ]
+        },
+        {
+          "id": "treantWhatAreYou",
+          "text": "A good question.\nI am what this forest remembers of itself.\nI was a seed when this hillside had no name.\nI watched the first road get cut through that valley.\nSpoiled a perfectly good meadow, that road.\nBut I digress.\nI am old. I am large. I am largely unbothered.\nUntil recently.",
+          "choices": [
+            { "text": "What happened recently?", "nextDialogId": "treantCreatures" }
+          ]
+        },
+        {
+          "id": "treantForest",
+          "text": "This forest has stood for longer than your people have had words.\nEvery root is a memory. Every ring inside me is a year.\nI have watched empires burn and flowers return in spring.\nBoth are, in the grand scale, equally brief.\nThe creatures you see out there — they did not grow here.\nSomething brought them.\nSomething wrong.",
+          "choices": [
+            { "text": "What brought them?", "nextDialogId": "treantCreatures" }
+          ]
+        },
+        {
+          "id": "treantCreatures",
+          "text": "I felt them arrive before I saw them.\nThe soil changed. A sour note, deep underground.\nThey answer to something dark, beyond this wood.\nThey do not belong here and the forest knows it.\nThe birds went quiet. That is always the first sign.\nWhen the birds go quiet, something is very wrong.\nOr a cat is nearby. But in this case — very wrong.",
+          "choices": [
+            { "text": "Can you stop them?", "nextDialogId": "treantCannotFight" },
+            { "text": "I'll deal with them", "nextDialogId": "treantEncourages" }
+          ]
+        },
+        {
+          "id": "treantCannotFight",
+          "text": "Me?\nHm.\nI am... not built for speed.\nOr pursuit.\nOr anything that requires moving more than two feet in a decade.\nI have tried reasoning with them.\nThey were not interested.\nYou, however, appear to be both mobile and armed.\nThink about it.",
+          "choices": [
+            { "text": "Fine. I'll handle it.", "nextDialogId": "treantEncourages" }
+          ]
+        },
+        {
+          "id": "treantEncourages",
+          "text": "Good.\nI would help you myself, but—\n...well. You see the situation.\nWhen you have cleared them, come back.\nI will still be here.\nI am always still here.\nThat is both my strength and my primary complaint.",
+          "choices": []
+        },
+        {
+          "id": "treantCleared",
+          "text": "...\nYes.\nI can feel it.\nThe soil is easier now. Less... noise.\nYou did that.\nIn the time it took you, I grew perhaps half a leaf.\nAnd yet you accomplished considerably more.\nI find that humbling. And also mildly embarrassing.",
+          "choices": [
+            { "text": "What happens now?", "nextDialogId": "treantAftermath" }
+          ]
+        },
+        {
+          "id": "treantAftermath",
+          "text": "The forest will recover. It always does.\nSlowly. Over decades. In ways you will not live to see.\nBut it begins today, because of you.\nThat is not nothing, small warm thing.\nGo further. Something still calls those creatures here.\nThe root of it lies beyond this wood.\nI wish I could tell you more.\nI am very old, but my reach is only as far as my roots.",
+          "choices": []
+        },
+        {
+          "id": "treantNoticesGrowth",
+          "text": "You have changed.\nI notice these things — I have been watching things change for centuries.\nThe way you stand. The set of your shoulders.\nYou carry more weight now, and not just the physical kind.\nGrowth, in my experience, always costs something.\nBut it is always worth the price.\nYou are doing well, small warm thing.\nBetter than you know.",
           "choices": []
         }
       ]

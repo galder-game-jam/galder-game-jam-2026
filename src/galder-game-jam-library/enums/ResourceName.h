@@ -94,6 +94,12 @@ namespace ggj
         DungeonPrison = 204,
         DungeonPrisonProps = 205,
 
+        GraphicsNpcBlacksmith = 206,
+        GraphicsNpcScholar = 207,
+        GraphicsNpcTreant = 208,
+        GraphicsNpcButcher = 209,
+        GraphicsNpcMage = 210,
+
         HudRpg = 300,
         HudRpgSubset = 301,
         HudRpgRoguePortrait = 302,
@@ -143,7 +149,14 @@ namespace ggj
         MusicBossBattle2 = 705,
         MusicBossBattle3 = 706,
         MusicBossBattle4 = 707,
-        MusicMainMenu1 = 708
+        MusicMainMenu1 = 708,
+        MusicMainMenu2 = 709,
+
+        MusicGlitch1 = 710,
+        MusicGlitch2 = 711,
+
+        MusicVictory1 = 712,
+        MusicVictory2 = 713
     };
 } // namespace ggj
 

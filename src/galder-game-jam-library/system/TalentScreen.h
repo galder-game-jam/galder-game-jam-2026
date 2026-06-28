@@ -14,6 +14,7 @@
 #include "../data/TalentData.hpp"
 #include "../data/TalentState.hpp"
 #include "../data/PlayerPersistentState.hpp"
+#include "../interfaces/manager/IOptionsManager.h"
 
 namespace ggj
 {
@@ -33,9 +34,11 @@ namespace ggj
     {
         public:
             explicit TalentScreen(IInputManager<KeyboardKey>& inputManager,
-                                  PlayerPersistentState&      persistentState)
+                                  PlayerPersistentState&      persistentState,
+                                  IOptionsManager&            options)
                 : m_inputManager(inputManager)
                 , m_persistentState(persistentState)
+                , m_options(options)
             {
                 m_isVisible = true;
             }
@@ -77,6 +80,7 @@ namespace ggj
 
             IInputManager<KeyboardKey>& m_inputManager;
             PlayerPersistentState&      m_persistentState;
+            IOptionsManager&            m_options;
             raylib::Font*               m_font           { nullptr };
             PlayerPickedCharacter       m_pickedCharacter{ PlayerPickedCharacter::Rogue };
             int                         m_currentLevel   { 1 };
