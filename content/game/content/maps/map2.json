@@ -3608,6 +3608,104 @@
                  "width":16,
                  "x":676.75,
                  "y":416.5
+                }, 
+                {
+                 "height":64,
+                 "id":665,
+                 "name":"butcherNpc",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"sprite",
+                         "type":"string",
+                         "value":"butcher.png"
+                        }, 
+                        {
+                         "name":"sprite_size_x",
+                         "type":"int",
+                         "value":64
+                        }, 
+                        {
+                         "name":"sprite_size_y",
+                         "type":"int",
+                         "value":64
+                        }, 
+                        {
+                         "name":"userdata_command",
+                         "type":"string",
+                         "value":"dialog_trigger"
+                        }, 
+                        {
+                         "name":"userdata_dialog_id",
+                         "type":"string",
+                         "value":"butcherGreeting"
+                        }, 
+                        {
+                         "name":"userdata_objecttype",
+                         "type":"int",
+                         "value":9
+                        }, 
+                        {
+                         "name":"userdata_objecttype_enum",
+                         "propertytype":"ObjectType",
+                         "type":"int",
+                         "value":9
+                        }],
+                 "rotation":0,
+                 "type":"PhysicsObject",
+                 "visible":true,
+                 "width":64,
+                 "x":224,
+                 "y":384
+                }, 
+                {
+                 "height":48,
+                 "id":666,
+                 "name":"scholarNpc",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"sprite",
+                         "type":"string",
+                         "value":"scholar.png"
+                        }, 
+                        {
+                         "name":"sprite_size_x",
+                         "type":"int",
+                         "value":48
+                        }, 
+                        {
+                         "name":"sprite_size_y",
+                         "type":"int",
+                         "value":48
+                        }, 
+                        {
+                         "name":"userdata_command",
+                         "type":"string",
+                         "value":"dialog_trigger"
+                        }, 
+                        {
+                         "name":"userdata_dialog_id",
+                         "type":"string",
+                         "value":"scholarGreeting"
+                        }, 
+                        {
+                         "name":"userdata_objecttype",
+                         "type":"int",
+                         "value":9
+                        }, 
+                        {
+                         "name":"userdata_objecttype_enum",
+                         "propertytype":"ObjectType",
+                         "type":"int",
+                         "value":9
+                        }],
+                 "rotation":0,
+                 "type":"PhysicsObject",
+                 "visible":true,
+                 "width":48,
+                 "x":784,
+                 "y":704
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -3687,7 +3785,7 @@
          "y":0
         }],
  "nextlayerid":12,
- "nextobjectid":665,
+ "nextobjectid":667,
  "orientation":"orthogonal",
  "properties":[
         {
