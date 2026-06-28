@@ -163,7 +163,11 @@ namespace ggj
             ImGui::Text("HUD");
             ImGui::Separator();
             HudOptions hudOpts = options.getHudOptions();
-            if (ImGui::SliderFloat("HUD Alpha##hud", &hudOpts.hudAlpha, 0.0f, 1.0f))
+            bool hudChanged = false;
+            hudChanged |= ImGui::SliderFloat("HUD Alpha##hud", &hudOpts.hudAlpha, 0.0f, 1.0f);
+            hudChanged |= ImGui::Checkbox("Show Minimap##hud", &hudOpts.showMinimap);
+            hudChanged |= ImGui::Checkbox("Show Quest Log##hud", &hudOpts.showQuestLog);
+            if (hudChanged)
                 options.setHudOptions(hudOpts);
 
             ImGui::Spacing();

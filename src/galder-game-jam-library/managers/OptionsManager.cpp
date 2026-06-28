@@ -41,6 +41,10 @@ namespace ggj
             m_hudOptions.hudAlpha   = static_cast<float>(hud["alpha"].number_value());
             if (hud["imguiScale"].is_number())
                 m_hudOptions.imguiScale = static_cast<float>(hud["imguiScale"].number_value());
+            if (hud["showMinimap"].is_bool())
+                m_hudOptions.showMinimap = hud["showMinimap"].bool_value();
+            if (hud["showQuestLog"].is_bool())
+                m_hudOptions.showQuestLog = hud["showQuestLog"].bool_value();
         }
 
         const json11::Json& kb = root["keybindings"];
@@ -77,8 +81,10 @@ namespace ggj
                 { "soundVolume", static_cast<double>(m_audioOptions.soundVolume) }
             }},
             { "hud", json11::Json::object {
-                { "alpha",      static_cast<double>(m_hudOptions.hudAlpha) },
-                { "imguiScale", static_cast<double>(m_hudOptions.imguiScale) }
+                { "alpha",        static_cast<double>(m_hudOptions.hudAlpha) },
+                { "imguiScale",   static_cast<double>(m_hudOptions.imguiScale) },
+                { "showMinimap",  m_hudOptions.showMinimap },
+                { "showQuestLog", m_hudOptions.showQuestLog }
             }},
             { "keybindings", json11::Json::object {
                 { "moveUp",    static_cast<int>(m_keybindingOptions.moveUp) },

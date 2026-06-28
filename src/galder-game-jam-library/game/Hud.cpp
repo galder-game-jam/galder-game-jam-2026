@@ -71,11 +71,20 @@ namespace ggj
         if (m_inputManager.keyPressed(KeyboardKey::F8))
             setVisible(!m_isVisible);
 
+        HudOptions hudOpts = m_options.getHudOptions();
+        bool hudOptsChanged = false;
         if (m_inputManager.keyPressed(m_options.getKeybindingOptions().toggleQuestLog))
-            m_isQuestLogVisible = !m_isQuestLogVisible;
-
+        {
+            hudOpts.showQuestLog = !hudOpts.showQuestLog;
+            hudOptsChanged = true;
+        }
         if (m_inputManager.keyPressed(m_options.getKeybindingOptions().toggleMinimap))
-            m_isMinimapVisible = !m_isMinimapVisible;
+        {
+            hudOpts.showMinimap = !hudOpts.showMinimap;
+            hudOptsChanged = true;
+        }
+        if (hudOptsChanged)
+            m_options.setHudOptions(hudOpts);
 
         if (m_currentPlayer == nullptr)
             return;
@@ -104,13 +113,13 @@ namespace ggj
 
         drawPlayerPortrait();
         drawPlayerPositionBar(m_playerPositionOffset);
-        if (m_isQuestLogVisible)
+        if (m_options.getHudOptions().showQuestLog)
             drawQuestLog(m_questLogOffset, 4, 1);
 
         if (!m_playerName.empty() && m_font != nullptr)
             m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, tinted(raylib::Color::White()));
 
-        if (m_minimap != nullptr && m_isMinimapVisible)
+        if (m_minimap != nullptr && m_options.getHudOptions().showMinimap)
         {
             m_minimap->draw(m_playerPosition, m_options.getHudOptions().hudAlpha);
 

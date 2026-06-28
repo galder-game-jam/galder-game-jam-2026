@@ -13,8 +13,10 @@ namespace ggj
     {
         HudOptions() = default;
 
-        float hudAlpha    { 0.706f }; ///< HUD transparency in [0.0, 1.0]; 0 = fully transparent, 1 = fully opaque. Default matches legacy HUD_ALPHA 180/255.
-        float imguiScale  { 2.0f };  ///< Global ImGui UI scale factor applied to all windows and fonts.
+        float hudAlpha      { 0.706f }; ///< HUD transparency in [0.0, 1.0]; 0 = fully transparent, 1 = fully opaque. Default matches legacy HUD_ALPHA 180/255.
+        float imguiScale    { 2.0f };  ///< Global ImGui UI scale factor applied to all windows and fonts.
+        bool  showMinimap   { true };  ///< Whether the minimap is visible on startup.
+        bool  showQuestLog  { true };  ///< Whether the quest log is visible on startup.
     };
 } // namespace ggj
 

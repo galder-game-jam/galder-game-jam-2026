@@ -7,7 +7,9 @@
     },
     "hud": {
         "alpha": 0.706,
-        "imguiScale": 2.0
+        "imguiScale": 2.0,
+        "showMinimap": true,
+        "showQuestLog": true
     },
     "keybindings": {
         "moveUp": 87,

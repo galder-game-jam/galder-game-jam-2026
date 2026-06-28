@@ -88,7 +88,11 @@ namespace ggj
         ImGui::Spacing();
         ImGui::TextUnformatted("HUD");
         ImGui::Separator();
-        if (ImGui::SliderFloat("HUD Alpha##hud", &m_localHudOptions.hudAlpha, 0.0f, 1.0f))
+        bool hudChanged = false;
+        hudChanged |= ImGui::SliderFloat("HUD Alpha##hud", &m_localHudOptions.hudAlpha, 0.0f, 1.0f);
+        hudChanged |= ImGui::Checkbox("Show Minimap##hud", &m_localHudOptions.showMinimap);
+        hudChanged |= ImGui::Checkbox("Show Quest Log##hud", &m_localHudOptions.showQuestLog);
+        if (hudChanged)
             m_options.setHudOptions(m_localHudOptions);
 
         ImGui::Spacing();
