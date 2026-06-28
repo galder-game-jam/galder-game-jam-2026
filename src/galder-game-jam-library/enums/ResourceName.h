@@ -94,6 +94,12 @@ namespace ggj
         DungeonPrison = 204,
         DungeonPrisonProps = 205,
 
+        GraphicsNpcBlacksmith = 206,
+        GraphicsNpcScholar = 207,
+        GraphicsNpcTreant = 208,
+        GraphicsNpcButcher = 209,
+        GraphicsNpcMage = 210,
+
         HudRpg = 300,
         HudRpgSubset = 301,
         HudRpgRoguePortrait = 302,
