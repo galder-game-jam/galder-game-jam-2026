@@ -21,10 +21,11 @@ namespace ggj
             Bat(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &animationManager, IMapper &mapper, ggj::ISoundManager &soundManager, b2Body *body,
             const raylib::Vector2 &physicsSize,
             const raylib::Vector2 &spriteSize,
-            const raylib::Rectangle &drawingRect, raylib::Texture * texture, const UserData &userData, const raylib::Vector2 &velocity, bool isVisible = true)
+            const raylib::Rectangle &drawingRect, raylib::Texture * texture, const UserData &userData, const raylib::Vector2 &velocity, int lives = 1, bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager {animationManager}, m_mapper{mapper},
               m_soundManager {soundManager}, m_velocity{velocity}
             {
+                m_lives = lives;
                 m_body->SetFixedRotation(true);
                 m_animation = m_animationManager.getAnimation(AnimationName::EnemyBatMove);
                 m_body->SetLinearVelocity({m_velocity.x, m_velocity.y});

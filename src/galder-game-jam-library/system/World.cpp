@@ -141,6 +141,10 @@ namespace ggj
                                 generatorData.followSpeed = value.getValue<float>();
                             else if (key == "knockback")
                                 generatorData.knockback = value.getValue<float>();
+                            else if (key == "is_boss")
+                                generatorData.isBoss = value.getValue<bool>();
+                            else if (key == "boss_name")
+                                generatorData.bossName = value.getValue<std::string>();
                         }
 
                         ObjectType objectType = (ObjectType)userdataObjectType;
@@ -564,7 +568,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Bat>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity);
+                    generatorData.userData, generatorData.velocity, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -639,7 +643,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Snake>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity);
+                    generatorData.userData, generatorData.velocity, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -699,7 +703,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Spider>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity);
+                    generatorData.userData, generatorData.velocity, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -729,7 +733,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Thing>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity);
+                    generatorData.userData, generatorData.velocity, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -759,7 +763,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Ghost>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity);
+                    generatorData.userData, generatorData.velocity, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -1005,6 +1009,12 @@ namespace ggj
                     spriteSize, r, tex, generatorData.userData, generatorData.lives,
                     generatorData.followSpeed, generatorData.knockback, m_player, this);
                 m_userDataManager.addUserData(body, physicsObject);
+                if (generatorData.isBoss && physicsObject != nullptr)
+                {
+                    m_boss        = physicsObject;
+                    m_bossName    = generatorData.bossName;
+                    m_bossMaxLives = generatorData.lives;
+                }
             }
         }
     }

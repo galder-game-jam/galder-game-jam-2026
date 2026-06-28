@@ -534,9 +534,19 @@
                  "opacity":1,
                  "properties":[
                         {
+                         "name":"boss_name",
+                         "type":"string",
+                         "value":"King Claude"
+                        }, 
+                        {
                          "name":"follow_speed",
                          "type":"float",
                          "value":8
+                        }, 
+                        {
+                         "name":"is_boss",
+                         "type":"bool",
+                         "value":true
                         }, 
                         {
                          "name":"is_static",

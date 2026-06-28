@@ -116,6 +116,8 @@ namespace ggj
             destroy();
             if (attacker != nullptr)
                 attacker->getUserData()->enemiesKilled++;
+            if (m_world != nullptr)
+                m_world->clearBoss();
         }
         else
         {

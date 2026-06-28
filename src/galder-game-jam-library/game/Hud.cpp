@@ -114,6 +114,9 @@ namespace ggj
 
         if (m_minimap != nullptr)
             m_minimap->draw(m_playerPosition, m_options.getHudOptions().hudAlpha);
+
+        if (m_currentWorld != nullptr && m_currentWorld->hasBoss())
+            drawBossBar();
     }
 
     void Hud::drawQuestLog(raylib::Vector2 offset, int width, int height) const
@@ -216,5 +219,34 @@ namespace ggj
                          raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
         m_font->DrawText(TextFormat("XP: %i/%i", m_currentXp, m_xpToNextLevel),
                          raylib::Vector2 { offset.x + TILE_UNIT * 4, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
+    }
+    void Hud::drawBossBar() const
+    {
+        const int maxLives = m_currentWorld->getBossMaxLives();
+        const int curLives = m_currentWorld->getBossLives();
+        if (maxLives <= 0)
+            return;
+
+        const int SCREEN_W  = GetScreenWidth();
+        const int BAR_W     = 400;
+        const int BAR_H     = 20;
+        const int BAR_X     = (SCREEN_W - BAR_W) / 2;
+        const int NAME_Y    = 8;
+        const int BAR_Y     = NAME_Y + FONT_SIZE + 4;
+
+        DrawRectangle(BAR_X, BAR_Y, BAR_W, BAR_H, tinted(raylib::Color { 40, 40, 40, 200 }));
+
+        const int fillW = (curLives * BAR_W) / maxLives;
+        DrawRectangle(BAR_X, BAR_Y, fillW, BAR_H, tinted(raylib::Color { 200, 30, 30, 220 }));
+
+        DrawRectangleLines(BAR_X, BAR_Y, BAR_W, BAR_H, tinted(raylib::Color::White()));
+
+        const std::string& name = m_currentWorld->getBossName();
+        if (m_font != nullptr && !name.empty())
+        {
+            const raylib::Vector2 nameSize = m_font->MeasureText(name, FONT_SIZE, 0);
+            const float nameX = static_cast<float>((SCREEN_W - static_cast<int>(nameSize.x)) / 2);
+            m_font->DrawText(name, raylib::Vector2 { nameX, static_cast<float>(NAME_Y) }, FONT_SIZE, 0, tinted(raylib::Color::White()));
+        }
     }
 } // namespace ggj

@@ -27,8 +27,9 @@ namespace ggj
                 int lives, float followSpeed, float knockback, IPlayer* player, World* world, bool isVisible = true)
                 : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible),
                   m_animationManager { animationManager }, m_mapper { mapper }, m_soundManager { soundManager },
-                  m_lives { lives }, m_followSpeed { followSpeed }, m_knockback { knockback }, m_player { player }, m_world { world }
+                  m_followSpeed { followSpeed }, m_knockback { knockback }, m_player { player }, m_world { world }
             {
+                m_lives = lives;
                 m_body->SetFixedRotation(true);
                 m_idleAnimation   = m_animationManager.getAnimation(AnimationName::EnemyClaudeIdle);
                 m_walkAnimation   = m_animationManager.getAnimation(AnimationName::EnemyClaudeWalk);
@@ -54,7 +55,6 @@ namespace ggj
             Animation m_attackAnimation;
             Animation m_animation;
 
-            int   m_lives       { 3 };
             float m_followSpeed { 0.f };
             float m_knockback   { 0.f };
 

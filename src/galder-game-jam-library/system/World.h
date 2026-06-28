@@ -119,6 +119,12 @@ namespace ggj
          */
         void spawnClaudling(raylib::Vector2 position, float followSpeed, float knockback);
 
+        void clearBoss() { m_boss = nullptr; }
+        [[nodiscard]] bool        hasBoss()        const { return m_boss != nullptr; }
+        [[nodiscard]] std::string getBossName()    const { return m_bossName; }
+        [[nodiscard]] int         getBossLives()   const { return m_boss ? m_boss->getLives() : 0; }
+        [[nodiscard]] int         getBossMaxLives() const { return m_bossMaxLives; }
+
             /*! Spawns a floating "+1 life" label in world space above the given position. */
         void spawnFloatingText(raylib::Vector2 pos);
 
@@ -211,6 +217,10 @@ namespace ggj
 
         struct PendingClaudlingSpawn { raylib::Vector2 position; float followSpeed; float knockback; };
         std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;
+
+        PhysicsObject* m_boss        { nullptr };
+        std::string    m_bossName    {};
+        int            m_bossMaxLives { 0 };
 
         INetworkManager* m_network = nullptr;
         std::map<uint32_t, PhysicsObject*> m_networkObjects; ///< Syncable objects (enemies/coins) by network id.

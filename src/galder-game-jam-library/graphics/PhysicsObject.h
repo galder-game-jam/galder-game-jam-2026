@@ -78,9 +78,12 @@ namespace ggj
         [[nodiscard]] static raylib::Vector2 ConvertToVector2(const b2Vec2& vec2);
         static float ConvertToDegrees(float radians);
 
+        [[nodiscard]] int getLives() const { return m_lives; }
+
         protected:
         b2Body* m_body { nullptr };
         PhysicsShape m_shape { PhysicsShape::None };
+        int m_lives { 1 };
 
         raylib::Vector2 m_size {};
         raylib::Vector2 m_origin {};

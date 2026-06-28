@@ -48,6 +48,7 @@ namespace ggj
             void drawKillsBar(raylib::Vector2 offset) const;
             void drawXpBar(raylib::Vector2 offset) const;
             void drawPlayerPositionBar(raylib::Vector2 offset) const;
+            void drawBossBar() const;
 
             /*! Returns color with its alpha channel scaled by the current HUD alpha setting. */
             [[nodiscard]] raylib::Color tinted(raylib::Color color) const;
