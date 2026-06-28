@@ -132,6 +132,9 @@ namespace ggj
             {
                 m_velocity = raylib::Vector2 { m_velocity.x, 0.f };
             }
+
+            if (m_velocity.x != 0.f || m_velocity.y != 0.f)
+                m_lastMoveDirection = m_velocity;
         }
 
         if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking)
@@ -301,7 +304,8 @@ namespace ggj
         m_soundManager.playSound(SoundName::WizardShoot);
         const float BASE_PROJ_SPEED = 8.f;
         const float projSpeed = BASE_PROJ_SPEED * m_world->getPlayerTalentEffects(m_playerIndex).projectileSpeedMultiplier;
-        const raylib::Vector2 velocity { m_isLeftPosition ? -projSpeed : projSpeed, 0.f };
+        const Vector2 dir = Vector2Normalize({ m_lastMoveDirection.x, m_lastMoveDirection.y });
+        const raylib::Vector2 velocity { dir.x * projSpeed, dir.y * projSpeed };
         MageBall* ball =
             m_world->createProjectile<ggj::MageBall>(TextureName::MageBall, raylib::Vector2 { 16.f, 16.f }, raylib::Vector2 { m_position.x, m_position.y - 8 }, velocity, 1.f);
         ball->setOwner(this);
