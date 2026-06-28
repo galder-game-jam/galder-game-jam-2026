@@ -1011,8 +1011,8 @@ namespace ggj
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {
-                    m_boss        = physicsObject;
-                    m_bossName    = generatorData.bossName;
+                    m_boss         = physicsObject;
+                    m_bossName     = generatorData.bossName;
                     m_bossMaxLives = generatorData.lives;
                 }
             }

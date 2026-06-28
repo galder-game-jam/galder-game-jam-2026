@@ -227,10 +227,12 @@ namespace ggj
         if (maxLives <= 0)
             return;
 
-        const int SCREEN_W  = GetScreenWidth();
+        // All HUD drawing happens inside a fixed-size render texture (800×600).
+        // GetScreenWidth() returns the actual window size and must not be used here.
+        const int RENDER_W  = 800;
         const int BAR_W     = 400;
         const int BAR_H     = 20;
-        const int BAR_X     = (SCREEN_W - BAR_W) / 2;
+        const int BAR_X     = (RENDER_W - BAR_W) / 2;
         const int NAME_Y    = 8;
         const int BAR_Y     = NAME_Y + FONT_SIZE + 4;
 
@@ -245,7 +247,7 @@ namespace ggj
         if (m_font != nullptr && !name.empty())
         {
             const raylib::Vector2 nameSize = m_font->MeasureText(name, FONT_SIZE, 0);
-            const float nameX = static_cast<float>((SCREEN_W - static_cast<int>(nameSize.x)) / 2);
+            const float nameX = static_cast<float>((RENDER_W - static_cast<int>(nameSize.x)) / 2);
             m_font->DrawText(name, raylib::Vector2 { nameX, static_cast<float>(NAME_Y) }, FONT_SIZE, 0, tinted(raylib::Color::White()));
         }
     }
