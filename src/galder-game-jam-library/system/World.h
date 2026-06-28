@@ -117,7 +117,7 @@ namespace ggj
          * Must be queued (not spawned immediately) because calling createGameObject during layer
          * iteration would invalidate the vector iterator.
          */
-        void spawnClaudling(raylib::Vector2 position, float followSpeed);
+        void spawnClaudling(raylib::Vector2 position, float followSpeed, float knockback);
 
             /*! Spawns a floating "+1 life" label in world space above the given position. */
         void spawnFloatingText(raylib::Vector2 pos);
@@ -151,7 +151,7 @@ namespace ggj
         void generateClaude(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateClaudling(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
-        void doSpawnClaudling(raylib::Vector2 position, float followSpeed);
+        void doSpawnClaudling(raylib::Vector2 position, float followSpeed, float knockback);
         void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
@@ -209,7 +209,7 @@ namespace ggj
 
         std::vector<FloatingTextEntry> m_floatingTexts;
 
-        struct PendingClaudlingSpawn { raylib::Vector2 position; float followSpeed; };
+        struct PendingClaudlingSpawn { raylib::Vector2 position; float followSpeed; float knockback; };
         std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;
 
         INetworkManager* m_network = nullptr;

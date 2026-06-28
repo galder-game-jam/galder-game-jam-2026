@@ -26,6 +26,7 @@ namespace ggj
 
         int   lives       { 3 };
         float followSpeed { 0.f };
+        float knockback   { 0.f };
 
         int layerIndex{};
         tson::Object obj{};
