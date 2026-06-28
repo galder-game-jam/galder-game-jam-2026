@@ -15,7 +15,7 @@ namespace ggj
         m_position = raylib::Vector2 { 5, 0 };
 
         m_portraitOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 50 };
-        m_playerPositionOffset = raylib::Vector2 { 0.0f, 570.0f };
+        m_playerPositionOffset = raylib::Vector2 { 0.0f, 553.0f };
         // Placed below the minimap (right side): minimap is at x=590, y=10, 200×150.
         m_questLogOffset = raylib::Vector2 { 590.0f, 10.0f + 150.0f + 6.0f };
         m_playerPortraitOffset = raylib::Vector2 { m_portraitOffset.x + 3, m_portraitOffset.y + 3 };
@@ -113,6 +113,7 @@ namespace ggj
 
         drawPlayerPortrait();
         drawPlayerPositionBar(m_playerPositionOffset);
+        drawXpBar();
         if (m_options.getHudOptions().showQuestLog)
             drawQuestLog(m_questLogOffset, 4, 1);
 
@@ -223,7 +224,46 @@ namespace ggj
         m_hudTexture->Draw(m_coinRect, offset + raylib::Vector2 { TILE_UNIT * 1, 4 }, tinted(WHITE));
         m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)),
                          raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
-        m_font->DrawText(TextFormat("XP: %i/%i", m_currentXp, m_xpToNextLevel),
-                         raylib::Vector2 { offset.x + 410, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
     }
+    void Hud::drawXpBar() const
+    {
+        if (m_font == nullptr)
+            return;
+
+        static constexpr float BAR_Y      = 582.0f;
+        static constexpr float BAR_HEIGHT = 18.0f;
+        static constexpr float BAR_WIDTH  = 800.0f;
+        static constexpr int   SEPARATORS = 12;
+
+        DrawRectangle(0, static_cast<int>(BAR_Y), static_cast<int>(BAR_WIDTH), static_cast<int>(BAR_HEIGHT),
+                      tinted(Color { 0, 0, 0, 160 }));
+
+        const float ratio      = m_xpToNextLevel > 0
+                                 ? static_cast<float>(m_currentXp) / static_cast<float>(m_xpToNextLevel)
+                                 : 0.0f;
+        const float safeRatio  = ratio < 0.0f ? 0.0f : (ratio > 1.0f ? 1.0f : ratio);
+        const int   fillWidth  = static_cast<int>(BAR_WIDTH * safeRatio);
+        if (fillWidth > 0)
+        {
+            DrawRectangle(0, static_cast<int>(BAR_Y), fillWidth, static_cast<int>(BAR_HEIGHT),
+                          tinted(Color { 100, 0, 180, 230 }));
+            DrawRectangle(0, static_cast<int>(BAR_Y), fillWidth, 3,
+                          tinted(Color { 170, 80, 255, 180 }));
+        }
+
+        for (int i = 1; i <= SEPARATORS; ++i)
+        {
+            const int x = static_cast<int>(BAR_WIDTH * static_cast<float>(i) / static_cast<float>(SEPARATORS + 1));
+            DrawRectangle(x, static_cast<int>(BAR_Y), 2, static_cast<int>(BAR_HEIGHT),
+                          tinted(Color { 30, 30, 30, 200 }));
+        }
+
+        const char* xpText         = TextFormat("%i / %i XP", m_currentXp, m_xpToNextLevel);
+        const raylib::Vector2 size = MeasureTextEx(*m_font, xpText, static_cast<float>(FONT_SIZE), 0.0f);
+        m_font->DrawText(xpText,
+                         raylib::Vector2 { (BAR_WIDTH - size.x) * 0.5f,
+                                           BAR_Y + (BAR_HEIGHT - size.y) * 0.5f },
+                         FONT_SIZE, 0, tinted(WHITE));
+    }
+
 } // namespace ggj

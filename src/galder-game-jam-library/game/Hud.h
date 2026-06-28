@@ -45,6 +45,7 @@ namespace ggj
             void drawPlayerPortrait() const;
             void drawBar(raylib::Vector2 offset, int middleParts) const;
             void drawPlayerPositionBar(raylib::Vector2 offset) const;
+            void drawXpBar() const;
 
             /*! Returns color with its alpha channel scaled by the current HUD alpha setting. */
             [[nodiscard]] raylib::Color tinted(raylib::Color color) const;
