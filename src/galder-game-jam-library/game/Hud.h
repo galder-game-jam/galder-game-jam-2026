@@ -94,7 +94,6 @@ namespace ggj
             int m_coins{};
             raylib::Rectangle m_coinRect {TILE_UNIT * 7, TILE_UNIT * 6, TILE_UNIT * 1, TILE_UNIT * 1};
 
-            int m_kills {};
 
             int m_level       {};
             int m_currentXp   {};

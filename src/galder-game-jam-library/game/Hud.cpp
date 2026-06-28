@@ -80,7 +80,6 @@ namespace ggj
         m_mana = 2;   // Implement mana and then: static_cast<float>(m_currentPlayer->getMana());
         m_energy = 3; // Implement energy and then: static_cast<float>(m_currentPlayer->getEnergy());
         m_coins = m_currentPlayer->getScore();
-        m_kills = m_currentPlayer->getEnemiesKilled();
         m_level       = m_currentPlayer->getLevel();
         m_currentXp   = m_currentPlayer->getCurrentXp();
         m_totalXp     = m_currentPlayer->getTotalXp();
@@ -188,10 +187,8 @@ namespace ggj
         m_hudTexture->Draw(m_coinRect, offset + raylib::Vector2 { TILE_UNIT * 1, 4 }, tinted(WHITE));
         m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)),
                          raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
-        m_font->DrawText(TextFormat("Kills: %i", static_cast<int>(m_kills)),
-                         raylib::Vector2 { offset.x + 190, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
         m_font->DrawText(TextFormat("Lvl: %i", m_level),
-                         raylib::Vector2 { offset.x + 330, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
+                         raylib::Vector2 { offset.x + 190, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
         m_font->DrawText(TextFormat("XP: %i/%i", m_currentXp, m_xpToNextLevel),
                          raylib::Vector2 { offset.x + 410, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
         m_font->DrawText(TextFormat("Pos: (%i,%i)", static_cast<int>(m_playerPosition.x), static_cast<int>(m_playerPosition.y)),
