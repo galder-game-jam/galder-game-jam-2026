@@ -43,9 +43,12 @@ void ggj::Projectile::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact
 {
     UserData* userDataB = b->getUserData();
 
-    if(userDataB->getObjectType() == ObjectType::Projectile)
+    if (userDataB->getObjectType() == ObjectType::Projectile)
     {
-        destroy();
+        Projectile* other = dynamic_cast<Projectile*>(b);
+        if (other == nullptr || other->getOwner() != m_owner)
+            destroy();
+        return;
     }
     PhysicsSprite::beginContact(a, b, contact);
 }
