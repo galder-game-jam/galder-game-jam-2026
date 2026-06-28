@@ -149,7 +149,14 @@ namespace ggj
         MusicBossBattle2 = 705,
         MusicBossBattle3 = 706,
         MusicBossBattle4 = 707,
-        MusicMainMenu1 = 708
+        MusicMainMenu1 = 708,
+        MusicMainMenu2 = 709,
+
+        MusicGlitch1 = 710,
+        MusicGlitch2 = 711,
+
+        MusicVictory1 = 712,
+        MusicVictory2 = 713
     };
 } // namespace ggj
 
