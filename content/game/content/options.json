@@ -15,6 +15,8 @@
         "moveLeft": 65,
         "moveRight": 68,
         "attack": 32,
-        "respawn": 81
+        "respawn": 81,
+        "toggleQuestLog": 76,
+        "toggleMinimap": 77
     }
 }

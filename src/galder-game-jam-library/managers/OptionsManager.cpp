@@ -56,8 +56,10 @@ namespace ggj
             m_keybindingOptions.moveDown  = readKey("moveDown",  KeyboardKey::S);
             m_keybindingOptions.moveLeft  = readKey("moveLeft",  KeyboardKey::A);
             m_keybindingOptions.moveRight = readKey("moveRight", KeyboardKey::D);
-            m_keybindingOptions.attack    = readKey("attack",    KeyboardKey::C);
-            m_keybindingOptions.respawn   = readKey("respawn",   KeyboardKey::Q);
+            m_keybindingOptions.attack         = readKey("attack",         KeyboardKey::C);
+            m_keybindingOptions.respawn        = readKey("respawn",        KeyboardKey::Q);
+            m_keybindingOptions.toggleQuestLog = readKey("toggleQuestLog", KeyboardKey::L);
+            m_keybindingOptions.toggleMinimap  = readKey("toggleMinimap",  KeyboardKey::M);
         }
 
         return true;
@@ -83,8 +85,10 @@ namespace ggj
                 { "moveDown",  static_cast<int>(m_keybindingOptions.moveDown) },
                 { "moveLeft",  static_cast<int>(m_keybindingOptions.moveLeft) },
                 { "moveRight", static_cast<int>(m_keybindingOptions.moveRight) },
-                { "attack",    static_cast<int>(m_keybindingOptions.attack) },
-                { "respawn",   static_cast<int>(m_keybindingOptions.respawn) }
+                { "attack",         static_cast<int>(m_keybindingOptions.attack) },
+                { "respawn",        static_cast<int>(m_keybindingOptions.respawn) },
+                { "toggleQuestLog", static_cast<int>(m_keybindingOptions.toggleQuestLog) },
+                { "toggleMinimap",  static_cast<int>(m_keybindingOptions.toggleMinimap) }
             }}
         };
 

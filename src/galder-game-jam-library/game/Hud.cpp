@@ -69,9 +69,13 @@ namespace ggj
     void Hud::update(float timeDelta)
     {
         if (m_inputManager.keyPressed(KeyboardKey::F8))
-        {
             setVisible(!m_isVisible);
-        }
+
+        if (m_inputManager.keyPressed(m_options.getKeybindingOptions().toggleQuestLog))
+            m_isQuestLogVisible = !m_isQuestLogVisible;
+
+        if (m_inputManager.keyPressed(m_options.getKeybindingOptions().toggleMinimap))
+            m_isMinimapVisible = !m_isMinimapVisible;
 
         if (m_currentPlayer == nullptr)
             return;
@@ -100,12 +104,13 @@ namespace ggj
 
         drawPlayerPortrait();
         drawPlayerPositionBar(m_playerPositionOffset);
-        drawQuestLog(m_questLogOffset, 4, 1);
+        if (m_isQuestLogVisible)
+            drawQuestLog(m_questLogOffset, 4, 1);
 
         if (!m_playerName.empty() && m_font != nullptr)
             m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, tinted(raylib::Color::White()));
 
-        if (m_minimap != nullptr)
+        if (m_minimap != nullptr && m_isMinimapVisible)
         {
             m_minimap->draw(m_playerPosition, m_options.getHudOptions().hudAlpha);
 

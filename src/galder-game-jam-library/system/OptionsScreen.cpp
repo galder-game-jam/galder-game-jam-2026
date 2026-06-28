@@ -108,6 +108,8 @@ namespace ggj
                     &m_localKeybindingOptions.moveRight,
                     &m_localKeybindingOptions.attack,
                     &m_localKeybindingOptions.respawn,
+                    &m_localKeybindingOptions.toggleQuestLog,
+                    &m_localKeybindingOptions.toggleMinimap,
                 };
                 *targets[m_rebindingAction] = static_cast<KeyboardKey>(rawKey);
                 m_options.setKeybindingOptions(m_localKeybindingOptions);
@@ -125,8 +127,10 @@ namespace ggj
             { "Move Down",  m_localKeybindingOptions.moveDown,  1 },
             { "Move Left",  m_localKeybindingOptions.moveLeft,  2 },
             { "Move Right", m_localKeybindingOptions.moveRight, 3 },
-            { "Attack",     m_localKeybindingOptions.attack,    4 },
-            { "Respawn",    m_localKeybindingOptions.respawn,   5 },
+            { "Attack",          m_localKeybindingOptions.attack,          4 },
+            { "Respawn",         m_localKeybindingOptions.respawn,         5 },
+            { "Toggle Quest Log", m_localKeybindingOptions.toggleQuestLog, 6 },
+            { "Toggle Minimap",   m_localKeybindingOptions.toggleMinimap,   7 },
         };
 
         if (ImGui::BeginTable("##kbtable", 2, ImGuiTableFlags_SizingFixedFit))

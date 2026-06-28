@@ -19,8 +19,10 @@ namespace ggj
         KeyboardKey moveDown  { KeyboardKey::S }; ///< Key to move the player downward.
         KeyboardKey moveLeft  { KeyboardKey::A }; ///< Key to move the player left.
         KeyboardKey moveRight { KeyboardKey::D }; ///< Key to move the player right.
-        KeyboardKey attack    { KeyboardKey::Space }; ///< Key to trigger an attack.
-        KeyboardKey respawn   { KeyboardKey::Q }; ///< Key to respawn after death.
+        KeyboardKey attack          { KeyboardKey::Space }; ///< Key to trigger an attack.
+        KeyboardKey respawn         { KeyboardKey::Q };     ///< Key to respawn after death.
+        KeyboardKey toggleQuestLog  { KeyboardKey::L };     ///< Key to show/hide the quest log.
+        KeyboardKey toggleMinimap   { KeyboardKey::M };     ///< Key to show/hide the minimap.
     };
 
     /*! Returns a short display name for a keyboard key. */
