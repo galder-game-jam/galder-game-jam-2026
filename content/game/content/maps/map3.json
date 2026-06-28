@@ -518,7 +518,7 @@
                 }, 
                 {
                  "ellipse":true,
-                 "height":112,
+                 "height":100,
                  "id":678,
                  "name":"claude",
                  "opacity":1,
@@ -582,7 +582,7 @@
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
-                 "width":112,
+                 "width":100,
                  "x":414.666666666,
                  "y":153.333333334
                 }],
