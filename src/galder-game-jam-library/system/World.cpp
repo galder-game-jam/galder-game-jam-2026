@@ -310,6 +310,10 @@ namespace ggj
             DrawTextEx(GetFontDefault(), e.text.c_str(), { e.position.x, e.position.y }, 12, 1.f, color);
         }
 
+#ifdef GAME_DEV_DEBUG
+        if (m_pDebugState != nullptr && m_pDebugState->showHitboxes)
+            drawPhysicsDebug();
+#endif
         m_camera.EndMode();
         m_hud.draw();
         m_dialog.draw();
@@ -1029,5 +1033,49 @@ namespace ggj
             }
         }
     }
+
+#ifdef GAME_DEV_DEBUG
+    void World::drawPhysicsDebug()
+    {
+        static constexpr Color DYNAMIC_COLOR { 0, 100, 255, 120 };
+        static constexpr Color STATIC_COLOR { 180, 0, 255, 120 };
+        static constexpr Color SENSOR_COLOR { 255, 0, 0, 120 };
+        static constexpr float LINE_THICK = 1.5f;
+
+        for (const b2Body* body = m_world.GetBodyList(); body != nullptr; body = body->GetNext())
+        {
+            const Color bodyColor = (body->GetType() == b2_staticBody) ? STATIC_COLOR : DYNAMIC_COLOR;
+
+            for (const b2Fixture* fix = body->GetFixtureList(); fix != nullptr; fix = fix->GetNext())
+            {
+                const Color color = fix->IsSensor() ? SENSOR_COLOR : bodyColor;
+
+                const b2Shape* shape = fix->GetShape();
+                if (shape->GetType() == b2Shape::e_polygon)
+                {
+                    const auto* poly = static_cast<const b2PolygonShape*>(shape);
+                    const int32 n = poly->m_count;
+                    for (int32 i = 0; i < n; ++i)
+                    {
+                        const b2Vec2 w1 = body->GetWorldPoint(poly->m_vertices[i]);
+                        const b2Vec2 w2 = body->GetWorldPoint(poly->m_vertices[(i + 1) % n]);
+                        DrawLineEx({ w1.x * PhysicsObject::PPM, w1.y * PhysicsObject::PPM },
+                                   { w2.x * PhysicsObject::PPM, w2.y * PhysicsObject::PPM }, LINE_THICK, color);
+                    }
+                }
+                else if (shape->GetType() == b2Shape::e_circle)
+                {
+                    const auto* circle = static_cast<const b2CircleShape*>(shape);
+                    const b2Vec2 center = body->GetWorldPoint(circle->m_p);
+                    DrawCircleLines(
+                        static_cast<int>(center.x * PhysicsObject::PPM),
+                        static_cast<int>(center.y * PhysicsObject::PPM),
+                        circle->m_radius * PhysicsObject::PPM,
+                        color);
+                }
+            }
+        }
+    }
+#endif
 
 } // namespace ggj

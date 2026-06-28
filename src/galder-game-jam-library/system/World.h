@@ -69,6 +69,7 @@ namespace ggj
         void setDebugState(ggj::DebugState* pState);
         /*! Instantly destroys all remaining enemies and credits the kills to the local player. */
         void killAllEnemies();
+        void drawPhysicsDebug();
 #endif
         void reduceEnemyKillCountByOne();
         [[nodiscard]] int getNumberOfEnemiesLeft() const;
