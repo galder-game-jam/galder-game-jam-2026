@@ -192,6 +192,17 @@ namespace ggj
         DrawResourceBar(m_health, m_lifeRect, m_lifeEnd, 0);
         DrawResourceBar(m_mana, m_manaRect, m_manaEnd, 1);
         DrawResourceBar(m_energy, m_energyRect, m_energyEnd, 2);
+
+        static constexpr float BADGE_RADIUS = 12.0f;
+        const float cx = m_portraitOffset.x + m_portraitRect.width - BADGE_RADIUS - 20.0f;
+        const float cy = m_portraitOffset.y + m_portraitRect.height - BADGE_RADIUS;
+        DrawCircle(static_cast<int>(cx), static_cast<int>(cy), BADGE_RADIUS + 1.5f, tinted(BLACK));
+        DrawCircle(static_cast<int>(cx), static_cast<int>(cy), BADGE_RADIUS, tinted(Color { 70, 40, 10, 255 }));
+        const char* levelText = TextFormat("%i", m_level);
+        const raylib::Vector2 textSize = MeasureTextEx(*m_font, levelText, static_cast<float>(FONT_SIZE), 0.0f);
+        m_font->DrawText(levelText,
+                         raylib::Vector2 { cx - textSize.x * 0.5f, cy - textSize.y * 0.5f },
+                         FONT_SIZE, 0, tinted(GOLD));
     }
 
     void Hud::drawBar(raylib::Vector2 offset, int middleParts) const
@@ -212,8 +223,6 @@ namespace ggj
         m_hudTexture->Draw(m_coinRect, offset + raylib::Vector2 { TILE_UNIT * 1, 4 }, tinted(WHITE));
         m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)),
                          raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
-        m_font->DrawText(TextFormat("Lvl: %i", m_level),
-                         raylib::Vector2 { offset.x + 190, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
         m_font->DrawText(TextFormat("XP: %i/%i", m_currentXp, m_xpToNextLevel),
                          raylib::Vector2 { offset.x + 410, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
     }
