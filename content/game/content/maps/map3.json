@@ -438,6 +438,16 @@
                          "value":false
                         }, 
                         {
+                         "name":"is_trigger",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"knockback",
+                         "type":"float",
+                         "value":4
+                        }, 
+                        {
                          "name":"sprite",
                          "type":"string",
                          "value":"claudling.png"
@@ -537,6 +547,11 @@
                          "name":"is_trigger",
                          "type":"bool",
                          "value":true
+                        }, 
+                        {
+                         "name":"knockback",
+                         "type":"float",
+                         "value":8
                         }, 
                         {
                          "name":"lives",

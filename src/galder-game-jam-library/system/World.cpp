@@ -955,6 +955,7 @@ namespace ggj
         fd.shape    = &box;
         fd.density  = 1.0f;
         fd.friction = 0.3f;
+        fd.isSensor = true;
         body->CreateFixture(&fd);
         body->SetFixedRotation(true);
 
