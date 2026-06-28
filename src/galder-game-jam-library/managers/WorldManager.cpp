@@ -320,7 +320,7 @@ namespace ggj
                 return;
             }
 
-            if (m_input.keyPressed(KeyboardKey::N) && m_currentStageIndex != NO_MAP_ID
+            if (m_input.keyPressed(m_optionsManager.getKeybindingOptions().toggleTalentTree) && m_currentStageIndex != NO_MAP_ID
                 && m_worlds.count(m_currentStageIndex) > 0)
             {
                 // Sync current talent points from the active world before opening

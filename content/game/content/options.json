@@ -19,6 +19,7 @@
         "attack": 32,
         "respawn": 81,
         "toggleQuestLog": 76,
-        "toggleMinimap": 77
+        "toggleMinimap": 77,
+        "toggleTalentTree": 78
     }
 }

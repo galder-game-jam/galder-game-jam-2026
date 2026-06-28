@@ -23,6 +23,7 @@ namespace ggj
         KeyboardKey respawn         { KeyboardKey::Q };     ///< Key to respawn after death.
         KeyboardKey toggleQuestLog  { KeyboardKey::L };     ///< Key to show/hide the quest log.
         KeyboardKey toggleMinimap   { KeyboardKey::M };     ///< Key to show/hide the minimap.
+        KeyboardKey toggleTalentTree{ KeyboardKey::N };     ///< Key to open/close the talent tree.
     };
 
     /*! Returns a short display name for a keyboard key. */

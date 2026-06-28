@@ -114,6 +114,7 @@ namespace ggj
                     &m_localKeybindingOptions.respawn,
                     &m_localKeybindingOptions.toggleQuestLog,
                     &m_localKeybindingOptions.toggleMinimap,
+                    &m_localKeybindingOptions.toggleTalentTree,
                 };
                 *targets[m_rebindingAction] = static_cast<KeyboardKey>(rawKey);
                 m_options.setKeybindingOptions(m_localKeybindingOptions);
@@ -133,8 +134,9 @@ namespace ggj
             { "Move Right", m_localKeybindingOptions.moveRight, 3 },
             { "Attack",          m_localKeybindingOptions.attack,          4 },
             { "Respawn",         m_localKeybindingOptions.respawn,         5 },
-            { "Toggle Quest Log", m_localKeybindingOptions.toggleQuestLog, 6 },
-            { "Toggle Minimap",   m_localKeybindingOptions.toggleMinimap,   7 },
+            { "Toggle Quest Log",  m_localKeybindingOptions.toggleQuestLog,  6 },
+            { "Toggle Minimap",    m_localKeybindingOptions.toggleMinimap,    7 },
+            { "Toggle Talent Tree", m_localKeybindingOptions.toggleTalentTree, 8 },
         };
 
         if (ImGui::BeginTable("##kbtable", 2, ImGuiTableFlags_SizingFixedFit))

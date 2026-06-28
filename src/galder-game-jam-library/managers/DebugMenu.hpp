@@ -69,6 +69,7 @@ namespace ggj
                         &kb.moveRight, &kb.attack, &kb.respawn,
                         &kb.toggleQuestLog,
                         &kb.toggleMinimap,
+                        &kb.toggleTalentTree,
                     };
                     *targets[m_rebindingAction] = static_cast<KeyboardKey>(rawKey);
                     options.setKeybindingOptions(kb);
@@ -198,8 +199,9 @@ namespace ggj
                 { "Move Right", kb.moveRight, 3 },
                 { "Attack",           kb.attack,          4 },
                 { "Respawn",          kb.respawn,         5 },
-                { "Toggle Quest Log", kb.toggleQuestLog,  6 },
-                { "Toggle Minimap",   kb.toggleMinimap,   7 },
+                { "Toggle Quest Log",  kb.toggleQuestLog,   6 },
+                { "Toggle Minimap",    kb.toggleMinimap,    7 },
+                { "Toggle Talent Tree", kb.toggleTalentTree, 8 },
             };
             if (ImGui::BeginTable("##dktable", 2, ImGuiTableFlags_SizingFixedFit))
             {
