@@ -88,7 +88,12 @@ namespace ggj
         ImGui::Spacing();
         ImGui::TextUnformatted("HUD");
         ImGui::Separator();
-        if (ImGui::SliderFloat("HUD Alpha##hud", &m_localHudOptions.hudAlpha, 0.0f, 1.0f))
+        bool hudChanged = false;
+        hudChanged |= ImGui::SliderFloat("HUD Alpha##hud", &m_localHudOptions.hudAlpha, 0.0f, 1.0f);
+        hudChanged |= ImGui::Checkbox("Show Minimap##hud", &m_localHudOptions.showMinimap);
+        hudChanged |= ImGui::Checkbox("Show Quest Log##hud", &m_localHudOptions.showQuestLog);
+        hudChanged |= ImGui::Checkbox("Show Inventory##hud", &m_localHudOptions.showInventory);
+        if (hudChanged)
             m_options.setHudOptions(m_localHudOptions);
 
         ImGui::Spacing();
@@ -108,6 +113,10 @@ namespace ggj
                     &m_localKeybindingOptions.moveRight,
                     &m_localKeybindingOptions.attack,
                     &m_localKeybindingOptions.respawn,
+                    &m_localKeybindingOptions.toggleQuestLog,
+                    &m_localKeybindingOptions.toggleMinimap,
+                    &m_localKeybindingOptions.toggleTalentTree,
+                    &m_localKeybindingOptions.toggleInventory,
                 };
                 *targets[m_rebindingAction] = static_cast<KeyboardKey>(rawKey);
                 m_options.setKeybindingOptions(m_localKeybindingOptions);
@@ -125,8 +134,12 @@ namespace ggj
             { "Move Down",  m_localKeybindingOptions.moveDown,  1 },
             { "Move Left",  m_localKeybindingOptions.moveLeft,  2 },
             { "Move Right", m_localKeybindingOptions.moveRight, 3 },
-            { "Attack",     m_localKeybindingOptions.attack,    4 },
-            { "Respawn",    m_localKeybindingOptions.respawn,   5 },
+            { "Attack",          m_localKeybindingOptions.attack,          4 },
+            { "Respawn",         m_localKeybindingOptions.respawn,         5 },
+            { "Toggle Quest Log",  m_localKeybindingOptions.toggleQuestLog,  6 },
+            { "Toggle Minimap",    m_localKeybindingOptions.toggleMinimap,    7 },
+            { "Toggle Talent Tree", m_localKeybindingOptions.toggleTalentTree, 8 },
+            { "Toggle Inventory",   m_localKeybindingOptions.toggleInventory,    9 },
         };
 
         if (ImGui::BeginTable("##kbtable", 2, ImGuiTableFlags_SizingFixedFit))
@@ -160,7 +173,7 @@ namespace ggj
         ImGui::Spacing();
         ImGui::Separator();
 
-        if (ImGui::Button("Back", { 120.0f, 0.0f }))
+        if (ImGui::Button("Back", { 120.0f, 0.0f }) || (m_rebindingAction < 0 && IsKeyPressed(KEY_ESCAPE)))
         {
             m_rebindingAction = -1;
             m_options.saveAudioOptions();

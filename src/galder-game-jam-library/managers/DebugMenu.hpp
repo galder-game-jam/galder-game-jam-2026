@@ -67,6 +67,10 @@ namespace ggj
                     KeyboardKey* targets[] = {
                         &kb.moveUp, &kb.moveDown, &kb.moveLeft,
                         &kb.moveRight, &kb.attack, &kb.respawn,
+                        &kb.toggleQuestLog,
+                        &kb.toggleMinimap,
+                        &kb.toggleTalentTree,
+                        &kb.toggleInventory,
                     };
                     *targets[m_rebindingAction] = static_cast<KeyboardKey>(rawKey);
                     options.setKeybindingOptions(kb);
@@ -161,7 +165,12 @@ namespace ggj
             ImGui::Text("HUD");
             ImGui::Separator();
             HudOptions hudOpts = options.getHudOptions();
-            if (ImGui::SliderFloat("HUD Alpha##hud", &hudOpts.hudAlpha, 0.0f, 1.0f))
+            bool hudChanged = false;
+            hudChanged |= ImGui::SliderFloat("HUD Alpha##hud", &hudOpts.hudAlpha, 0.0f, 1.0f);
+            hudChanged |= ImGui::Checkbox("Show Minimap##hud", &hudOpts.showMinimap);
+            hudChanged |= ImGui::Checkbox("Show Quest Log##hud", &hudOpts.showQuestLog);
+            hudChanged |= ImGui::Checkbox("Show Inventory##hud", &hudOpts.showInventory);
+            if (hudChanged)
                 options.setHudOptions(hudOpts);
 
             ImGui::Spacing();
@@ -190,8 +199,12 @@ namespace ggj
                 { "Move Down",  kb.moveDown,  1 },
                 { "Move Left",  kb.moveLeft,  2 },
                 { "Move Right", kb.moveRight, 3 },
-                { "Attack",     kb.attack,    4 },
-                { "Respawn",    kb.respawn,   5 },
+                { "Attack",           kb.attack,          4 },
+                { "Respawn",          kb.respawn,         5 },
+                { "Toggle Quest Log",  kb.toggleQuestLog,   6 },
+                { "Toggle Minimap",    kb.toggleMinimap,    7 },
+                { "Toggle Talent Tree", kb.toggleTalentTree, 8 },
+                { "Toggle Inventory",   kb.toggleInventory,    9 },
             };
             if (ImGui::BeginTable("##dktable", 2, ImGuiTableFlags_SizingFixedFit))
             {

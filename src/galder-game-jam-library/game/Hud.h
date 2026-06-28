@@ -44,10 +44,8 @@ namespace ggj
             void DrawResourceBar(const float counter, raylib::Rectangle rectResource, raylib::Rectangle rectEnd, float barNo) const;
             void drawPlayerPortrait() const;
             void drawBar(raylib::Vector2 offset, int middleParts) const;
-            void drawCoinBar(raylib::Vector2 offset) const;
-            void drawKillsBar(raylib::Vector2 offset) const;
-            void drawXpBar(raylib::Vector2 offset) const;
             void drawPlayerPositionBar(raylib::Vector2 offset) const;
+            void drawXpBar() const;
 
             /*! Returns color with its alpha channel scaled by the current HUD alpha setting. */
             [[nodiscard]] raylib::Color tinted(raylib::Color color) const;
@@ -95,17 +93,13 @@ namespace ggj
             raylib::Rectangle m_energyEnd = {TILE_UNIT * 6, TILE_UNIT * 4, TILE_UNIT * 2, TILE_UNIT * 2};
 
             int m_coins{};
-            raylib::Vector2 m_coinOffset{};
             raylib::Rectangle m_coinRect {TILE_UNIT * 7, TILE_UNIT * 6, TILE_UNIT * 1, TILE_UNIT * 1};
 
-            int m_kills {};
-            raylib::Vector2 m_killsOffset{};
 
             int m_level       {};
             int m_currentXp   {};
             int m_totalXp     {};
             int m_xpToNextLevel {};
-            raylib::Vector2 m_xpOffset{};
 
             raylib::Vector2 m_playerPosition{};
             raylib::Vector2 m_playerPositionOffset{};

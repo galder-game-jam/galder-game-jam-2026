@@ -20,6 +20,13 @@ namespace ggj
         BossBattle4 = 23,
 
         MainMenu1 = 30,
+        MainMenu2 = 31,
+
+        Glitch1 = 40,
+        Glitch2 = 41,
+
+        Victory1 = 50,
+        Victory2 = 51,
     };
 } // namespace ggj
 

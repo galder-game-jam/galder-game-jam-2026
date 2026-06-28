@@ -85,7 +85,7 @@ namespace ggj
         if (m_inputManager.keyPressed(KeyboardKey::Down) || m_inputManager.keyPressed(KeyboardKey::S))
             m_selectedIndex = (m_selectedIndex + 1) % count;
 
-        if (m_inputManager.keyPressed(KeyboardKey::Escape) || m_inputManager.keyPressed(KeyboardKey::N))
+        if (m_inputManager.keyPressed(KeyboardKey::Escape) || m_inputManager.keyPressed(m_options.getKeybindingOptions().toggleTalentTree))
         {
             m_isDone = true;
             return;

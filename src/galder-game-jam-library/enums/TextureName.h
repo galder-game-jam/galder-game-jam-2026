@@ -80,6 +80,12 @@ namespace ggj
         DungeonPrison = 204,
         DungeonPrisonProps = 205,
 
+        NpcBlacksmith = 206,
+        NpcScholar = 207,
+        NpcTreant = 208,
+        NpcButcher = 209,
+        NpcMage = 210,
+
         HudRpg = 300,
         HudRpgSubset = 301,
         HudRpgRoguePortrait = 302,

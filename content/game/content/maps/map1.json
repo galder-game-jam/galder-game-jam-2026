@@ -162,6 +162,7 @@
                  "height":32,
                  "id":238,
                  "name":"portal",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -210,6 +211,7 @@
                  "height":16,
                  "id":362,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -253,6 +255,7 @@
                  "height":16,
                  "id":363,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -296,6 +299,7 @@
                  "height":16,
                  "id":364,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -339,6 +343,7 @@
                  "height":16,
                  "id":438,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -382,6 +387,7 @@
                  "height":16,
                  "id":439,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -425,6 +431,7 @@
                  "height":16,
                  "id":440,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -468,6 +475,7 @@
                  "height":16,
                  "id":441,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -511,6 +519,7 @@
                  "height":16,
                  "id":442,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -554,6 +563,7 @@
                  "height":16,
                  "id":443,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -597,6 +607,7 @@
                  "height":16,
                  "id":444,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -640,6 +651,7 @@
                  "height":16,
                  "id":445,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -683,6 +695,7 @@
                  "height":16,
                  "id":446,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -726,6 +739,7 @@
                  "height":16,
                  "id":447,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -769,6 +783,7 @@
                  "height":16,
                  "id":448,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -812,6 +827,7 @@
                  "height":16,
                  "id":449,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -855,6 +871,7 @@
                  "height":16,
                  "id":450,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -898,6 +915,7 @@
                  "height":16,
                  "id":451,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -941,6 +959,7 @@
                  "height":16,
                  "id":452,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -984,6 +1003,7 @@
                  "height":16,
                  "id":453,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1027,6 +1047,7 @@
                  "height":16,
                  "id":454,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1070,6 +1091,7 @@
                  "height":16,
                  "id":455,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1113,6 +1135,7 @@
                  "height":16,
                  "id":456,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1156,6 +1179,7 @@
                  "height":16,
                  "id":457,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1199,6 +1223,7 @@
                  "height":16,
                  "id":458,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1242,6 +1267,7 @@
                  "height":16,
                  "id":459,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1285,6 +1311,7 @@
                  "height":16,
                  "id":460,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1328,6 +1355,7 @@
                  "height":16,
                  "id":461,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1371,6 +1399,7 @@
                  "height":16,
                  "id":462,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1414,6 +1443,7 @@
                  "height":16,
                  "id":463,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1457,6 +1487,7 @@
                  "height":16,
                  "id":464,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1500,6 +1531,7 @@
                  "height":16,
                  "id":465,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1543,6 +1575,7 @@
                  "height":16,
                  "id":466,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1586,6 +1619,7 @@
                  "height":16,
                  "id":467,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1629,6 +1663,7 @@
                  "height":16,
                  "id":468,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1672,6 +1707,7 @@
                  "height":16,
                  "id":469,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1715,6 +1751,7 @@
                  "height":16,
                  "id":470,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1758,6 +1795,7 @@
                  "height":16,
                  "id":471,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1801,6 +1839,7 @@
                  "height":16,
                  "id":472,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1844,6 +1883,7 @@
                  "height":16,
                  "id":473,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1887,6 +1927,7 @@
                  "height":16,
                  "id":474,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1930,6 +1971,7 @@
                  "height":16,
                  "id":475,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -1973,6 +2015,7 @@
                  "height":16,
                  "id":476,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -2016,6 +2059,7 @@
                  "height":16,
                  "id":477,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -2059,6 +2103,7 @@
                  "height":16,
                  "id":478,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -2102,6 +2147,7 @@
                  "height":16,
                  "id":479,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -2145,6 +2191,7 @@
                  "height":16,
                  "id":480,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -2188,6 +2235,7 @@
                  "height":16,
                  "id":481,
                  "name":"coin",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -2241,6 +2289,7 @@
                  "height":2007.51515151515,
                  "id":27,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2252,6 +2301,7 @@
                  "height":30.0378851519225,
                  "id":32,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2264,6 +2314,7 @@
                  "height":32,
                  "id":240,
                  "name":"player1",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_player",
@@ -2311,6 +2362,7 @@
                  "height":2010.54545454545,
                  "id":365,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2322,6 +2374,7 @@
                  "height":38.25,
                  "id":367,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2333,6 +2386,7 @@
                  "height":30.0379,
                  "id":369,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2344,6 +2398,7 @@
                  "height":121.960392155404,
                  "id":370,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2355,6 +2410,7 @@
                  "height":121.96,
                  "id":371,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2366,6 +2422,7 @@
                  "height":38.25,
                  "id":376,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2377,6 +2434,7 @@
                  "height":38.25,
                  "id":377,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2388,6 +2446,7 @@
                  "height":160.75,
                  "id":378,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2399,6 +2458,7 @@
                  "height":78.25,
                  "id":379,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2410,6 +2470,7 @@
                  "height":57.75,
                  "id":380,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2421,6 +2482,7 @@
                  "height":27.25,
                  "id":381,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2432,6 +2494,7 @@
                  "height":78.5,
                  "id":382,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2443,6 +2506,7 @@
                  "height":40.25,
                  "id":383,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2454,6 +2518,7 @@
                  "height":40.25,
                  "id":384,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2465,6 +2530,7 @@
                  "height":40.25,
                  "id":385,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2476,6 +2542,7 @@
                  "height":40.25,
                  "id":386,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2487,6 +2554,7 @@
                  "height":40.25,
                  "id":387,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2498,6 +2566,7 @@
                  "height":40.25,
                  "id":388,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2509,6 +2578,7 @@
                  "height":40.25,
                  "id":389,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2520,6 +2590,7 @@
                  "height":40.25,
                  "id":390,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2531,6 +2602,7 @@
                  "height":40.25,
                  "id":391,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2542,6 +2614,7 @@
                  "height":40.25,
                  "id":392,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2553,6 +2626,7 @@
                  "height":40.25,
                  "id":393,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2564,6 +2638,7 @@
                  "height":40.25,
                  "id":394,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2575,6 +2650,7 @@
                  "height":40.25,
                  "id":395,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2586,6 +2662,7 @@
                  "height":40.25,
                  "id":396,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2597,6 +2674,7 @@
                  "height":40.25,
                  "id":397,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2608,6 +2686,7 @@
                  "height":40.25,
                  "id":398,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2619,6 +2698,7 @@
                  "height":37.7045454545455,
                  "id":399,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2630,6 +2710,7 @@
                  "height":37.7045,
                  "id":400,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2641,6 +2722,7 @@
                  "height":37.7045,
                  "id":402,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2652,6 +2734,7 @@
                  "height":20.8295,
                  "id":403,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2663,6 +2746,7 @@
                  "height":20.8295,
                  "id":404,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2674,6 +2758,7 @@
                  "height":21.3295,
                  "id":405,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2685,6 +2770,7 @@
                  "height":20.0795,
                  "id":406,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2696,6 +2782,7 @@
                  "height":19.9961666666667,
                  "id":407,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2707,6 +2794,7 @@
                  "height":38.25,
                  "id":408,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2718,6 +2806,7 @@
                  "height":38.25,
                  "id":409,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2729,6 +2818,7 @@
                  "height":38.25,
                  "id":410,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2740,6 +2830,7 @@
                  "height":40.25,
                  "id":411,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2751,6 +2842,7 @@
                  "height":40.25,
                  "id":412,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2762,6 +2854,7 @@
                  "height":42.5833333333333,
                  "id":413,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2773,6 +2866,7 @@
                  "height":42.5833,
                  "id":414,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2784,6 +2878,7 @@
                  "height":42.5833,
                  "id":415,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2795,6 +2890,7 @@
                  "height":42.5833,
                  "id":416,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2806,6 +2902,7 @@
                  "height":42.5833,
                  "id":417,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2817,6 +2914,7 @@
                  "height":42.5833,
                  "id":418,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2828,6 +2926,7 @@
                  "height":42.5833,
                  "id":419,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2839,6 +2938,7 @@
                  "height":42.5833,
                  "id":420,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2850,6 +2950,7 @@
                  "height":42.5833,
                  "id":421,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2861,6 +2962,7 @@
                  "height":42.5833,
                  "id":422,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2872,6 +2974,7 @@
                  "height":42.5833,
                  "id":423,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2883,6 +2986,7 @@
                  "height":42.5833,
                  "id":424,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2894,6 +2998,7 @@
                  "height":42.5833,
                  "id":425,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2905,6 +3010,7 @@
                  "height":20.8295,
                  "id":426,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2916,6 +3022,7 @@
                  "height":20.8295,
                  "id":427,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2927,6 +3034,7 @@
                  "height":20.8295,
                  "id":429,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2939,6 +3047,7 @@
                  "height":20.8295,
                  "id":431,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2950,6 +3059,7 @@
                  "height":20.8295,
                  "id":432,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2961,6 +3071,7 @@
                  "height":20.8295,
                  "id":433,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2972,6 +3083,7 @@
                  "height":20.8295,
                  "id":434,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2983,6 +3095,7 @@
                  "height":20.8295,
                  "id":435,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -2994,6 +3107,7 @@
                  "height":20.8295,
                  "id":436,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -3005,6 +3119,7 @@
                  "height":20.8295,
                  "id":437,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -3016,6 +3131,7 @@
                  "height":40.25,
                  "id":482,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -3027,6 +3143,7 @@
                  "height":40.25,
                  "id":483,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -3038,6 +3155,7 @@
                  "height":40.25,
                  "id":484,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -3049,6 +3167,7 @@
                  "height":40.25,
                  "id":485,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -3060,6 +3179,7 @@
                  "height":40.25,
                  "id":486,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -3071,6 +3191,7 @@
                  "height":40.25,
                  "id":487,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -3082,6 +3203,7 @@
                  "height":40.25,
                  "id":488,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -3093,6 +3215,7 @@
                  "height":40.25,
                  "id":489,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
@@ -3104,6 +3227,7 @@
                  "height":16,
                  "id":490,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3126,6 +3250,7 @@
                  "height":16,
                  "id":491,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3149,6 +3274,7 @@
                  "height":16,
                  "id":492,
                  "name":"spider",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -3203,6 +3329,7 @@
                  "height":16,
                  "id":493,
                  "name":"ghost",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_kinematic",
@@ -3267,6 +3394,7 @@
                  "height":16,
                  "id":494,
                  "name":"ghost",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_kinematic",
@@ -3331,6 +3459,7 @@
                  "height":16,
                  "id":495,
                  "name":"ghost",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_kinematic",
@@ -3395,6 +3524,7 @@
                  "height":16,
                  "id":496,
                  "name":"thing",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -3448,6 +3578,7 @@
                  "height":16,
                  "id":497,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3470,6 +3601,7 @@
                  "height":16,
                  "id":498,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3493,6 +3625,7 @@
                  "height":16,
                  "id":499,
                  "name":"thing",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -3546,6 +3679,7 @@
                  "height":16,
                  "id":500,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3568,6 +3702,7 @@
                  "height":16,
                  "id":501,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3591,6 +3726,7 @@
                  "height":16,
                  "id":505,
                  "name":"thing",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -3644,6 +3780,7 @@
                  "height":16,
                  "id":506,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3666,6 +3803,7 @@
                  "height":16,
                  "id":507,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3688,6 +3826,7 @@
                  "height":16,
                  "id":508,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3710,6 +3849,7 @@
                  "height":16,
                  "id":509,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3733,6 +3873,7 @@
                  "height":16,
                  "id":510,
                  "name":"spider",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -3786,6 +3927,7 @@
                  "height":16,
                  "id":511,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3808,6 +3950,7 @@
                  "height":16,
                  "id":512,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3831,6 +3974,7 @@
                  "height":16,
                  "id":513,
                  "name":"spider",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -3884,6 +4028,7 @@
                  "height":16,
                  "id":514,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3906,6 +4051,7 @@
                  "height":16,
                  "id":515,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -3929,6 +4075,7 @@
                  "height":16,
                  "id":516,
                  "name":"spider",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -3982,6 +4129,7 @@
                  "height":16,
                  "id":517,
                  "name":"bat",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_kinematic",
@@ -4045,6 +4193,7 @@
                  "height":16,
                  "id":518,
                  "name":"bat",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_kinematic",
@@ -4103,6 +4252,7 @@
                  "height":14,
                  "id":519,
                  "name":"snake",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -4156,6 +4306,7 @@
                  "height":16,
                  "id":520,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -4178,6 +4329,7 @@
                  "height":16,
                  "id":521,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -4201,6 +4353,7 @@
                  "height":14,
                  "id":522,
                  "name":"snake",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -4254,6 +4407,7 @@
                  "height":16,
                  "id":523,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -4276,6 +4430,7 @@
                  "height":16,
                  "id":524,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -4299,6 +4454,7 @@
                  "height":14,
                  "id":525,
                  "name":"snake",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_static",
@@ -4352,6 +4508,7 @@
                  "height":16,
                  "id":526,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -4374,6 +4531,7 @@
                  "height":16,
                  "id":527,
                  "name":"enemyTurn",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_trigger",
@@ -4396,6 +4554,7 @@
                  "height":16,
                  "id":529,
                  "name":"bat",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"is_kinematic",
@@ -4459,6 +4618,7 @@
                  "height":16,
                  "id":531,
                  "name":"",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"sprite",
@@ -4507,6 +4667,7 @@
                  "height":16,
                  "id":532,
                  "name":"",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"sprite",
@@ -4550,6 +4711,55 @@
                  "width":16,
                  "x":1063.33333333333,
                  "y":1703.66666666667
+                }, 
+                {
+                 "height":64,
+                 "id":533,
+                 "name":"treantNpc",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"sprite",
+                         "type":"string",
+                         "value":"treant.png"
+                        }, 
+                        {
+                         "name":"sprite_size_x",
+                         "type":"int",
+                         "value":64
+                        }, 
+                        {
+                         "name":"sprite_size_y",
+                         "type":"int",
+                         "value":64
+                        }, 
+                        {
+                         "name":"userdata_command",
+                         "type":"string",
+                         "value":"dialog_trigger"
+                        }, 
+                        {
+                         "name":"userdata_dialog_id",
+                         "type":"string",
+                         "value":"treantGreeting"
+                        }, 
+                        {
+                         "name":"userdata_objecttype",
+                         "type":"int",
+                         "value":9
+                        }, 
+                        {
+                         "name":"userdata_objecttype_enum",
+                         "propertytype":"ObjectType",
+                         "type":"int",
+                         "value":9
+                        }],
+                 "rotation":0,
+                 "type":"PhysicsObject",
+                 "visible":true,
+                 "width":64,
+                 "x":864,
+                 "y":320
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -4629,7 +4839,7 @@
          "y":0
         }],
  "nextlayerid":10,
- "nextobjectid":533,
+ "nextobjectid":541,
  "orientation":"orthogonal",
  "properties":[
         {
@@ -4673,7 +4883,7 @@
          "value":10
         }],
  "renderorder":"left-down",
- "tiledversion":"1.11.2",
+ "tiledversion":"1.12.1",
  "tileheight":32,
  "tilesets":[
         {
