@@ -24,11 +24,12 @@ namespace ggj
                 const raylib::Vector2& physicsSize,
                 const raylib::Vector2& spriteSize,
                 const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
-                int lives, float followSpeed, IPlayer* player, World* world, bool isVisible = true)
+                int lives, float followSpeed, float knockback, IPlayer* player, World* world, bool isVisible = true)
                 : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible),
                   m_animationManager { animationManager }, m_mapper { mapper }, m_soundManager { soundManager },
-                  m_lives { lives }, m_followSpeed { followSpeed }, m_player { player }, m_world { world }
+                  m_followSpeed { followSpeed }, m_knockback { knockback }, m_player { player }, m_world { world }
             {
+                m_lives = lives;
                 m_body->SetFixedRotation(true);
                 m_idleAnimation   = m_animationManager.getAnimation(AnimationName::EnemyClaudeIdle);
                 m_walkAnimation   = m_animationManager.getAnimation(AnimationName::EnemyClaudeWalk);
@@ -54,8 +55,8 @@ namespace ggj
             Animation m_attackAnimation;
             Animation m_animation;
 
-            int   m_lives       { 3 };
             float m_followSpeed { 0.f };
+            float m_knockback   { 0.f };
 
             IPlayer* m_player { nullptr };
             World*   m_world  { nullptr };
@@ -63,7 +64,7 @@ namespace ggj
             // Boss state machine
             bool       m_isSittingDuck  { false };  ///< Force Idle for testing; set to true to disable AI.
             ClaudeState m_bossState     { ClaudeState::Idle };
-            float m_stateTimer          { 0.f };
+            float m_stateTimer          { 2.5f };
             float m_stateInterval       { 2.5f };   ///< Seconds between state rolls.
 
             // Invulnerability + flash

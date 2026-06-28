@@ -21,9 +21,10 @@ namespace ggj
         if(m_disableUpdate)
             return;
 
-        for(auto &obj : m_gameObjects)
+        const size_t n = m_gameObjects.size();
+        for (size_t i = 0; i < n; ++i)
         {
-            obj->update(timeDelta);
+            m_gameObjects[i]->update(timeDelta);
         }
     }
 

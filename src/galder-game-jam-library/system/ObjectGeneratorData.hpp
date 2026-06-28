@@ -24,8 +24,12 @@ namespace ggj
         UserData userData{};
         raylib::Vector2 velocity{};
 
-        int   lives       { 3 };
+        int   lives       { 1 };
         float followSpeed { 0.f };
+        float knockback   { 0.f };
+
+        bool        isBoss   { false };
+        std::string bossName {};
 
         int layerIndex{};
         tson::Object obj{};

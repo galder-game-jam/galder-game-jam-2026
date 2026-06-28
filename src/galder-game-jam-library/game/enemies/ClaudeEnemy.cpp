@@ -37,7 +37,9 @@ namespace ggj
             m_stateTimer -= timeDelta;
             if (m_stateTimer <= 0.f)
             {
-                setBossState(static_cast<ClaudeState>(GetRandomValue(0, 2)));
+                ClaudeState newState;
+                do { newState = static_cast<ClaudeState>(GetRandomValue(0, 2)); } while (newState == m_bossState);
+                setBossState(newState);
                 m_stateTimer = m_stateInterval;
             }
 
@@ -92,7 +94,7 @@ namespace ggj
             case ClaudeState::Attack:
                 m_animation = m_attackAnimation;
                 if (m_world != nullptr)
-                    m_world->spawnClaudling(getPosition(), m_followSpeed);
+                    m_world->spawnClaudling(getPosition(), m_followSpeed / 2.f, m_knockback / 2.f);
                 break;
         }
     }
@@ -114,6 +116,8 @@ namespace ggj
             destroy();
             if (attacker != nullptr)
                 attacker->getUserData()->enemiesKilled++;
+            if (m_world != nullptr)
+                m_world->clearBoss();
         }
         else
         {
@@ -131,7 +135,27 @@ namespace ggj
     {
         UserData* userDataB = b->getUserData();
 
-        if (userDataB->getObjectType() == ObjectType::Projectile)
+        if (userDataB->getObjectType() == ObjectType::Player)
+        {
+            b2Vec2 vel = m_body->GetLinearVelocity();
+            float len = std::sqrt(vel.x * vel.x + vel.y * vel.y);
+            if (len < 0.001f)
+            {
+                const raylib::Vector2 myPos     = getPosition();
+                const raylib::Vector2 playerPos = b->getPosition();
+                const float dx = playerPos.x - myPos.x;
+                const float dy = playerPos.y - myPos.y;
+                len = std::sqrt(dx * dx + dy * dy);
+                if (len > 0.001f)
+                {
+                    vel = { dx / len, dy / len };
+                    len = 1.f;
+                }
+            }
+            if (len > 0.001f)
+                b->getBody()->ApplyLinearImpulseToCenter({ (vel.x / len) * m_knockback, (vel.y / len) * m_knockback }, true);
+        }
+        else if (userDataB->getObjectType() == ObjectType::Projectile)
         {
             Projectile* p = dynamic_cast<Projectile*>(b);
             p->explode();

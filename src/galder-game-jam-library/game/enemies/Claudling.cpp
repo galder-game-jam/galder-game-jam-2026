@@ -59,7 +59,27 @@ namespace ggj
     {
         UserData* userDataB = b->getUserData();
 
-        if (userDataB->getObjectType() == ObjectType::Projectile)
+        if (userDataB->getObjectType() == ObjectType::Player)
+        {
+            b2Vec2 vel = m_body->GetLinearVelocity();
+            float len = std::sqrt(vel.x * vel.x + vel.y * vel.y);
+            if (len < 0.001f)
+            {
+                const raylib::Vector2 myPos     = getPosition();
+                const raylib::Vector2 playerPos = b->getPosition();
+                const float dx = playerPos.x - myPos.x;
+                const float dy = playerPos.y - myPos.y;
+                len = std::sqrt(dx * dx + dy * dy);
+                if (len > 0.001f)
+                {
+                    vel = { dx / len, dy / len };
+                    len = 1.f;
+                }
+            }
+            if (len > 0.001f)
+                b->getBody()->ApplyLinearImpulseToCenter({ (vel.x / len) * m_knockback, (vel.y / len) * m_knockback }, true);
+        }
+        else if (userDataB->getObjectType() == ObjectType::Projectile)
         {
             m_soundManager.playSound(SoundName::EnemyDie);
             destroy();

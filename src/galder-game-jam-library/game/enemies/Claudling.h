@@ -20,10 +20,10 @@ namespace ggj
             Claudling(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper, ggj::ISoundManager& soundManager, b2Body* body,
                 const raylib::Vector2& physicsSize,
                 const raylib::Vector2& spriteSize,
-                const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData, float followSpeed, IPlayer* player, bool isVisible = true)
+                const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData, float followSpeed, float knockback, IPlayer* player, bool isVisible = true)
                 : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible),
                   m_animationManager { animationManager }, m_mapper { mapper }, m_soundManager { soundManager },
-                  m_followSpeed { followSpeed }, m_player { player }
+                  m_followSpeed { followSpeed }, m_knockback { knockback }, m_player { player }
             {
                 m_body->SetFixedRotation(true);
                 m_idleAnimation = m_animationManager.getAnimation(AnimationName::EnemyClaudlingIdle);
@@ -43,6 +43,7 @@ namespace ggj
             Animation m_walkAnimation;
             Animation m_animation;
             float m_followSpeed { 0.f };
+            float m_knockback   { 0.f };
             IPlayer* m_player { nullptr };
             bool m_isWalking { false };
     };

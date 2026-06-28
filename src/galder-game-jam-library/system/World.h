@@ -117,7 +117,13 @@ namespace ggj
          * Must be queued (not spawned immediately) because calling createGameObject during layer
          * iteration would invalidate the vector iterator.
          */
-        void spawnClaudling(raylib::Vector2 position, float followSpeed);
+        void spawnClaudling(raylib::Vector2 position, float followSpeed, float knockback);
+
+        void clearBoss() { m_boss = nullptr; }
+        [[nodiscard]] bool        hasBoss()        const { return m_boss != nullptr; }
+        [[nodiscard]] std::string getBossName()    const { return m_bossName; }
+        [[nodiscard]] int         getBossLives()   const { return m_boss ? m_boss->getLives() : 0; }
+        [[nodiscard]] int         getBossMaxLives() const { return m_bossMaxLives; }
 
             /*! Spawns a floating "+1 life" label in world space above the given position. */
         void spawnFloatingText(raylib::Vector2 pos);
@@ -151,7 +157,7 @@ namespace ggj
         void generateClaude(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateClaudling(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
-        void doSpawnClaudling(raylib::Vector2 position, float followSpeed);
+        void doSpawnClaudling(raylib::Vector2 position, float followSpeed, float knockback);
         void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
@@ -209,8 +215,12 @@ namespace ggj
 
         std::vector<FloatingTextEntry> m_floatingTexts;
 
-        struct PendingClaudlingSpawn { raylib::Vector2 position; float followSpeed; };
+        struct PendingClaudlingSpawn { raylib::Vector2 position; float followSpeed; float knockback; };
         std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;
+
+        PhysicsObject* m_boss        { nullptr };
+        std::string    m_bossName    {};
+        int            m_bossMaxLives { 0 };
 
         INetworkManager* m_network = nullptr;
         std::map<uint32_t, PhysicsObject*> m_networkObjects; ///< Syncable objects (enemies/coins) by network id.

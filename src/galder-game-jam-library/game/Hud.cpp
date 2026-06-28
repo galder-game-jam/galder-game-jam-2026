@@ -141,6 +141,9 @@ namespace ggj
                 m_font->DrawText(posText, raylib::Vector2 { MINIMAP_RIGHT - textSize.x, MINIMAP_BOTTOM }, FONT_SIZE, 0, tinted(WHITE));
             }
         }
+
+        if (m_currentWorld != nullptr && m_currentWorld->hasBoss())
+            drawBossBar();
     }
 
     void Hud::drawQuestLog(raylib::Vector2 offset, int width, int height) const
@@ -233,6 +236,7 @@ namespace ggj
         m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)),
                          raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
     }
+
     void Hud::drawXpBar() const
     {
         if (m_font == nullptr)
@@ -274,4 +278,35 @@ namespace ggj
                          FONT_SIZE, 0, tinted(WHITE));
     }
 
+    void Hud::drawBossBar() const
+    {
+        const int maxLives = m_currentWorld->getBossMaxLives();
+        const int curLives = m_currentWorld->getBossLives();
+        if (maxLives <= 0)
+            return;
+
+        // All HUD drawing happens inside a fixed-size render texture (800×600).
+        // GetScreenWidth() returns the actual window size and must not be used here.
+        const int RENDER_W  = 800;
+        const int BAR_W     = 400;
+        const int BAR_H     = 20;
+        const int BAR_X     = (RENDER_W - BAR_W) / 2;
+        const int NAME_Y    = 8;
+        const int BAR_Y     = NAME_Y + FONT_SIZE + 4;
+
+        DrawRectangle(BAR_X, BAR_Y, BAR_W, BAR_H, tinted(raylib::Color { 40, 40, 40, 200 }));
+
+        const int fillW = (curLives * BAR_W) / maxLives;
+        DrawRectangle(BAR_X, BAR_Y, fillW, BAR_H, tinted(raylib::Color { 200, 30, 30, 220 }));
+
+        DrawRectangleLines(BAR_X, BAR_Y, BAR_W, BAR_H, tinted(raylib::Color::White()));
+
+        const std::string& name = m_currentWorld->getBossName();
+        if (m_font != nullptr && !name.empty())
+        {
+            const raylib::Vector2 nameSize = m_font->MeasureText(name, FONT_SIZE, 0);
+            const float nameX = static_cast<float>((RENDER_W - static_cast<int>(nameSize.x)) / 2);
+            m_font->DrawText(name, raylib::Vector2 { nameX, static_cast<float>(NAME_Y) }, FONT_SIZE, 0, tinted(raylib::Color::White()));
+        }
+    }
 } // namespace ggj

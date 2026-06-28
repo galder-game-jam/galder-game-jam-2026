@@ -83,6 +83,9 @@ namespace ggj
 
     void PhysicsObject::onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker)
     {
+        --m_lives;
+        if (m_lives > 0)
+            return;
         if (soundManager != nullptr)
             soundManager->playSound(SoundName::EnemyDie);
         if (m_body != nullptr)

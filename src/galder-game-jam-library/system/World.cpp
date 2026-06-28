@@ -139,6 +139,12 @@ namespace ggj
                                 generatorData.lives = value.getValue<int>();
                             else if (key == "follow_speed")
                                 generatorData.followSpeed = value.getValue<float>();
+                            else if (key == "knockback")
+                                generatorData.knockback = value.getValue<float>();
+                            else if (key == "is_boss")
+                                generatorData.isBoss = value.getValue<bool>();
+                            else if (key == "boss_name")
+                                generatorData.bossName = value.getValue<std::string>();
                         }
 
                         ObjectType objectType = (ObjectType)userdataObjectType;
@@ -562,7 +568,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Bat>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity);
+                    generatorData.userData, generatorData.velocity, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -637,7 +643,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Snake>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity);
+                    generatorData.userData, generatorData.velocity, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -697,7 +703,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Spider>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity);
+                    generatorData.userData, generatorData.velocity, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -727,7 +733,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Thing>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity);
+                    generatorData.userData, generatorData.velocity, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -757,7 +763,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Ghost>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity);
+                    generatorData.userData, generatorData.velocity, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -925,19 +931,19 @@ namespace ggj
         }
     }
 
-    void World::spawnClaudling(raylib::Vector2 position, float followSpeed)
+    void World::spawnClaudling(raylib::Vector2 position, float followSpeed, float knockback)
     {
-        m_pendingClaudlingSpawns.push_back({ position, followSpeed });
+        m_pendingClaudlingSpawns.push_back({ position, followSpeed, knockback });
     }
 
     void World::flushPendingSpawns()
     {
         for (const PendingClaudlingSpawn& spawn : m_pendingClaudlingSpawns)
-            doSpawnClaudling(spawn.position, spawn.followSpeed);
+            doSpawnClaudling(spawn.position, spawn.followSpeed, spawn.knockback);
         m_pendingClaudlingSpawns.clear();
     }
 
-    void World::doSpawnClaudling(raylib::Vector2 position, float followSpeed)
+    void World::doSpawnClaudling(raylib::Vector2 position, float followSpeed, float knockback)
     {
         const raylib::Vector2 SIZE { 32.f, 32.f };
 
@@ -955,6 +961,7 @@ namespace ggj
         fd.shape    = &box;
         fd.density  = 1.0f;
         fd.friction = 0.3f;
+        fd.isSensor = true;
         body->CreateFixture(&fd);
         body->SetFixedRotation(true);
 
@@ -967,7 +974,7 @@ namespace ggj
 
         PhysicsObject* physicsObject = createObject<Claudling>(
             m_animationManager, m_mapper, m_soundManager, body,
-            SIZE, SIZE, drawingRect, tex, userData, followSpeed, m_player);
+            SIZE, SIZE, drawingRect, tex, userData, followSpeed, knockback, m_player);
 
         if (physicsObject != nullptr)
         {
@@ -1000,8 +1007,14 @@ namespace ggj
                     m_animationManager, m_mapper, m_soundManager, body,
                     raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
                     spriteSize, r, tex, generatorData.userData, generatorData.lives,
-                    generatorData.followSpeed, m_player, this);
+                    generatorData.followSpeed, generatorData.knockback, m_player, this);
                 m_userDataManager.addUserData(body, physicsObject);
+                if (generatorData.isBoss && physicsObject != nullptr)
+                {
+                    m_boss         = physicsObject;
+                    m_bossName     = generatorData.bossName;
+                    m_bossMaxLives = generatorData.lives;
+                }
             }
         }
     }
@@ -1028,7 +1041,7 @@ namespace ggj
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Claudling>(
                     m_animationManager, m_mapper, m_soundManager, body,
                     raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
-                    spriteSize, r, tex, generatorData.userData, generatorData.followSpeed, m_player);
+                    spriteSize, r, tex, generatorData.userData, generatorData.followSpeed, generatorData.knockback, m_player);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }

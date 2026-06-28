@@ -438,6 +438,16 @@
                          "value":false
                         }, 
                         {
+                         "name":"is_trigger",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"knockback",
+                         "type":"float",
+                         "value":4
+                        }, 
+                        {
                          "name":"sprite",
                          "type":"string",
                          "value":"claudling.png"
@@ -518,15 +528,25 @@
                 }, 
                 {
                  "ellipse":true,
-                 "height":112,
+                 "height":100,
                  "id":678,
                  "name":"claude",
                  "opacity":1,
                  "properties":[
                         {
+                         "name":"boss_name",
+                         "type":"string",
+                         "value":"King Claude"
+                        }, 
+                        {
                          "name":"follow_speed",
                          "type":"float",
                          "value":8
+                        }, 
+                        {
+                         "name":"is_boss",
+                         "type":"bool",
+                         "value":true
                         }, 
                         {
                          "name":"is_static",
@@ -537,6 +557,11 @@
                          "name":"is_trigger",
                          "type":"bool",
                          "value":true
+                        }, 
+                        {
+                         "name":"knockback",
+                         "type":"float",
+                         "value":8
                         }, 
                         {
                          "name":"lives",
@@ -582,7 +607,7 @@
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
-                 "width":112,
+                 "width":100,
                  "x":414.666666666,
                  "y":153.333333334
                 }],
