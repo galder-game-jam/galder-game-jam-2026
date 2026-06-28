@@ -19,7 +19,8 @@ namespace ggj
         m_killsOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 152 };
         m_xpOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 184 };
         m_playerPositionOffset = raylib::Vector2 { m_position.x + 570, m_position.y + 570 };
-        m_questLogOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 400 };
+        // Placed below the minimap (right side): minimap is at x=590, y=10, 200×150.
+        m_questLogOffset = raylib::Vector2 { 590.0f, 10.0f + 150.0f + 6.0f };
         m_playerPortraitOffset = raylib::Vector2 { m_portraitOffset.x + 3, m_portraitOffset.y + 3 };
 
         m_hudTexture = m_textures.get(TextureName::HudRpgSubset);
@@ -107,7 +108,7 @@ namespace ggj
         drawKillsBar(m_killsOffset);
 
         drawXpBar(m_xpOffset);
-        drawQuestLog(m_questLogOffset, 3, 1);
+        drawQuestLog(m_questLogOffset, 4, 1);
 
         if (!m_playerName.empty() && m_font != nullptr)
             m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, tinted(raylib::Color::White()));
