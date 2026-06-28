@@ -15,7 +15,7 @@ namespace ggj
         m_position = raylib::Vector2 { 5, 0 };
 
         m_portraitOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 50 };
-        m_playerPositionOffset = raylib::Vector2 { 0.0f, 553.0f };
+        m_playerPositionOffset = raylib::Vector2 { 704.0f, 556.0f }; // 96 px wide (3×32), right-aligned, just above XP bar
         // Placed below the minimap (right side): minimap is at x=590, y=10, 200×150.
         m_questLogOffset = raylib::Vector2 { 590.0f, 10.0f + 150.0f + 6.0f };
         m_playerPortraitOffset = raylib::Vector2 { m_portraitOffset.x + 3, m_portraitOffset.y + 3 };
@@ -220,7 +220,7 @@ namespace ggj
 
     void Hud::drawPlayerPositionBar(raylib::Vector2 offset) const
     {
-        drawBar(offset, 23); // 25 segments × 32 px = 800 px full width
+        drawBar(offset, 1); // (1+2)×32 = 96 px — compact coin widget
         m_hudTexture->Draw(m_coinRect, offset + raylib::Vector2 { TILE_UNIT * 1, 4 }, tinted(WHITE));
         m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)),
                          raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
