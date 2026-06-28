@@ -168,7 +168,7 @@ namespace ggj
         ImGui::Spacing();
         ImGui::Separator();
 
-        if (ImGui::Button("Back", { 120.0f, 0.0f }))
+        if (ImGui::Button("Back", { 120.0f, 0.0f }) || (m_rebindingAction < 0 && IsKeyPressed(KEY_ESCAPE)))
         {
             m_rebindingAction = -1;
             m_options.saveAudioOptions();
