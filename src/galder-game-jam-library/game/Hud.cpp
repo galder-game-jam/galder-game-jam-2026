@@ -15,10 +15,7 @@ namespace ggj
         m_position = raylib::Vector2 { 5, 0 };
 
         m_portraitOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 50 };
-        m_coinOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 120 };
-        m_killsOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 152 };
-        m_xpOffset = raylib::Vector2 { m_position.x + 0, m_position.y + 184 };
-        m_playerPositionOffset = raylib::Vector2 { m_position.x + 570, m_position.y + 570 };
+        m_playerPositionOffset = raylib::Vector2 { 0.0f, 570.0f };
         // Placed below the minimap (right side): minimap is at x=590, y=10, 200×150.
         m_questLogOffset = raylib::Vector2 { 590.0f, 10.0f + 150.0f + 6.0f };
         m_playerPortraitOffset = raylib::Vector2 { m_portraitOffset.x + 3, m_portraitOffset.y + 3 };
@@ -103,11 +100,7 @@ namespace ggj
             return;
 
         drawPlayerPortrait();
-        drawCoinBar(m_coinOffset);
         drawPlayerPositionBar(m_playerPositionOffset);
-        drawKillsBar(m_killsOffset);
-
-        drawXpBar(m_xpOffset);
         drawQuestLog(m_questLogOffset, 4, 1);
 
         if (!m_playerName.empty() && m_font != nullptr)
@@ -189,33 +182,19 @@ namespace ggj
         m_hudTexture->Draw(m_barRectRight, offset + raylib::Vector2 { TILE_UNIT * 2 + TILE_UNIT * 2 * middleParts, 0 }, texTint);
     }
 
-    void Hud::drawCoinBar(raylib::Vector2 offset) const
-    {
-        drawBar(offset, 1);
-        m_hudTexture->Draw(m_coinRect, offset + raylib::Vector2 { TILE_UNIT * 1, 4 }, tinted(WHITE));
-
-        m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)), raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
-    }
-
-    void Hud::drawKillsBar(raylib::Vector2 offset) const
-    {
-        drawBar(offset, 1);
-        m_font->DrawText(TextFormat("Kills: %i", static_cast<int>(m_kills)), raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
-    }
-
     void Hud::drawPlayerPositionBar(raylib::Vector2 offset) const
     {
-        drawBar(offset, 5);
-        m_font->DrawText(TextFormat("Player position: (%i, %i)", static_cast<int>(m_playerPosition.x), static_cast<int>(m_playerPosition.y)),
-                         raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
-    }
-
-    void Hud::drawXpBar(raylib::Vector2 offset) const
-    {
-        drawBar(offset, 3);
+        drawBar(offset, 23); // 25 segments × 32 px = 800 px full width
+        m_hudTexture->Draw(m_coinRect, offset + raylib::Vector2 { TILE_UNIT * 1, 4 }, tinted(WHITE));
+        m_font->DrawText(TextFormat("%i", static_cast<int>(m_coins)),
+                         raylib::Vector2 { offset.x + TILE_UNIT * 3, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
+        m_font->DrawText(TextFormat("Kills: %i", static_cast<int>(m_kills)),
+                         raylib::Vector2 { offset.x + 190, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
         m_font->DrawText(TextFormat("Lvl: %i", m_level),
-                         raylib::Vector2 { offset.x + TILE_UNIT * 1, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
+                         raylib::Vector2 { offset.x + 330, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
         m_font->DrawText(TextFormat("XP: %i/%i", m_currentXp, m_xpToNextLevel),
-                         raylib::Vector2 { offset.x + TILE_UNIT * 4, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
+                         raylib::Vector2 { offset.x + 410, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
+        m_font->DrawText(TextFormat("Pos: (%i,%i)", static_cast<int>(m_playerPosition.x), static_cast<int>(m_playerPosition.y)),
+                         raylib::Vector2 { offset.x + 540, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
     }
 } // namespace ggj
