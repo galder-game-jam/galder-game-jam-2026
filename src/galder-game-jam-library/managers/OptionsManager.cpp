@@ -45,6 +45,8 @@ namespace ggj
                 m_hudOptions.showMinimap = hud["showMinimap"].bool_value();
             if (hud["showQuestLog"].is_bool())
                 m_hudOptions.showQuestLog = hud["showQuestLog"].bool_value();
+            if (hud["showInventory"].is_bool())
+                m_hudOptions.showInventory = hud["showInventory"].bool_value();
         }
 
         const json11::Json& kb = root["keybindings"];
@@ -65,6 +67,7 @@ namespace ggj
             m_keybindingOptions.toggleQuestLog  = readKey("toggleQuestLog",  KeyboardKey::L);
             m_keybindingOptions.toggleMinimap   = readKey("toggleMinimap",   KeyboardKey::M);
             m_keybindingOptions.toggleTalentTree = readKey("toggleTalentTree", KeyboardKey::N);
+            m_keybindingOptions.toggleInventory    = readKey("toggleInventory",    KeyboardKey::B);
         }
 
         return true;
@@ -85,7 +88,8 @@ namespace ggj
                 { "alpha",        static_cast<double>(m_hudOptions.hudAlpha) },
                 { "imguiScale",   static_cast<double>(m_hudOptions.imguiScale) },
                 { "showMinimap",  m_hudOptions.showMinimap },
-                { "showQuestLog", m_hudOptions.showQuestLog }
+                { "showQuestLog",  m_hudOptions.showQuestLog },
+                { "showInventory", m_hudOptions.showInventory }
             }},
             { "keybindings", json11::Json::object {
                 { "moveUp",    static_cast<int>(m_keybindingOptions.moveUp) },
@@ -96,7 +100,8 @@ namespace ggj
                 { "respawn",        static_cast<int>(m_keybindingOptions.respawn) },
                 { "toggleQuestLog",   static_cast<int>(m_keybindingOptions.toggleQuestLog) },
                 { "toggleMinimap",    static_cast<int>(m_keybindingOptions.toggleMinimap) },
-                { "toggleTalentTree", static_cast<int>(m_keybindingOptions.toggleTalentTree) }
+                { "toggleTalentTree", static_cast<int>(m_keybindingOptions.toggleTalentTree) },
+                { "toggleInventory",    static_cast<int>(m_keybindingOptions.toggleInventory) }
             }}
         };
 

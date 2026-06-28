@@ -17,6 +17,7 @@ namespace ggj
         float imguiScale    { 2.0f };  ///< Global ImGui UI scale factor applied to all windows and fonts.
         bool  showMinimap   { true };  ///< Whether the minimap is visible on startup.
         bool  showQuestLog  { true };  ///< Whether the quest log is visible on startup.
+        bool  showInventory { true };  ///< Whether the inventory (coin bar) is visible on startup.
     };
 } // namespace ggj
 

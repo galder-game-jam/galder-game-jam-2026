@@ -92,6 +92,7 @@ namespace ggj
         hudChanged |= ImGui::SliderFloat("HUD Alpha##hud", &m_localHudOptions.hudAlpha, 0.0f, 1.0f);
         hudChanged |= ImGui::Checkbox("Show Minimap##hud", &m_localHudOptions.showMinimap);
         hudChanged |= ImGui::Checkbox("Show Quest Log##hud", &m_localHudOptions.showQuestLog);
+        hudChanged |= ImGui::Checkbox("Show Inventory##hud", &m_localHudOptions.showInventory);
         if (hudChanged)
             m_options.setHudOptions(m_localHudOptions);
 
@@ -115,6 +116,7 @@ namespace ggj
                     &m_localKeybindingOptions.toggleQuestLog,
                     &m_localKeybindingOptions.toggleMinimap,
                     &m_localKeybindingOptions.toggleTalentTree,
+                    &m_localKeybindingOptions.toggleInventory,
                 };
                 *targets[m_rebindingAction] = static_cast<KeyboardKey>(rawKey);
                 m_options.setKeybindingOptions(m_localKeybindingOptions);
@@ -137,6 +139,7 @@ namespace ggj
             { "Toggle Quest Log",  m_localKeybindingOptions.toggleQuestLog,  6 },
             { "Toggle Minimap",    m_localKeybindingOptions.toggleMinimap,    7 },
             { "Toggle Talent Tree", m_localKeybindingOptions.toggleTalentTree, 8 },
+            { "Toggle Inventory",   m_localKeybindingOptions.toggleInventory,    9 },
         };
 
         if (ImGui::BeginTable("##kbtable", 2, ImGuiTableFlags_SizingFixedFit))

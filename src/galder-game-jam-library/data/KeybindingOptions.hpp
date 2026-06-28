@@ -24,6 +24,7 @@ namespace ggj
         KeyboardKey toggleQuestLog  { KeyboardKey::L };     ///< Key to show/hide the quest log.
         KeyboardKey toggleMinimap   { KeyboardKey::M };     ///< Key to show/hide the minimap.
         KeyboardKey toggleTalentTree{ KeyboardKey::N };     ///< Key to open/close the talent tree.
+        KeyboardKey toggleInventory  { KeyboardKey::B };     ///< Key to show/hide the inventory.
     };
 
     /*! Returns a short display name for a keyboard key. */

@@ -86,6 +86,13 @@ namespace ggj
         if (hudOptsChanged)
             m_options.setHudOptions(hudOpts);
 
+        if (m_inputManager.keyPressed(m_options.getKeybindingOptions().toggleInventory))
+        {
+            HudOptions inv = m_options.getHudOptions();
+            inv.showInventory = !inv.showInventory;
+            m_options.setHudOptions(inv);
+        }
+
         if (m_currentPlayer == nullptr)
             return;
 
@@ -112,7 +119,8 @@ namespace ggj
             return;
 
         drawPlayerPortrait();
-        drawPlayerPositionBar(m_playerPositionOffset);
+        if (m_options.getHudOptions().showInventory)
+            drawPlayerPositionBar(m_playerPositionOffset);
         drawXpBar();
         if (m_options.getHudOptions().showQuestLog)
             drawQuestLog(m_questLogOffset, 4, 1);
