@@ -106,7 +106,18 @@ namespace ggj
             m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, tinted(raylib::Color::White()));
 
         if (m_minimap != nullptr)
+        {
             m_minimap->draw(m_playerPosition, m_options.getHudOptions().hudAlpha);
+
+            if (m_font != nullptr)
+            {
+                static constexpr float MINIMAP_RIGHT        = 800.0f - 10.0f - 2.0f;  // right edge minus padding
+                static constexpr float MINIMAP_BOTTOM = 10.0f + 150.0f - 15.0f - 2.0f; // inside bottom edge
+                const char* posText = TextFormat("Pos: (%i,%i)", static_cast<int>(m_playerPosition.x), static_cast<int>(m_playerPosition.y));
+                const raylib::Vector2 textSize = MeasureTextEx(*m_font, posText, static_cast<float>(FONT_SIZE), 0.0f);
+                m_font->DrawText(posText, raylib::Vector2 { MINIMAP_RIGHT - textSize.x, MINIMAP_BOTTOM }, FONT_SIZE, 0, tinted(WHITE));
+            }
+        }
     }
 
     void Hud::drawQuestLog(raylib::Vector2 offset, int width, int height) const
@@ -191,7 +202,5 @@ namespace ggj
                          raylib::Vector2 { offset.x + 190, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
         m_font->DrawText(TextFormat("XP: %i/%i", m_currentXp, m_xpToNextLevel),
                          raylib::Vector2 { offset.x + 410, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
-        m_font->DrawText(TextFormat("Pos: (%i,%i)", static_cast<int>(m_playerPosition.x), static_cast<int>(m_playerPosition.y)),
-                         raylib::Vector2 { offset.x + 540, offset.y + 5 }, FONT_SIZE, 0, tinted(BLACK));
     }
 } // namespace ggj
