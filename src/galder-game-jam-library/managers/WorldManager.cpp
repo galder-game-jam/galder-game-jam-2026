@@ -24,27 +24,30 @@ namespace ggj
         MusicName track;
         switch (stageIndex)
         {
-            case 1: // Forest level
+            case 1: // Forest level #1
                 track = MusicName::Forest1;
                 break;
-            case 2: // Dungeon level
+            case 2: // Dungeon level #1
                 track = MusicName::Dungeon1;
                 break;
-            case 3:
+            case 3: // Claude Boss level
                 track = MusicName::BossBattle1;
                 break;
-            case 4:
+            case 4: // Dungeon level #2
                 track = MusicName::Dungeon2;
                 break;
-            case 5:
+            case 5: // Forest level #2
+                track = MusicName::Forest2;
+                break;
+            case 6: // Forest Boss Battle
                 track = MusicName::BossBattle2;
                 break;
-            case 99999:
-                track = MusicName::Dungeon2;
+            case 99999: // Final diamond map
+                track = MusicName::Victory1;
                 break;
             default:
                 m_logger.debug(fmt::format("Could not set music track for level {0}. Fallback to Forest2", stageIndex));
-                track = MusicName::Forest2;
+                track = MusicName::Glitch1;
                 break;
         }
 
