@@ -31,8 +31,8 @@ namespace ggj
 
         NetworkManager(ILogger& logger, IIpAddressResolver& ipAddressResolver) : m_logger { logger }, m_resolver { ipAddressResolver } {}
 
-        void startHost(uint16_t port, const std::string& playerName, const std::string& serverName, PlayerPickedCharacter character) override;
-        void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, PlayerPickedCharacter character) override;
+        void startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character) override;
+        void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character) override;
         void shutdown() override;
 
         void poll(float timeDelta) override;
@@ -88,6 +88,7 @@ namespace ggj
         NetworkRole m_role { NetworkRole::None };
         uint32_t m_localPlayerId { HOST_PLAYER_ID };
         std::string m_localName {};
+        raylib::Color m_localNameColor { RED };
         std::string m_serverName {};
         std::string m_cachedLocalIp {};
         std::string m_cachedPublicIp {};

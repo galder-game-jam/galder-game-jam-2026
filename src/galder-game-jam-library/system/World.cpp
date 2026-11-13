@@ -347,7 +347,7 @@ namespace ggj
             {
                 const int fontSize = 10;
                 const int textWidth = MeasureText(remote.name.c_str(), fontSize);
-                DrawText(remote.name.c_str(), static_cast<int>(centre.x) - textWidth / 2, static_cast<int>(centre.y) - 22, fontSize, WHITE);
+                ::DrawText(remote.name.c_str(), static_cast<int>(centre.x) - textWidth / 2, static_cast<int>(centre.y) - 22, fontSize, remote.nameColor);
             }
         }
     }

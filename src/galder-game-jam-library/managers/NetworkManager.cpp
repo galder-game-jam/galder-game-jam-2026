@@ -24,12 +24,13 @@ namespace ggj
         }
     } // namespace
 
-    void NetworkManager::startHost(uint16_t port, const std::string& playerName, const std::string& serverName, PlayerPickedCharacter character)
+    void NetworkManager::startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character)
     {
         shutdown();
 
         m_role = NetworkRole::Server;
         m_localName = playerName;
+        m_localNameColor = nameColor;
         m_serverName = serverName;
         m_localCharacter = character;
         m_localPlayerId = HOST_PLAYER_ID;
@@ -47,12 +48,13 @@ namespace ggj
         m_logger.information(fmt::format("Hosting on port {0} as '{1}' (server: '{2}')", port, playerName, serverName));
     }
 
-    void NetworkManager::startClient(const std::string& ipAddress, uint16_t port, const std::string& name, PlayerPickedCharacter character)
+    void NetworkManager::startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character)
     {
         shutdown();
 
         m_role = NetworkRole::Client;
         m_localName = name;
+        m_localNameColor = nameColor;
         m_localCharacter = character;
         m_localPlayerId = INVALID_PLAYER_ID; // assigned by the server via JoinAccept
         m_hasSentJoinRequest = false;
@@ -213,6 +215,7 @@ namespace ggj
         hostState.type = NetMessageType::PlayerState;
         hostState.playerId = HOST_PLAYER_ID;
         copyName(hostState.name, m_localName);
+        hostState.nameColor = m_localNameColor;
         hostState.character = static_cast<uint8_t>(m_localCharacter);
         hostState.position = m_localPosition;
         hostState.lives = m_localLives;
@@ -226,6 +229,7 @@ namespace ggj
             state.type = NetMessageType::PlayerState;
             state.playerId = playerId;
             copyName(state.name, remote.name);
+            state.nameColor = remote.nameColor;
             state.character = static_cast<uint8_t>(remote.character);
             state.position = remote.targetPosition;
             state.lives = remote.lives;
@@ -249,6 +253,7 @@ namespace ggj
                 ClientMessage join {};
                 join.type = NetMessageType::JoinRequest;
                 copyName(join.name, m_localName);
+                join.nameColor = m_localNameColor;
                 join.character = static_cast<uint8_t>(m_localCharacter);
                 join.position = m_localPosition;
                 std::strncpy(join.localIp, m_cachedLocalIp.c_str(), sizeof(join.localIp) - 1);
@@ -261,6 +266,7 @@ namespace ggj
             state.type = NetMessageType::PlayerState;
             state.playerId = m_localPlayerId;
             copyName(state.name, m_localName);
+            state.nameColor = m_localNameColor;
             state.character = static_cast<uint8_t>(m_localCharacter);
             state.position = m_localPosition;
             state.lives = m_localLives;
@@ -312,6 +318,7 @@ namespace ggj
         RemotePlayer& remote = m_remotePlayers[message.playerId];
         remote.playerId = message.playerId;
         remote.name = message.name;
+        remote.nameColor = message.nameColor;
         remote.character = static_cast<PlayerPickedCharacter>(message.character);
         remote.targetPosition = message.position;
         remote.lives = message.lives;
@@ -331,6 +338,7 @@ namespace ggj
         RemotePlayer& remote = m_remotePlayers[playerId];
         remote.playerId = playerId;
         remote.name = message.name;
+        remote.nameColor = message.nameColor;
         remote.character = static_cast<PlayerPickedCharacter>(message.character);
         remote.targetPosition = message.position;
         remote.lives = message.lives;

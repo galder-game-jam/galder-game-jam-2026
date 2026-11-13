@@ -29,6 +29,7 @@ namespace ggj
         // Identity
         char name[21] {};
         uint8_t character { 0 }; ///< PlayerPickedCharacter value.
+        ::Color nameColor { RED }; ///< Colour of the player's overhead name label.
 
         // Transform / animation (PlayerState)
         raylib::Vector2 position {};

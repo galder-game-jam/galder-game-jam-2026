@@ -21,6 +21,7 @@ namespace ggj
     {
         uint32_t playerId { 0 };
         std::string name {};
+        raylib::Color nameColor { RED }; ///< Player-chosen colour for the overhead name label.
         PlayerPickedCharacter character { PlayerPickedCharacter::Rogue };
 
         raylib::Vector2 position {};       ///< Rendered (interpolated) position.

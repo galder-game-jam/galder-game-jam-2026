@@ -26,6 +26,7 @@ namespace ggj
         // Identity (JoinRequest)
         char name[21] {};        ///< Up to 20 chars + null terminator.
         uint8_t character { 0 }; ///< PlayerPickedCharacter value.
+        ::Color nameColor { RED }; ///< Colour of the player's overhead name label.
         char localIp[46] {};     ///< Client's LAN IP, sent only in JoinRequest.
         char publicIp[46] {};    ///< Client's public IP, sent only in JoinRequest.
 

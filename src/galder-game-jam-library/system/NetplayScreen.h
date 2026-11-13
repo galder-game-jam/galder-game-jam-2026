@@ -38,6 +38,8 @@ namespace ggj
         [[nodiscard]] bool isBack() const { return m_isBack; }
         [[nodiscard]] bool isHost() const { return m_isHost; }
         [[nodiscard]] std::string getPlayerName() const { return m_nameBuffer; }
+        /*! Colour the player picked for their name (HUD + overhead label seen by others). */
+        [[nodiscard]] raylib::Color getNameColor() const;
         [[nodiscard]] std::string getServerName() const { return m_serverNameBuffer; }
         [[nodiscard]] std::string getIpAddress() const { return m_ipBuffer; }
         [[nodiscard]] uint16_t getPort() const { return static_cast<uint16_t>(m_port); }
@@ -61,6 +63,7 @@ namespace ggj
 
         bool m_isHost { true };
         char m_nameBuffer[21] { "Player" };
+        float m_nameColor[3] { RED.r / 255.0f, RED.g / 255.0f, RED.b / 255.0f }; ///< RGB 0..1 for ImGui::ColorEdit3.
         char m_serverNameBuffer[21] { "Galder Server" }; ///< Same 20-char cap as ServerMessage::name.
         char m_ipBuffer[64] { "127.0.0.1" };
         int m_port { INetworkManager::DEFAULT_PORT };

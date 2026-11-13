@@ -126,7 +126,7 @@ namespace ggj
             drawQuestLog(m_questLogOffset, 4, 1);
 
         if (!m_playerName.empty() && m_font != nullptr)
-            m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, tinted(raylib::Color::White()));
+            m_font->DrawText(m_playerName, raylib::Vector2 { m_position.x + 8, m_position.y + 6 }, 24, 0, tinted(m_playerNameColor));
 
         if (m_minimap != nullptr && m_options.getHudOptions().showMinimap)
         {

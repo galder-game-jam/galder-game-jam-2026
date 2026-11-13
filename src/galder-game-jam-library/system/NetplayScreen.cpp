@@ -24,6 +24,11 @@ namespace ggj
         m_isBack = false;
     }
 
+    raylib::Color NetplayScreen::getNameColor() const
+    {
+        return raylib::Color { ColorFromNormalized({ m_nameColor[0], m_nameColor[1], m_nameColor[2], 1.0f }) };
+    }
+
     void NetplayScreen::draw()
     {
         if (!m_isVisible)
@@ -74,6 +79,8 @@ namespace ggj
         ImGui::Spacing();
         ImGui::TextUnformatted("Player name");
         ImGui::InputText("##name", m_nameBuffer, sizeof(m_nameBuffer));
+        ImGui::SameLine();
+        ImGui::ColorEdit3("Name color", m_nameColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 
         ImGui::Spacing();
         if (m_isHost)

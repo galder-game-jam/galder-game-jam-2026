@@ -249,11 +249,13 @@ namespace ggj
                 if (m_isNetplay)
                 {
                     const std::string playerName = m_netplayScreen.getPlayerName();
+                    const raylib::Color nameColor = m_netplayScreen.getNameColor();
                     m_hud.setPlayerName(playerName);
+                    m_hud.setPlayerNameColor(nameColor);
                     if (m_netplayScreen.isHost())
-                        m_network.startHost(m_netplayScreen.getPort(), playerName, m_netplayScreen.getServerName(), m_pickedCharacter);
+                        m_network.startHost(m_netplayScreen.getPort(), playerName, nameColor, m_netplayScreen.getServerName(), m_pickedCharacter);
                     else
-                        m_network.startClient(m_netplayScreen.getIpAddress(), m_netplayScreen.getPort(), playerName, m_pickedCharacter);
+                        m_network.startClient(m_netplayScreen.getIpAddress(), m_netplayScreen.getPort(), playerName, nameColor, m_pickedCharacter);
 
                     m_worlds[m_currentStageIndex]->setNetworkManager(&m_network);
                 }
