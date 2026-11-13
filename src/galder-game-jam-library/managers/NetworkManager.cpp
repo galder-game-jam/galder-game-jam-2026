@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <utility>
 
 namespace ggj
 {
@@ -21,6 +22,23 @@ namespace ggj
         {
             std::strncpy(destination, source.c_str(), sizeof(destination) - 1);
             destination[sizeof(destination) - 1] = '\0';
+        }
+
+        ServerMessage makeObjectRemovedMessage(uint32_t objectId, bool isCoin)
+        {
+            ServerMessage state {};
+            state.objectId = objectId;
+            if (isCoin)
+            {
+                state.type = NetMessageType::CoinState;
+                state.flag = true; // collected
+            }
+            else
+            {
+                state.type = NetMessageType::EnemyState;
+                state.flag = false; // dead
+            }
+            return state;
         }
     } // namespace
 
@@ -80,14 +98,25 @@ namespace ggj
         return -1;
     }
 
+    bool NetworkManager::hasLostConnection() const
+    {
+        return m_role == NetworkRole::Client && m_client && m_client->status() == ConnectionStatus::Error;
+    }
+
     void NetworkManager::shutdown()
     {
         if (m_server)
         {
+            // Close every client explicitly so they get "closed by host" now instead of timing out.
+            m_server->closeAllConnections();
             m_server->stop();
             m_server.reset();
         }
-        m_client.reset();
+        if (m_client)
+        {
+            m_client->disconnect();
+            m_client.reset();
+        }
         m_beacon.stop();
 
         m_role = NetworkRole::None;
@@ -102,9 +131,84 @@ namespace ggj
         m_connectionToPlayerId.clear();
         m_nextPlayerId = HOST_PLAYER_ID + 1;
         m_hasSentJoinRequest = false;
+        m_currentStage = NO_STAGE;
+        m_requestedStage.reset();
+        clearWorldState();
+    }
+
+    void NetworkManager::clearWorldState()
+    {
         m_enemyStates.clear();
         m_removedObjectIds.clear();
+        m_removedCoinIds.clear();
         m_projectileEvents.clear();
+        m_isPortalEntered = false;
+        m_hasPendingRemotePortalEntry = false;
+    }
+
+    void NetworkManager::setCurrentStage(int32_t stageIndex)
+    {
+        if (stageIndex == m_currentStage)
+            return;
+
+        clearWorldState();
+        m_currentStage = stageIndex;
+
+        if (m_role == NetworkRole::Server && m_server)
+        {
+            ServerMessage changed {};
+            changed.type = NetMessageType::StageChanged;
+            changed.stageIndex = stageIndex;
+            m_server->broadcast(changed);
+            m_logger.information(fmt::format("Host moved to stage {0}", stageIndex));
+        }
+    }
+
+    std::optional<int32_t> NetworkManager::takeRequestedStage()
+    {
+        return std::exchange(m_requestedStage, std::nullopt);
+    }
+
+    void NetworkManager::followHostStage(int32_t stageIndex)
+    {
+        if (stageIndex == m_currentStage)
+            return;
+
+        // Clear right away rather than when the WorldManager applies the change: messages for the
+        // new stage that arrive in the same poll must not be wiped afterwards.
+        m_logger.information(fmt::format("Following host to stage {0}", stageIndex));
+        clearWorldState();
+        m_currentStage = stageIndex;
+        m_requestedStage = stageIndex;
+    }
+
+    void NetworkManager::notifyLocalPortalEntered()
+    {
+        if (m_isPortalEntered)
+            return;
+        m_isPortalEntered = true;
+
+        if (m_role == NetworkRole::Server && m_server)
+        {
+            ServerMessage entered {};
+            entered.type = NetMessageType::PortalEntered;
+            entered.playerId = HOST_PLAYER_ID;
+            entered.stageIndex = m_currentStage;
+            m_server->broadcast(entered);
+        }
+        else if (m_role == NetworkRole::Client && m_client && m_client->status() == ConnectionStatus::Connected)
+        {
+            ClientMessage entered {};
+            entered.type = NetMessageType::PortalEntered;
+            entered.playerId = m_localPlayerId;
+            entered.stageIndex = m_currentStage;
+            m_client->sendToServer(entered);
+        }
+    }
+
+    bool NetworkManager::takeRemotePortalEntry()
+    {
+        return std::exchange(m_hasPendingRemotePortalEntry, false);
     }
 
     ConnectionStatus NetworkManager::status() const
@@ -152,7 +256,8 @@ namespace ggj
                 {
                     uint32_t playerId;
                     auto it = m_connectionToPlayerId.find(connection);
-                    if (it == m_connectionToPlayerId.end())
+                    const bool isNewPlayer = it == m_connectionToPlayerId.end();
+                    if (isNewPlayer)
                     {
                         playerId = m_nextPlayerId++;
                         m_connectionToPlayerId[connection] = playerId;
@@ -166,8 +271,11 @@ namespace ggj
                     ServerMessage accept {};
                     accept.type = NetMessageType::JoinAccept;
                     accept.playerId = playerId;
+                    accept.stageIndex = m_currentStage;
                     copyName(accept.name, m_serverName);
                     m_server->sendTo(connection, accept);
+                    if (isNewPlayer)
+                        sendWorldStateTo(connection);
 
                     applyPlayerSnapshot(playerId, message);
                     m_remotePlayers[playerId].localIp = message.localIp;
@@ -185,7 +293,7 @@ namespace ggj
                 case NetMessageType::ProjectileImpact:
                 {
                     auto it = m_connectionToPlayerId.find(connection);
-                    if (it == m_connectionToPlayerId.end())
+                    if (it == m_connectionToPlayerId.end() || message.stageIndex != m_currentStage)
                         break;
 
                     queueProjectileEvent(message.type, it->second, message.objectId, message.position, message.velocity);
@@ -202,9 +310,29 @@ namespace ggj
                 case NetMessageType::GameEvent:
                 {
                     // A client picked up a coin / killed an enemy. Reconcile and tell everyone.
-                    const bool isCoin = message.eventKind == 1;
-                    if (m_removedObjectIds.insert(message.objectId).second)
-                        broadcastObjectRemoved(message.objectId, isCoin);
+                    // Ids restart on every map, so an event from a stage we already left would
+                    // remove the wrong object here.
+                    if (message.stageIndex != m_currentStage)
+                        break;
+                    recordObjectRemoved(message.objectId, message.eventKind == 1);
+                    break;
+                }
+                case NetMessageType::PortalEntered:
+                {
+                    auto it = m_connectionToPlayerId.find(connection);
+                    if (it == m_connectionToPlayerId.end() || message.stageIndex != m_currentStage || m_isPortalEntered)
+                        break;
+
+                    // Send the host through, and relay so every other client follows too.
+                    m_isPortalEntered = true;
+                    m_hasPendingRemotePortalEntry = true;
+
+                    ServerMessage relay {};
+                    relay.type = NetMessageType::PortalEntered;
+                    relay.playerId = it->second;
+                    relay.stageIndex = m_currentStage;
+                    m_server->broadcast(relay);
+                    m_logger.information(fmt::format("Player id {0} entered the portal of stage {1}", it->second, m_currentStage));
                     break;
                 }
                 default:
@@ -280,6 +408,7 @@ namespace ggj
                 join.nameColor = m_localNameColor;
                 join.character = static_cast<uint8_t>(m_localCharacter);
                 join.position = m_localPosition;
+                join.stageIndex = m_currentStage;
                 std::strncpy(join.localIp, m_cachedLocalIp.c_str(), sizeof(join.localIp) - 1);
                 std::strncpy(join.publicIp, m_cachedPublicIp.c_str(), sizeof(join.publicIp) - 1);
                 m_client->sendToServer(join);
@@ -298,6 +427,7 @@ namespace ggj
             state.lives = m_localLives;
             state.score = m_localScore;
             state.kills = m_localKills;
+            state.stageIndex = m_currentStage;
             m_client->sendToServer(state);
         }
 
@@ -309,6 +439,18 @@ namespace ggj
                     m_localPlayerId = message.playerId;
                     m_serverName = std::string(message.name, strnlen(message.name, sizeof(message.name)));
                     m_logger.information(fmt::format("Joined '{0}' as player id {1}", m_serverName, message.playerId));
+                    followHostStage(message.stageIndex);
+                    break;
+                case NetMessageType::StageChanged:
+                    followHostStage(message.stageIndex);
+                    break;
+                case NetMessageType::PortalEntered:
+                    // The host relays to everyone, including the player who walked in; skip our own.
+                    if (message.playerId != m_localPlayerId && message.stageIndex == m_currentStage && !m_isPortalEntered)
+                    {
+                        m_isPortalEntered = true;
+                        m_hasPendingRemotePortalEntry = true;
+                    }
                     break;
                 case NetMessageType::PlayerState:
                     applyPlayerSnapshot(message);
@@ -452,19 +594,34 @@ namespace ggj
         if (!m_server)
             return;
 
-        ServerMessage state {};
-        state.objectId = objectId;
+        m_server->broadcast(makeObjectRemovedMessage(objectId, isCoin));
+    }
+
+    void NetworkManager::recordObjectRemoved(uint32_t objectId, bool isCoin)
+    {
+        if (!m_removedObjectIds.insert(objectId).second)
+            return;
+
         if (isCoin)
+            m_removedCoinIds.insert(objectId);
+        broadcastObjectRemoved(objectId, isCoin);
+    }
+
+    void NetworkManager::sendWorldStateTo(HSteamNetConnection connection)
+    {
+        // Without this a late joiner sees coins/enemies others already took, and its enemy count
+        // (and so its portal) never reaches zero.
+        for (const uint32_t objectId : m_removedObjectIds)
+            m_server->sendTo(connection, makeObjectRemovedMessage(objectId, m_removedCoinIds.count(objectId) > 0));
+
+        if (m_isPortalEntered)
         {
-            state.type = NetMessageType::CoinState;
-            state.flag = true; // collected
+            ServerMessage entered {};
+            entered.type = NetMessageType::PortalEntered;
+            entered.playerId = HOST_PLAYER_ID;
+            entered.stageIndex = m_currentStage;
+            m_server->sendTo(connection, entered);
         }
-        else
-        {
-            state.type = NetMessageType::EnemyState;
-            state.flag = false; // dead
-        }
-        m_server->broadcast(state);
     }
 
     void NetworkManager::notifyLocalObjectDestroyed(uint32_t objectId, bool isCoin)
@@ -472,8 +629,7 @@ namespace ggj
         if (m_role == NetworkRole::Server)
         {
             // Host is authoritative: record + tell all clients.
-            if (m_removedObjectIds.insert(objectId).second)
-                broadcastObjectRemoved(objectId, isCoin);
+            recordObjectRemoved(objectId, isCoin);
         }
         else if (m_role == NetworkRole::Client && m_client)
         {
@@ -482,6 +638,7 @@ namespace ggj
             event.type = NetMessageType::GameEvent;
             event.objectId = objectId;
             event.eventKind = isCoin ? 1 : 2;
+            event.stageIndex = m_currentStage;
             m_client->sendToServer(event);
             m_removedObjectIds.insert(objectId);
         }
@@ -524,6 +681,7 @@ namespace ggj
             message.objectId = projectileId;
             message.position = position;
             message.velocity = velocity;
+            message.stageIndex = m_currentStage;
             m_client->sendToServer(message);
         }
     }

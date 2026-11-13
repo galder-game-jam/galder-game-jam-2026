@@ -15,11 +15,8 @@ namespace ggj
             //         teleport();
             //     }
             // }
-            if (!m_hasTeleported && m_world->getNumberOfEnemiesLeft() == 0)
-            {
-                m_hasTeleported = true;
-                teleport();
-            }
+            if (m_world->getNumberOfEnemiesLeft() == 0 && enter())
+                m_world->notifyLocalPortalEntered();
         }
     }
 
@@ -58,6 +55,19 @@ namespace ggj
             m_animation.update(timeDelta);
             m_drawingRect = m_animation.getDrawingRect();
         }
+    }
+
+    bool Portal::enter()
+    {
+        if (m_hasTeleported)
+            return false;
+
+        m_hasTeleported = true;
+        // A peer's entry can arrive before our own enemy count hits zero; don't let a late
+        // activate() swap the teleport animation back to the idle-active one.
+        m_hasActivated = true;
+        teleport();
+        return true;
     }
 
     void Portal::activate()

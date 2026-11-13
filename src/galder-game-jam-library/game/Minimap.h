@@ -9,14 +9,23 @@
 #include "../system/WorldLayer.h"
 #include <map>
 #include <cstdint>
+#include <vector>
 
 namespace tson { class Map; }
 
 namespace ggj
 {
+    /*! A player dot on the minimap. */
+    struct MinimapMarker
+    {
+        raylib::Vector2 worldPosition {}; ///< Visual centre of the player in world pixels.
+        raylib::Color color { RED };      ///< The player's chosen name colour.
+        bool isLocalPlayer { false };     ///< Drawn on top with a white ring so you can find yourself.
+    };
+
     /*!
      * Pre-renders all tile layers to an offscreen texture once on initialize,
-     * then draws a scaled window of that texture centred on the player each frame.
+     * then draws a scaled window of that texture with a dot for every player each frame.
      */
     class Minimap
     {
@@ -25,7 +34,13 @@ namespace ggj
             ~Minimap();
 
             void initialize(tson::Map& map, std::map<int32_t, WorldLayer>& layers);
-            void draw(raylib::Vector2 playerWorldPos, float alpha = 1.0f) const;
+            /*!
+             * Draws the map and a dot per player.
+             *
+             * @param markers Players to mark; the local player's dot is drawn last so it stays on top
+             * @param alpha HUD opacity in 0..1
+             */
+            void draw(const std::vector<MinimapMarker>& markers, float alpha = 1.0f) const;
 
         private:
             RenderTexture2D m_mapTexture {};

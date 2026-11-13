@@ -562,6 +562,27 @@ namespace ggj
             m_networkObjectSpawns[id] = PhysicsObject::ConvertToVector2(obj->getBody()->GetPosition());
     }
 
+    std::vector<MinimapMarker> World::getRemotePlayerMarkers() const
+    {
+        std::vector<MinimapMarker> markers;
+        if (m_network == nullptr || !m_network->isActive())
+            return markers;
+
+        for (const auto& [playerId, remote] : m_network->remotePlayers())
+        {
+            // Same formula as Player::getVisualCenter(), so remote dots line up with the local one.
+            const raylib::Vector2 visualCenter { remote.position.x, remote.position.y - m_playerSpriteOrigin.y + m_playerSpriteHeight / 2.f };
+            markers.push_back(MinimapMarker { visualCenter, remote.nameColor, false });
+        }
+        return markers;
+    }
+
+    void World::notifyLocalPortalEntered()
+    {
+        if (m_network != nullptr && m_network->isActive())
+            m_network->notifyLocalPortalEntered();
+    }
+
     void World::syncNetworkObjects()
     {
         // Always prune destroyed objects so raw pointers in m_networkObjects never outlive
@@ -593,6 +614,10 @@ namespace ggj
 
         if (m_network == nullptr || !m_network->isActive())
             return;
+
+        // A peer walked into this stage's portal: follow them through it.
+        if (m_network->takeRemotePortalEntry() && m_portal != nullptr)
+            m_portal->enter();
 
         // Feed the local player's authoritative stats out for syncing.
         if (m_player != nullptr)
@@ -675,6 +700,7 @@ namespace ggj
                 // Same origin formula as PhysicsSprite; the map sprite is the Rogue texture.
                 const bool isCircle = body->GetFixtureList()->GetShape()->GetType() == b2Shape::e_circle;
                 m_playerSpriteOrigin = raylib::Vector2 { spriteSize.x / 2.f, isCircle ? spriteSize.y - physicsSize.y : spriteSize.y - physicsSize.y / 2.f };
+                m_playerSpriteHeight = spriteSize.y;
                 m_rogueTexture = tex;
                 m_wizardTexture = m_textures.get(TextureName::WizardPlayer);
 

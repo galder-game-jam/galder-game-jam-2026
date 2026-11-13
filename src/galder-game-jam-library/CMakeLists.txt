@@ -37,6 +37,7 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         managers/NetworkManager.cpp
         managers/NetworkManager.h
         managers/ServerInfoMenu.hpp
+        managers/MessagePopup.hpp
         game/projectiles/MageBall.hpp
         game/projectiles/Projectile.cpp
         game/projectiles/Projectile.h

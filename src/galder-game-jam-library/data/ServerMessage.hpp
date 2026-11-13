@@ -15,8 +15,8 @@ namespace ggj
      * Server -> Client message envelope. Trivially copyable POD sent as raw bytes (sizeof).
      * See ClientMessage for the endianness/layout caveat.
      *
-     * For JoinAccept, playerId holds the id the server assigned to this client and name holds the
- * server name.
+     * For JoinAccept, playerId holds the id the server assigned to this client, name holds the
+     * server name and stageIndex the stage the host is currently on.
      * For PlayerState / PlayerLeft, playerId identifies which player the snapshot describes.
      *
      * @note No std::string / containers allowed here - it must stay trivially copyable.
@@ -47,6 +47,8 @@ namespace ggj
         // World object sync (EnemyState / CoinState).
         uint32_t objectId { 0 }; ///< Networked object id this message refers to.
         bool flag { false };     ///< EnemyState: isAlive. CoinState: collected.
+
+        int32_t stageIndex { 0 }; ///< JoinAccept / StageChanged: the host's stage. PortalEntered: stage of that portal.
     };
 } // namespace ggj
 

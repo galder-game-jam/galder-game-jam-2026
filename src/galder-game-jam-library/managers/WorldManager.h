@@ -17,7 +17,7 @@
 #include "../interfaces/manager/INetworkManager.h"
 #include "../interfaces/manager/IOptionsManager.h"
 #include "ClientInfoMenu.hpp"
-
+#include "MessagePopup.hpp"
 
 namespace ggj
 {
@@ -59,6 +59,25 @@ namespace ggj
         private:
             bool parseProject();
             void startMusicForStage(int32_t stageIndex);
+
+            /*! Runs whichever screen (menu, character select, world, ...) is currently active. */
+            void updateActiveScreen(float timeDelta);
+            /*!
+             * Drives netplay once per frame, also while a menu is open: a host that stops polling
+             * stalls every client, and a peer that stops polling falls behind and then bursts.
+             */
+            void updateNetplay(float timeDelta);
+            /*!
+             * Switches to another stage, carrying the local player's progress over.
+             *
+             * @param stageIndex Stage to switch to; ignored if no such map was loaded
+             */
+            void changeStage(int32_t stageIndex);
+            [[nodiscard]] int32_t getNextStageIndex() const;
+            /*! Leaves the current game (ending any netplay session) and shows the main menu. */
+            void returnToMainMenu();
+            /*! Closes any in-game overlay and shows a blocking message that leads back to the main menu. */
+            void showConnectionLostPopup(const std::string& message);
 
             const int32_t NO_MAP_ID = -1;
             const int32_t FINAL_MAP_ID = 99999;
@@ -103,6 +122,7 @@ namespace ggj
             bool m_talentScreenActive{false};
             bool m_optionsReturnToInGame{false};
             bool m_isNetplay{false};
+            MessagePopup m_connectionLostPopup {};
             PlayerPickedCharacter m_pickedCharacter { PlayerPickedCharacter::Rogue };
             raylib::Font m_font;
             //std::vector<std::unique_ptr<tson::Map>> m_maps;

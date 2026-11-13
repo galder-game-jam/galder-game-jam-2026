@@ -65,6 +65,10 @@ namespace ggj
 
         /*! When set, remote players synced by the network manager are drawn into this world. */
         void setNetworkManager(INetworkManager* network) { m_network = network; }
+        /*! Minimap dots for every remote netplay peer (visual centre + name colour). Empty offline. */
+        [[nodiscard]] std::vector<MinimapMarker> getRemotePlayerMarkers() const;
+        /*! Called by the Portal when the local player walks in, so netplay peers follow through it. */
+        void notifyLocalPortalEntered();
         [[nodiscard]] int getEnemies() const;
 #ifdef GAME_DEV_DEBUG
         void setDebugState(ggj::DebugState* pState);
@@ -260,6 +264,7 @@ namespace ggj
         raylib::Texture* m_rogueTexture { nullptr };
         raylib::Texture* m_wizardTexture { nullptr };
         raylib::Vector2 m_playerSpriteOrigin {};
+        float m_playerSpriteHeight { 0.0f };
 
         /*! A projectile fired by the local player, tracked so its impact can be reported once. */
         struct LocalProjectile

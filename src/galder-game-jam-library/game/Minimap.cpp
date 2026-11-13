@@ -36,7 +36,7 @@ namespace ggj
         m_isInitialized = true;
     }
 
-    void Minimap::draw(raylib::Vector2 playerWorldPos, float alpha) const
+    void Minimap::draw(const std::vector<MinimapMarker>& markers, float alpha) const
     {
         if (!m_isInitialized)
             return;
@@ -53,9 +53,22 @@ namespace ggj
         DrawRectangle(static_cast<int>(minimapX) - 2, static_cast<int>(minimapY) - 2, MINIMAP_WIDTH + 4, MINIMAP_HEIGHT + 4, Color { 0, 0, 0, a });
         DrawTexturePro(m_mapTexture.texture, source, dest, { 0.f, 0.f }, 0.f, Color { 255, 255, 255, a });
 
-        const float dotX = minimapX + (playerWorldPos.x / static_cast<float>(m_mapPixelWidth))  * static_cast<float>(MINIMAP_WIDTH);
-        const float dotY = minimapY + (playerWorldPos.y / static_cast<float>(m_mapPixelHeight)) * static_cast<float>(MINIMAP_HEIGHT);
-        DrawCircle(static_cast<int>(dotX), static_cast<int>(dotY), 3.f, Color { 230, 41, 55, a });
+        // Remote players first, so the local player's dot is never hidden underneath one.
+        for (const bool isDrawingLocalPlayer : { false, true })
+        {
+            for (const MinimapMarker& marker : markers)
+            {
+                if (marker.isLocalPlayer != isDrawingLocalPlayer)
+                    continue;
+
+                const float dotX = minimapX + (marker.worldPosition.x / static_cast<float>(m_mapPixelWidth)) * static_cast<float>(MINIMAP_WIDTH);
+                const float dotY = minimapY + (marker.worldPosition.y / static_cast<float>(m_mapPixelHeight)) * static_cast<float>(MINIMAP_HEIGHT);
+                // A ring keeps dark/map-coloured name colours readable; white marks "you".
+                const Color ringColor = marker.isLocalPlayer ? Color { 255, 255, 255, a } : Color { 0, 0, 0, a };
+                DrawCircle(static_cast<int>(dotX), static_cast<int>(dotY), 4.f, ringColor);
+                DrawCircle(static_cast<int>(dotX), static_cast<int>(dotY), 3.f, Color { marker.color.r, marker.color.g, marker.color.b, a });
+            }
+        }
 
         DrawRectangleLines(static_cast<int>(minimapX), static_cast<int>(minimapY), MINIMAP_WIDTH, MINIMAP_HEIGHT, Color { 255, 255, 255, a });
     }

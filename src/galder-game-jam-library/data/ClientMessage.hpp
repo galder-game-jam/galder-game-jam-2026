@@ -45,6 +45,12 @@ namespace ggj
         // Local world event report (GameEvent): something this peer destroyed locally.
         uint32_t objectId { 0 };
         uint8_t eventKind { 0 }; ///< 0 = none, 1 = coin collected, 2 = enemy killed.
+
+        /*!
+         * Stage the sender was on. Object ids restart on every map, so the server drops world
+         * events tagged with a stage it has already left instead of applying them to the new one.
+         */
+        int32_t stageIndex { 0 };
     };
 } // namespace ggj
 
