@@ -29,6 +29,11 @@ namespace ggj
         return m_pickedCharacter;
     }
 
+    void CharacterSelectScreen::reset()
+    {
+        m_isCharacterSelected = false;
+    }
+
     void CharacterSelectScreen::setFont(raylib::Font* font)
     {
         m_font = font;
