@@ -2,6 +2,7 @@
 // Created by robin on 29.10.22.
 //
 
+#include <algorithm>
 #include "World.h"
 #include "../game/Hud.h"
 #include "../graphics/Sprite.h"
@@ -1024,9 +1025,10 @@ namespace ggj
 
     int World::getNumberOfEnemiesLeft() const
     {
-        return m_numberOfEnemies
-               - (m_player->getUserData()->enemiesKilled)
-               - m_networkRemovedEnemyCount;
+        // Never report fewer than zero left: kills can never exceed the total in the quest log.
+        return std::max(0, m_numberOfEnemies
+                               - (m_player->getUserData()->enemiesKilled)
+                               - m_networkRemovedEnemyCount);
     }
 
     std::string World::getLeadingPlayer() const
