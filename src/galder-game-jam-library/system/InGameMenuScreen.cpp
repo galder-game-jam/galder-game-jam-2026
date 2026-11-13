@@ -10,6 +10,12 @@ namespace ggj
         m_isExitSelected    = false;
     }
 
+    raylib::Rectangle InGameMenuScreen::itemRect(const int index) const
+    {
+        return raylib::Rectangle { 180.0f, MENU_START_Y + static_cast<float>(index) * MENU_SPACING,
+            440.0f, static_cast<float>(MENU_FONT_SIZE) };
+    }
+
     void InGameMenuScreen::update(float /*timeDelta*/)
     {
         int option = static_cast<int>(m_selectedOption);
@@ -19,6 +25,18 @@ namespace ggj
 
         if (m_inputManager.keyPressed(KeyboardKey::Down) || m_inputManager.keyPressed(KeyboardKey::S))
             option = (option + 1) % MENU_ITEM_COUNT;
+
+        // Hovering only moves the cursor when the mouse actually moved, so it doesn't fight the keyboard.
+        const raylib::Vector2 mouse = getVirtualMousePosition(SCREEN_WIDTH, SCREEN_HEIGHT);
+        const bool hasMouseMoved = GetMouseDelta().x != 0.0f || GetMouseDelta().y != 0.0f;
+        int hoveredOption = -1;
+        for (int i = 0; i < MENU_ITEM_COUNT; ++i)
+        {
+            if (CheckCollisionPointRec(mouse, itemRect(i)))
+                hoveredOption = i;
+        }
+        if (hasMouseMoved && hoveredOption >= 0)
+            option = hoveredOption;
 
         if (option != static_cast<int>(m_selectedOption))
             m_soundManager.playSound(SoundName::DialogMumble);
@@ -31,7 +49,8 @@ namespace ggj
             return;
         }
 
-        if (m_inputManager.keyPressed(KeyboardKey::Space) || m_inputManager.keyPressed(KeyboardKey::Enter))
+        if (m_inputManager.keyPressed(KeyboardKey::Space) || m_inputManager.keyPressed(KeyboardKey::Enter)
+            || (hoveredOption >= 0 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)))
         {
             switch (m_selectedOption)
             {
@@ -68,9 +87,6 @@ namespace ggj
             static_cast<float>(TITLE_FONT_SIZE), 0, WHITE);
 
         // Menu items
-        const float MENU_START_Y = 260.0f;
-        const float MENU_SPACING = 60.0f;
-
         for (int i = 0; i < MENU_ITEM_COUNT; ++i)
         {
             const bool isSelected = (static_cast<int>(m_selectedOption) == i);

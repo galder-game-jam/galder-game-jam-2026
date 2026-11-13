@@ -6,13 +6,14 @@
 #include "../../gamedev-base/GameDevBase.h"
 #include "../enums/KeyboardKey.h"
 #include "../enums/SoundName.h"
+#include "MenuMouse.hpp"
 
 namespace ggj
 {
     /*!
      * Pause menu shown during gameplay when the player presses Esc. Draws a semi-transparent
      * overlay on top of the paused world and provides three actions: Resume, Options, and Exit
-     * to Main Menu. Navigation matches the main menu (arrow keys / WASD + Space / Enter).
+     * to Main Menu. Navigation matches the main menu (arrow keys / WASD + Space / Enter, or mouse hover + left click).
      * Esc is treated as an alias for Resume.
      */
     class InGameMenuScreen : public IGameObject<raylib::Vector2>
@@ -41,6 +42,9 @@ namespace ggj
             void draw() override;
 
         private:
+            /*! Clickable row for a menu item, in virtual screen coordinates. */
+            [[nodiscard]] raylib::Rectangle itemRect(int index) const;
+
             enum class InGameMenuOption
             {
                 Resume     = 0,
@@ -62,6 +66,8 @@ namespace ggj
             static constexpr int   MENU_FONT_SIZE  = 36;
             static constexpr int   TITLE_FONT_SIZE = 28;
             static constexpr int   MENU_ITEM_COUNT = 3;
+            static constexpr float MENU_START_Y = 260.0f;
+            static constexpr float MENU_SPACING = 60.0f;
 
             const std::string m_menuItems[MENU_ITEM_COUNT] { "RESUME", "OPTIONS", "EXIT TO MAIN MENU" };
     };
