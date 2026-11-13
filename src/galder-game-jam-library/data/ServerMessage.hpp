@@ -15,7 +15,8 @@ namespace ggj
      * Server -> Client message envelope. Trivially copyable POD sent as raw bytes (sizeof).
      * See ClientMessage for the endianness/layout caveat.
      *
-     * For JoinAccept, playerId holds the id the server assigned to this client.
+     * For JoinAccept, playerId holds the id the server assigned to this client and name holds the
+ * server name.
      * For PlayerState / PlayerLeft, playerId identifies which player the snapshot describes.
      *
      * @note No std::string / containers allowed here - it must stay trivially copyable.

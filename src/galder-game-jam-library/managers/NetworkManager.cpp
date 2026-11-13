@@ -162,6 +162,7 @@ namespace ggj
                     ServerMessage accept {};
                     accept.type = NetMessageType::JoinAccept;
                     accept.playerId = playerId;
+                    copyName(accept.name, m_serverName);
                     m_server->sendTo(connection, accept);
 
                     applyPlayerSnapshot(playerId, message);
@@ -274,7 +275,8 @@ namespace ggj
             {
                 case NetMessageType::JoinAccept:
                     m_localPlayerId = message.playerId;
-                    m_logger.information(fmt::format("Joined as player id {0}", message.playerId));
+                    m_serverName = std::string(message.name, strnlen(message.name, sizeof(message.name)));
+                    m_logger.information(fmt::format("Joined '{0}' as player id {1}", m_serverName, message.playerId));
                     break;
                 case NetMessageType::PlayerState:
                     applyPlayerSnapshot(message);

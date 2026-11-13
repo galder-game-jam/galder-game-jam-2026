@@ -61,7 +61,7 @@ namespace ggj
 
         bool m_isHost { true };
         char m_nameBuffer[21] { "Player" };
-        char m_serverNameBuffer[64] { "Galder Server" };
+        char m_serverNameBuffer[21] { "Galder Server" }; ///< Same 20-char cap as ServerMessage::name.
         char m_ipBuffer[64] { "127.0.0.1" };
         int m_port { INetworkManager::DEFAULT_PORT };
 
