@@ -66,6 +66,7 @@ namespace ggj
         {
             if (m_inputManager.keyDown(kb.respawn))
             {
+                m_world->keepEnemiesClearOf(m_startPos, RESPAWN_ENEMY_CLEARANCE);
                 m_body->SetTransform(ConvertToB2Vec2(m_startPos), m_body->GetAngle());
                 setPlayerState(PlayerState::Idle);
                 m_isDead = false;

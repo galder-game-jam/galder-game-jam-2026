@@ -415,6 +415,8 @@ namespace ggj
         const uint32_t id = m_nextNetworkId++;
         obj->setNetworkId(id);
         m_networkObjects[id] = obj;
+        if (obj->getBody() != nullptr)
+            m_networkObjectSpawns[id] = PhysicsObject::ConvertToVector2(obj->getBody()->GetPosition());
     }
 
     void World::syncNetworkObjects()
@@ -1015,6 +1017,33 @@ namespace ggj
                     m_bossName     = generatorData.bossName;
                     m_bossMaxLives = generatorData.lives;
                 }
+            }
+        }
+    }
+
+    void World::keepEnemiesClearOf(const raylib::Vector2& point, float radius)
+    {
+        const float radiusSq = radius * radius;
+        const auto isNear = [&](const raylib::Vector2& pos)
+        {
+            const float dx = pos.x - point.x;
+            const float dy = pos.y - point.y;
+            return dx * dx + dy * dy < radiusSq;
+        };
+
+        for (const auto& [id, obj] : m_networkObjects)
+        {
+            if (obj->getUserData()->getObjectType() != ObjectType::Enemy || obj->shouldBeDestroyed() || obj->getBody() == nullptr)
+                continue;
+            if (m_networkObjectSpawns.count(id) == 0)
+                continue;
+
+            const raylib::Vector2 currentPos = PhysicsObject::ConvertToVector2(obj->getBody()->GetPosition());
+            const raylib::Vector2& spawnPos  = m_networkObjectSpawns.at(id);
+            if (isNear(currentPos) && !isNear(spawnPos))
+            {
+                obj->setNetworkPosition(spawnPos);
+                obj->getBody()->SetLinearVelocity({ 0.f, 0.f });
             }
         }
     }
