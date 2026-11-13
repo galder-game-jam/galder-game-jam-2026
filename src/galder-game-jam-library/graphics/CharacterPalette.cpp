@@ -10,12 +10,12 @@ namespace ggj
 {
     namespace
     {
-        // Colours sampled from Rogue.png / Wizard.png. The Rogue's face shares its colour with the
-        // sprite outline, so recolouring the face recolours the outline as well (intended).
+        // Colours sampled from Rogue.png / Wizard.png. The Rogue's face is painted pure black so it
+        // stays separate from the near-black (#141412) sprite outline.
         const std::vector<PaletteSlot> ROGUE_SLOTS {
             { "Cloth", { { 0x92, 0x82, 0x30, 255 }, { 0x5f, 0x56, 0x25, 255 }, { 0x37, 0x3a, 0x20, 255 }, { 0x25, 0x27, 0x16, 255 } } },
             { "Scarf", { { 0x93, 0x2d, 0x8b, 255 }, { 0x5f, 0x2e, 0x5c, 255 }, { 0x33, 0x1e, 0x32, 255 } } },
-            { "Face & outline", { { 0x14, 0x14, 0x12, 255 } } },
+            { "Face", { { 0x00, 0x00, 0x00, 255 } } },
             { "Eyes", { { 0x0c, 0x98, 0xd6, 255 }, { 0x1c, 0x38, 0x45, 255 } } },
         };
 

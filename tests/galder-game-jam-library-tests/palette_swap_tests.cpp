@@ -43,15 +43,16 @@ TEST_CASE("Palette swap - every shade of every slot is mapped", "[palette]")
     REQUIRE(CharacterPalette::BuildPaletteSwap(PlayerPickedCharacter::None, CharacterColors {}).count == 0);
 }
 
-TEST_CASE("Palette swap - Rogue face and outline take the picked colour", "[palette]")
+TEST_CASE("Palette swap - Rogue face takes the picked colour, outline is untouched", "[palette]")
 {
     CharacterColors colors = CharacterPalette::GetDefaultColors(PlayerPickedCharacter::Rogue);
     colors.slots[2] = ::Color { 200, 10, 30, 255 };
 
     const PaletteSwap swap = CharacterPalette::BuildPaletteSwap(PlayerPickedCharacter::Rogue, colors);
-    const int32_t index = findSwap(swap, ::Color { 0x14, 0x14, 0x12, 255 });
+    const int32_t index = findSwap(swap, ::Color { 0x00, 0x00, 0x00, 255 });
     REQUIRE(index >= 0);
     REQUIRE(isSameRgb(swap.to[index], ::Color { 200, 10, 30, 255 }));
+    REQUIRE(findSwap(swap, ::Color { 0x14, 0x14, 0x12, 255 }) == -1);
 }
 
 TEST_CASE("Palette swap - darker shades are scaled down from the picked colour", "[palette]")
