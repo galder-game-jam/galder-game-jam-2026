@@ -25,6 +25,11 @@ namespace ggj
             void initialize();
             [[nodiscard]] bool isCharacterSelected() const;
             [[nodiscard]] PlayerPickedCharacter getPickedCharacter() const;
+            /*!
+             * Clears the confirmed selection so the screen waits for input again.
+             * Called when returning to the main menu so a new game shows character select.
+             */
+            void reset();
             void setFont(raylib::Font* font);
             void setPlayer(IPlayer* player);
             void setWorld(World* world);

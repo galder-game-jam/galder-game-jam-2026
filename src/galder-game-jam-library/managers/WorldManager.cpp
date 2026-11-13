@@ -295,6 +295,7 @@ namespace ggj
                     m_inGameMenuScreen.reset();
                     m_mainMenuScreenActive = true;
                     m_mainMenuScreen.reset();
+                    m_characterSelectScreen.reset();
                     m_soundManager.stopMusic();
 #ifdef GAME_DEV_DEBUG
                     m_managers.debugState.isGameActive = false;
