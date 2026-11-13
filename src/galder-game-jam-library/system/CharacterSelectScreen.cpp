@@ -3,6 +3,9 @@
 //
 
 #include "CharacterSelectScreen.h"
+#include "../graphics/CharacterPalette.h"
+#include "imgui.h"
+#include "rlImGui.h"
 
 namespace ggj
 {
@@ -17,6 +20,16 @@ namespace ggj
         m_roguePortraitTexture = m_textures.get(TextureName::CharacterSelectRoguePortrait);
         m_wizardPortraitTexture = m_textures.get(TextureName::CharacterSelectWizardPortrait);
         m_currentPortraitTexture = m_roguePortraitTexture;
+
+        m_rogueSpriteTexture = m_textures.get(TextureName::RoguePlayer);
+        m_wizardSpriteTexture = m_textures.get(TextureName::WizardPlayer);
+        // Both sprite sheets share the Rogue animation layout.
+        m_previewAnimation = m_animations.getAnimation(AnimationName::RogueIdle);
+        if (m_previewTexture == nullptr)
+            m_previewTexture = std::make_unique<raylib::RenderTexture>(PREVIEW_SPRITE_SIZE, PREVIEW_SPRITE_SIZE);
+
+        m_rogueColors = CharacterPalette::GetDefaultColors(PlayerPickedCharacter::Rogue);
+        m_wizardColors = CharacterPalette::GetDefaultColors(PlayerPickedCharacter::Wizard);
     }
 
     bool CharacterSelectScreen::isCharacterSelected() const
@@ -27,6 +40,16 @@ namespace ggj
     PlayerPickedCharacter CharacterSelectScreen::getPickedCharacter() const
     {
         return m_pickedCharacter;
+    }
+
+    const CharacterColors& CharacterSelectScreen::getPickedColors() const
+    {
+        return (m_pickedCharacter == PlayerPickedCharacter::Wizard) ? m_wizardColors : m_rogueColors;
+    }
+
+    CharacterColors& CharacterSelectScreen::pickedColors()
+    {
+        return (m_pickedCharacter == PlayerPickedCharacter::Wizard) ? m_wizardColors : m_rogueColors;
     }
 
     void CharacterSelectScreen::reset()
@@ -68,6 +91,12 @@ namespace ggj
 
     void CharacterSelectScreen::update(float timeDelta)
     {
+        m_previewAnimation.update(timeDelta);
+
+        // Typing in a colour picker's text field must not switch or confirm the character.
+        if (ImGui::GetIO().WantCaptureKeyboard)
+            return;
+
         if (m_inputManager.keyPressed(KeyboardKey::A) || m_inputManager.keyPressed(KeyboardKey::Left) ||
             m_inputManager.keyPressed(KeyboardKey::D) || m_inputManager.keyPressed(KeyboardKey::Right))
         {
@@ -180,4 +209,65 @@ namespace ggj
             }
         }
     }
-} // ggj
+
+    void CharacterSelectScreen::renderPreview()
+    {
+        raylib::Texture* texture = (m_pickedCharacter == PlayerPickedCharacter::Wizard) ? m_wizardSpriteTexture : m_rogueSpriteTexture;
+        if (texture == nullptr || m_previewTexture == nullptr)
+            return;
+
+        m_previewTexture->BeginMode();
+        ClearBackground(BLANK);
+        m_paletteSwap.begin(CharacterPalette::BuildPaletteSwap(m_pickedCharacter, getPickedColors()));
+        texture->Draw(m_previewAnimation.getDrawingRect(), raylib::Vector2 { 0.0f, 0.0f });
+        m_paletteSwap.end();
+        m_previewTexture->EndMode();
+    }
+
+    void CharacterSelectScreen::drawImGui()
+    {
+        if (!m_isVisible)
+            return;
+
+        // Rendered here rather than in draw(): draw() runs inside the game's render texture, and
+        // raylib texture modes can't be nested.
+        renderPreview();
+
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(ImVec2 { viewport->WorkPos.x + viewport->WorkSize.x - 10.0f, viewport->WorkPos.y + 10.0f }, ImGuiCond_Appearing, ImVec2 { 1.0f, 0.0f });
+        if (ImGui::Begin("Customize colors", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            if (m_previewTexture != nullptr)
+            {
+                constexpr float PREVIEW_DRAW_SIZE = static_cast<float>(PREVIEW_SPRITE_SIZE) * PREVIEW_SCALE;
+                const float previewX = (ImGui::GetContentRegionAvail().x - PREVIEW_DRAW_SIZE) * 0.5f;
+                if (previewX > 0.0f)
+                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + previewX);
+
+                // Render textures are stored upside down, hence the negative source height.
+                const Rectangle source { 0.0f, 0.0f, static_cast<float>(PREVIEW_SPRITE_SIZE), -static_cast<float>(PREVIEW_SPRITE_SIZE) };
+                rlImGuiImageRect(&m_previewTexture->texture, static_cast<int>(PREVIEW_DRAW_SIZE), static_cast<int>(PREVIEW_DRAW_SIZE), source);
+            }
+
+            CharacterColors& colors = pickedColors();
+            const std::vector<PaletteSlot>& slots = CharacterPalette::GetSlots(m_pickedCharacter);
+            for (size_t i = 0; i < slots.size() && i < CharacterColors::MAX_SLOTS; ++i)
+            {
+                ::Color& color = colors.slots[i];
+                float rgb[3] { static_cast<float>(color.r) / 255.0f, static_cast<float>(color.g) / 255.0f, static_cast<float>(color.b) / 255.0f };
+                // Swatch only (the picker opens on click) keeps the window narrow enough to sit beside the dialog.
+                if (ImGui::ColorEdit3(slots[i].label, rgb, ImGuiColorEditFlags_NoInputs))
+                {
+                    color.r = static_cast<unsigned char>(rgb[0] * 255.0f + 0.5f);
+                    color.g = static_cast<unsigned char>(rgb[1] * 255.0f + 0.5f);
+                    color.b = static_cast<unsigned char>(rgb[2] * 255.0f + 0.5f);
+                    color.a = 255;
+                }
+            }
+
+            if (ImGui::Button("Reset to default"))
+                colors = CharacterPalette::GetDefaultColors(m_pickedCharacter);
+        }
+        ImGui::End();
+    }
+} // namespace ggj

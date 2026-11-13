@@ -6,6 +6,7 @@
 #define GALDER_GAME_JAM_2026_PROJECT_CLIENTMESSAGE_HPP
 
 #include "../enums/NetMessageType.h"
+#include "CharacterColors.hpp"
 #include "raylib-cpp.hpp"
 #include <cstdint>
 
@@ -27,6 +28,7 @@ namespace ggj
         char name[21] {};        ///< Up to 20 chars + null terminator.
         uint8_t character { 0 }; ///< PlayerPickedCharacter value.
         ::Color nameColor { RED }; ///< Colour of the player's overhead name label.
+        CharacterColors colors {}; ///< Picked sprite colours, see CharacterPalette.
         char localIp[46] {};     ///< Client's LAN IP, sent only in JoinRequest.
         char publicIp[46] {};    ///< Client's public IP, sent only in JoinRequest.
 

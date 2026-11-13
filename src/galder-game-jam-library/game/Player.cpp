@@ -10,10 +10,14 @@ namespace ggj
 {
     void Player::draw()
     {
+        if (m_world != nullptr)
+            m_world->beginPlayerPalette();
         // Blink while invulnerable so the player can see the cooldown is active.
         const bool isBlinkedOut = m_damageCooldown > 0.f && static_cast<int32_t>(m_damageCooldown / DAMAGE_BLINK_INTERVAL) % 2 == 0;
         if (!isBlinkedOut)
             PhysicsSprite::draw();
+        if (m_world != nullptr)
+            m_world->endPlayerPalette();
         m_hitbox.draw();
     }
 

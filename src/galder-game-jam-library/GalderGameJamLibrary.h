@@ -9,6 +9,7 @@
 
 //Interfaces
 #include "interfaces/system/IMapper.h"
+#include "interfaces/graphics/IPaletteSwapShader.h"
 
 //Data
 #include "data/AudioOptions.hpp"
@@ -21,6 +22,10 @@
 #include "enums/MusicName.h"
 #include "enums/PlayerState.h"
 #include "enums/SoundName.h"
+
+//Graphics
+#include "graphics/CharacterPalette.h"
+#include "graphics/PaletteSwapShader.h"
 
 //Game
 #include "game/Player.h"

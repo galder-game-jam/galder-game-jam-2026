@@ -10,6 +10,11 @@
 #include "../GalderGameJamLibrary.h"
 #include "../enums/PlayerPickedCharacter.h"
 #include "../interfaces/game/IPlayer.h"
+#include "../interfaces/graphics/IPaletteSwapShader.h"
+#include "../data/CharacterColors.hpp"
+#include "../graphics/Animation.h"
+#include "../enums/AnimationName.h"
+#include <memory>
 
 namespace ggj
 {
@@ -18,13 +23,18 @@ namespace ggj
     {
         public:
             CharacterSelectScreen(IMapper &mapper, ggj::ITextureManager<TextureName, raylib::Texture> &textures,
-                IInputManager<KeyboardKey> &inputManager) : m_mapper {mapper}, m_textures {textures}, m_inputManager {inputManager}
+                IInputManager<KeyboardKey> &inputManager, IAnimationManager<Animation, AnimationName> &animations,
+                IPaletteSwapShader &paletteSwap)
+                : m_mapper {mapper}, m_textures {textures}, m_inputManager {inputManager}, m_animations {animations},
+                  m_paletteSwap {paletteSwap}
             {
                 m_isVisible = true;
             }
             void initialize();
             [[nodiscard]] bool isCharacterSelected() const;
             [[nodiscard]] PlayerPickedCharacter getPickedCharacter() const;
+            /*! Colours the player picked for the currently selected character. */
+            [[nodiscard]] const CharacterColors& getPickedColors() const;
             /*!
              * Clears the confirmed selection so the screen waits for input again.
              * Called when returning to the main menu so a new game shows character select.
@@ -39,18 +49,36 @@ namespace ggj
             void destroy() override;
             void update(float timeDelta) override;
             void draw() override;
+            /*!
+             * Draws the colour customization window: an animated, recoloured idle preview of the
+             * selected character plus one colour picker per palette slot. Must be called inside an
+             * ImGui frame and outside any raylib texture mode (it renders the preview to its own
+             * render texture).
+             */
+            void drawImGui();
 
         private:
+            [[nodiscard]] CharacterColors& pickedColors();
+            void renderPreview();
             void drawDialogBox(raylib::Vector2 offset, int width, int height, const raylib::Color &backgroundColor = raylib::Color(143, 86, 59, 255)) const;
 
             IMapper &m_mapper;
             ITextureManager<TextureName, raylib::Texture> &m_textures;
             IInputManager<KeyboardKey> &m_inputManager;
+            IAnimationManager<Animation, AnimationName> &m_animations;
+            IPaletteSwapShader &m_paletteSwap;
 
             raylib::Texture *m_hudTexture {nullptr};
             raylib::Texture *m_roguePortraitTexture {nullptr};
             raylib::Texture *m_wizardPortraitTexture {nullptr};
             raylib::Texture *m_currentPortraitTexture {nullptr};
+            raylib::Texture *m_rogueSpriteTexture {nullptr};
+            raylib::Texture *m_wizardSpriteTexture {nullptr};
+
+            Animation m_previewAnimation {};
+            std::unique_ptr<raylib::RenderTexture> m_previewTexture {}; ///< Created in initialize(): needs a GL context.
+            CharacterColors m_rogueColors {};
+            CharacterColors m_wizardColors {};
 
             raylib::Font *m_font = nullptr;
 
@@ -69,6 +97,9 @@ namespace ggj
             const raylib::Color HUD_FONT_COLOR = BLACK;
             PlayerPickedCharacter m_pickedCharacter {PlayerPickedCharacter::Rogue};
             bool m_isCharacterSelected {false};
+
+            static constexpr int PREVIEW_SPRITE_SIZE = 64;
+            static constexpr float PREVIEW_SCALE = 2.0f;
 
             //Texts
             std::string m_title{"PICK YOUR CHARACTER"};

@@ -6,6 +6,7 @@
 #define GALDER_GAME_JAM_2026_PROJECT_SERVERMESSAGE_HPP
 
 #include "../enums/NetMessageType.h"
+#include "CharacterColors.hpp"
 #include "raylib-cpp.hpp"
 #include <cstdint>
 
@@ -30,6 +31,7 @@ namespace ggj
         char name[21] {};
         uint8_t character { 0 }; ///< PlayerPickedCharacter value.
         ::Color nameColor { RED }; ///< Colour of the player's overhead name label.
+        CharacterColors colors {}; ///< Picked sprite colours, see CharacterPalette.
 
         // Transform / animation (PlayerState)
         raylib::Vector2 position {};

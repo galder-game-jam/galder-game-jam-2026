@@ -13,24 +13,22 @@
 
 auto buildInjector(ggj::ILogger& logger, raylib::Window& window)
 {
-    auto injector = boost::di::make_injector(boost::di::bind<ggj::IGameManager>().to<ggj::GameManager>(), boost::di::bind<ggj::IWorldManager>().to<ggj::WorldManager>(),
-                                             boost::di::bind<ggj::ITextureManager<ggj::TextureName, raylib::Texture>>().to<ggj::TextureManager>(),
-                                             boost::di::bind<ggj::IMapper>().to<ggj::Mapper>(), boost::di::bind<ggj::IInputManager<ggj::KeyboardKey>>().to<ggj::InputManager>(),
-                                             boost::di::bind<ggj::IResourceManager<ggj::ResourceName>>().to<ggj::ResourceManager<ggj::ResourceName>>(),
-                                             boost::di::bind<ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>>().to<ggj::AnimationManager>(),
-                                             boost::di::bind<ggj::IUserDataManager<ggj::PhysicsObject*>>().to<ggj::UserDataManager>(),
-                                             boost::di::bind<ggj::IOptionsManager>().to<ggj::OptionsManager>().in(boost::di::singleton),
-                                             boost::di::bind<ggj::ISoundManager>().to<ggj::SoundManager>(),
+    auto injector = boost::di::make_injector(
+        boost::di::bind<ggj::IGameManager>().to<ggj::GameManager>(), boost::di::bind<ggj::IWorldManager>().to<ggj::WorldManager>(),
+        boost::di::bind<ggj::ITextureManager<ggj::TextureName, raylib::Texture>>().to<ggj::TextureManager>(), boost::di::bind<ggj::IMapper>().to<ggj::Mapper>(),
+        boost::di::bind<ggj::IInputManager<ggj::KeyboardKey>>().to<ggj::InputManager>(),
+        boost::di::bind<ggj::IResourceManager<ggj::ResourceName>>().to<ggj::ResourceManager<ggj::ResourceName>>(),
+        boost::di::bind<ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>>().to<ggj::AnimationManager>(),
+        boost::di::bind<ggj::IUserDataManager<ggj::PhysicsObject*>>().to<ggj::UserDataManager>(),
+        boost::di::bind<ggj::IOptionsManager>().to<ggj::OptionsManager>().in(boost::di::singleton), boost::di::bind<ggj::ISoundManager>().to<ggj::SoundManager>(),
 
-                                             boost::di::bind<ggj::IExecutableInfo>().to<ggj::ExecutableInfo>(), boost::di::bind<ggj::IDebugManager>().to<ggj::DebugManager>(),
-                                             boost::di::bind<ggj::CollisionManager>(),
-                                             boost::di::bind<ggj::IIpAddressResolver>().to<ggj::IpAddressResolver>(),
-                                             boost::di::bind<ggj::INetworkManager>().to<ggj::NetworkManager>().in(boost::di::singleton),
-                                             boost::di::bind<ggj::PlayerPersistentState>().in(boost::di::singleton),
+        boost::di::bind<ggj::IExecutableInfo>().to<ggj::ExecutableInfo>(), boost::di::bind<ggj::IDebugManager>().to<ggj::DebugManager>(), boost::di::bind<ggj::CollisionManager>(),
+        boost::di::bind<ggj::IIpAddressResolver>().to<ggj::IpAddressResolver>(), boost::di::bind<ggj::INetworkManager>().to<ggj::NetworkManager>().in(boost::di::singleton),
+        boost::di::bind<ggj::PlayerPersistentState>().in(boost::di::singleton), boost::di::bind<ggj::IPaletteSwapShader>().to<ggj::PaletteSwapShader>().in(boost::di::singleton),
 #ifdef GAME_DEV_DEBUG
-                                             boost::di::bind<ggj::DebugState>().in(boost::di::singleton),
+        boost::di::bind<ggj::DebugState>().in(boost::di::singleton),
 #endif
-                                             boost::di::bind<raylib::Window>().to(window), boost::di::bind<ggj::ILogger>().to(logger));
+        boost::di::bind<raylib::Window>().to(window), boost::di::bind<ggj::ILogger>().to(logger));
 
     return injector;
 }
@@ -44,6 +42,7 @@ struct App
     ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animations;
     ggj::IOptionsManager& options;
     ggj::ISoundManager& sounds;
+    ggj::IPaletteSwapShader& paletteSwapShader;
     raylib::Window& window;
 
     bool initialize()
@@ -52,6 +51,8 @@ struct App
         options.initialize();
         animations.initialize();
         sounds.initialize();
+        // Not fatal: without the shader the players are just drawn in their default colours.
+        paletteSwapShader.initialize();
 
         if (!game.initialize())
             return false;
