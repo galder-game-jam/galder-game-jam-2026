@@ -46,6 +46,7 @@ namespace ggj
         EnemyClaudeAttack  = 37,
         EnemyClaudlingIdle = 38,
         EnemyClaudlingWalk = 39,
+        EnemyTreantIdle    = 40,
     };
 
 } // ggj

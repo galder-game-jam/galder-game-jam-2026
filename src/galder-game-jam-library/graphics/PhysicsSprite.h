@@ -35,6 +35,7 @@ namespace ggj
             raylib::Texture *m_texture {nullptr};
             raylib::Rectangle m_drawingRect;
             bool m_flip {false};
+            raylib::Color m_tint {WHITE}; ///< Colour multiplied into the sprite when drawn; lets a sprite telegraph attacks.
             raylib::Vector2 m_spriteSize {0.f, 0.f};
     };
 

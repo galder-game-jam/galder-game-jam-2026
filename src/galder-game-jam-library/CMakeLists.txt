@@ -17,6 +17,7 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         game/enemies/Ghost.cpp game/enemies/Ghost.h game/interactables/Portal.cpp game/interactables/Portal.h
         game/enemies/ClaudeEnemy.cpp game/enemies/ClaudeEnemy.h
         game/enemies/Claudling.cpp game/enemies/Claudling.h
+        game/enemies/TreantEnemy.cpp game/enemies/TreantEnemy.h
         game/interactables/PowerUp.cpp game/interactables/PowerUp.h game/Hitbox.hpp
         data/PlayerNetworkData.hpp
         data/ServerNetworkData.hpp
