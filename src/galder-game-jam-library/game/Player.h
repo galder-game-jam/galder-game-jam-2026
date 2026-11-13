@@ -91,6 +91,9 @@ namespace ggj
         static constexpr float RESPAWN_ENEMY_CLEARANCE = 200.f; ///< Enemies are moved away if closer than this (pixels) on respawn
         bool m_hasClearedLevel { false };
         bool m_isDead { false };
+        static constexpr float DAMAGE_COOLDOWN_SECONDS = 2.f; ///< Invulnerability window after taking damage
+        static constexpr float DAMAGE_BLINK_INTERVAL = 0.1f;  ///< Sprite blink half-period while invulnerable
+        float m_damageCooldown { 0.f };                       ///< Seconds of invulnerability left
         bool m_isLeftPosition { false };
 
         ggj::Hitbox m_hitbox {};

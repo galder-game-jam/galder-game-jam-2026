@@ -561,7 +561,7 @@
                         {
                          "name":"knockback",
                          "type":"float",
-                         "value":8
+                         "value":20
                         }, 
                         {
                          "name":"lives",
