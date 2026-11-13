@@ -9,6 +9,7 @@
 #include "raylib-cpp.hpp"
 #include "../../gamedev-base/GameDevBase.h"
 #include "../GalderGameJamLibrary.h"
+#include "MenuMouse.hpp"
 
 namespace ggj
 {
@@ -41,6 +42,10 @@ namespace ggj
             void draw() override;
 
         private:
+            /*! Clickable row for a menu item, in virtual screen coordinates. */
+            [[nodiscard]] raylib::Rectangle itemRect(int index) const;
+            void activateSelected();
+
             enum class MainMenuOption
             {
                 SinglePlayer = 0,
@@ -66,6 +71,8 @@ namespace ggj
             const float SCREEN_WIDTH  = 800.0f;
             const float SCREEN_HEIGHT = 600.0f;
             const int MENU_FONT_SIZE  = 40;
+            static constexpr float MENU_START_Y = 250.0f;
+            static constexpr float MENU_SPACING = 70.0f;
             static constexpr int MENU_ITEM_COUNT = 4;
 
             const std::string m_menuItems[MENU_ITEM_COUNT] {"SINGLE PLAYER", "NETPLAY", "OPTIONS", "EXIT GAME"};
