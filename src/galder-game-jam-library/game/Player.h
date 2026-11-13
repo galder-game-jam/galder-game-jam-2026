@@ -86,6 +86,7 @@ namespace ggj
         int32_t m_playerIndex { 0 };
 
         raylib::Vector2 m_startPos {};
+        static constexpr float RESPAWN_ENEMY_CLEARANCE = 200.f; ///< Enemies are moved away if closer than this (pixels) on respawn
         bool m_hasClearedLevel { false };
         bool m_isDead { false };
         bool m_isLeftPosition { false };

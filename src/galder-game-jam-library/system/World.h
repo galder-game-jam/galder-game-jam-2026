@@ -120,6 +120,16 @@ namespace ggj
         void spawnClaudling(raylib::Vector2 position, float followSpeed, float knockback);
 
         void clearBoss() { m_boss = nullptr; }
+
+        /*!
+         * Sends every living enemy within @p radius of @p point back to where it spawned.
+         * Called on player respawn so the player never reappears underneath an enemy.
+         * Enemies whose spawn is itself within @p radius are left alone.
+         *
+         * @param point  Respawn position (pixels)
+         * @param radius Minimum distance (pixels) to keep between enemies and @p point
+         */
+        void keepEnemiesClearOf(const raylib::Vector2& point, float radius);
         [[nodiscard]] bool        hasBoss()        const { return m_boss != nullptr; }
         [[nodiscard]] std::string getBossName()    const { return m_bossName; }
         [[nodiscard]] int         getBossLives()   const { return m_boss ? m_boss->getLives() : 0; }
@@ -223,6 +233,7 @@ namespace ggj
         int            m_bossMaxLives { 0 };
 
         INetworkManager* m_network = nullptr;
+        std::map<uint32_t, raylib::Vector2> m_networkObjectSpawns; ///< Spawn position (pixels) by network id.
         std::map<uint32_t, PhysicsObject*> m_networkObjects; ///< Syncable objects (enemies/coins) by network id.
         std::set<uint32_t> m_reportedDestroyed;              ///< Ids already reported destroyed to the network.
         uint32_t m_nextNetworkId { 1 };
