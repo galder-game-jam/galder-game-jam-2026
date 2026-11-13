@@ -44,7 +44,8 @@ namespace ggj
             shutdown();
             return;
         }
-        m_beacon.startAdvertising(serverName, port);
+        if (!m_beacon.startAdvertising(serverName, port))
+            m_logger.warning(fmt::format("LAN discovery unavailable: could not bind UDP port {0} (clients can still join by IP)", LanBeacon::DISCOVERY_PORT));
         m_logger.information(fmt::format("Hosting on port {0} as '{1}' (server: '{2}')", port, playerName, serverName));
     }
 
