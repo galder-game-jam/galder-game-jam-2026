@@ -36,11 +36,11 @@ namespace ggj
             case 4: // Dungeon level #2
                 track = MusicName::Dungeon2;
                 break;
-            case 5: // Forest level #2
-                track = MusicName::Forest2;
+            case 5: // Dungeon level #3
+                track = MusicName::Dungeon2;
                 break;
-            case 6: // Forest Boss Battle
-                track = MusicName::BossBattle2;
+            case 6: // Forest level #2
+                track = MusicName::Forest2;
                 break;
             case 99999: // Final diamond map
                 track = MusicName::Victory1;
@@ -132,6 +132,12 @@ namespace ggj
                 }
             }
         }
+#ifdef GAME_DEV_DEBUG
+        // Feed the debug menu's map buttons with every loaded map (std::map keeps ids sorted).
+        m_managers.debugState.availableStages.clear();
+        for (const auto& [stageIndex, world] : m_worlds)
+            m_managers.debugState.availableStages.push_back(stageIndex);
+#endif
         m_currentStageIndex = m_startupIndex;
         if (m_currentStageIndex < 0)
             m_currentStageIndex = 1;
