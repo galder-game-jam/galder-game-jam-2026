@@ -9,6 +9,9 @@
     #include "rlImGui.h"
     #include "imgui.h"
     #include "raylib.h"
+    #include <cstdint>
+    #include <string>
+    #include <vector>
     #include "../interfaces/manager/IOptionsManager.h"
     #include "../data/KeybindingOptions.hpp"
     #include "../../gamedev-base/interfaces/managers/ISoundManager.h"
@@ -34,6 +37,7 @@ namespace ggj
         bool cameraFollowsPlayer { true };
         bool showImGuiDemo { false };
         int  requestedStage { -1 };  ///< -1 = no request; consumer resets to -1 after reading.
+        std::vector<int32_t> availableStages {}; ///< Sorted ids of all loaded maps; filled by WorldManager, shown as buttons.
         bool gainXp         { false }; ///< Consumer awards 100 XP to player 0 and resets to false.
         bool gainLevel      { false }; ///< Consumer awards exactly enough XP to level up player 0, then resets to false.
         bool killAllEnemies { false }; ///< Consumer destroys all remaining enemies in the current level and resets to false.
@@ -109,22 +113,19 @@ namespace ggj
             ImGui::Spacing();
             ImGui::Text("Map");
             ImGui::Separator();
-            if (ImGui::Button("Map 1"))
-                state.requestedStage = 1;
-            ImGui::SameLine();
-            if (ImGui::Button("Map 2"))
-                state.requestedStage = 2;
-            ImGui::SameLine();
-            if (ImGui::Button("Map 3"))
-                state.requestedStage = 3;
-            ImGui::SameLine();
-            if (ImGui::Button("Map 4"))
-                state.requestedStage = 4;
-            if (ImGui::Button("Map 5"))
-                state.requestedStage = 5;
-            ImGui::SameLine();
-            if (ImGui::Button("Final"))
-                state.requestedStage = 99999;
+            constexpr int32_t FINAL_STAGE_ID = 99999; // Mirrors WorldManager::FINAL_MAP_ID
+            constexpr int32_t MAP_COLUMNS = 3;
+            if (ImGui::BeginTable("##maptable", MAP_COLUMNS, ImGuiTableFlags_SizingStretchSame))
+            {
+                for (const int32_t stage : state.availableStages)
+                {
+                    ImGui::TableNextColumn();
+                    const std::string label = (stage == FINAL_STAGE_ID) ? "Final##map" : "Map " + std::to_string(stage) + "##map" + std::to_string(stage);
+                    if (ImGui::Button(label.c_str(), { -FLT_MIN, 0.0f }))
+                        state.requestedStage = stage;
+                }
+                ImGui::EndTable();
+            }
 
             ImGui::Spacing();
             ImGui::Text("Player");
