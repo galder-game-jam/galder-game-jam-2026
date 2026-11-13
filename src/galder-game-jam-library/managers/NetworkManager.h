@@ -30,6 +30,8 @@ namespace ggj
         static constexpr uint32_t INVALID_PLAYER_ID = std::numeric_limits<uint32_t>::max();
 
         NetworkManager(ILogger& logger, IIpAddressResolver& ipAddressResolver) : m_logger { logger }, m_resolver { ipAddressResolver } {}
+        /*! Closes any open session gracefully so peers drop us right away when the game quits. */
+        ~NetworkManager() override { shutdown(); }
 
         void startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character) override;
         void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character) override;
@@ -52,6 +54,8 @@ namespace ggj
         [[nodiscard]] std::string localIpAddress() const override { return m_cachedLocalIp; }
         [[nodiscard]] std::string publicIpAddress() const override { return m_cachedPublicIp; }
         [[nodiscard]] int32_t pingToServer() const override;
+        [[nodiscard]] bool hasLostConnection() const override;
+        [[nodiscard]] bool hasEverConnected() const override { return m_hasSentJoinRequest; }
         [[nodiscard]] const std::map<uint32_t, RemotePlayer>& remotePlayers() const override { return m_remotePlayers; }
 
         void publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool isFlipped) override;
@@ -62,12 +66,10 @@ namespace ggj
             m_localScore = score;
             m_localKills = kills;
         }
-        void clearWorldState() override
-        {
-            m_enemyStates.clear();
-            m_removedObjectIds.clear();
-            m_projectileEvents.clear();
-        }
+        void setCurrentStage(int32_t stageIndex) override;
+        [[nodiscard]] std::optional<int32_t> takeRequestedStage() override;
+        void notifyLocalPortalEntered() override;
+        [[nodiscard]] bool takeRemotePortalEntry() override;
         [[nodiscard]] const std::map<uint32_t, EnemyNetworkState>& enemyStates() const override { return m_enemyStates; }
         void notifyLocalProjectileFired(uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity) override;
         void notifyLocalProjectileImpact(uint32_t projectileId, const raylib::Vector2& position) override;
@@ -88,6 +90,13 @@ namespace ggj
         void applyPlayerSnapshot(uint32_t playerId, const ClientMessage& message);
         void interpolateRemotePlayers(float timeDelta);
         void broadcastObjectRemoved(uint32_t objectId, bool isCoin);
+        void recordObjectRemoved(uint32_t objectId, bool isCoin);
+        /*! Server: brings a just-joined client up to date with the stage it is dropped into. */
+        void sendWorldStateTo(HSteamNetConnection connection);
+        /*! Client: follows the host to the given stage (on join or when the host moves on). */
+        void followHostStage(int32_t stageIndex);
+        /*! Clears per-world synced state; object ids restart on every map. */
+        void clearWorldState();
         void sendProjectileEvent(NetMessageType type, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity);
         void queueProjectileEvent(NetMessageType type, uint32_t ownerId, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity);
 
@@ -119,9 +128,17 @@ namespace ggj
         static constexpr size_t MAX_QUEUED_PROJECTILE_EVENTS = 256; ///< Guards against growth while no World drains.
         std::set<uint32_t> m_removedObjectIds;                ///< Authoritative removed object ids.
 
+        // Shared progression
+        static constexpr int32_t NO_STAGE = -1;
+        int32_t m_currentStage { NO_STAGE };          ///< Stage the local peer is on.
+        std::optional<int32_t> m_requestedStage {};   ///< Client: host stage not yet applied by the WorldManager.
+        bool m_isPortalEntered { false };             ///< Someone already went through this stage's portal.
+        bool m_hasPendingRemotePortalEntry { false }; ///< A remote portal entry the World has not consumed yet.
+
         // Server-only bookkeeping
         std::map<HSteamNetConnection, uint32_t> m_connectionToPlayerId;
         uint32_t m_nextPlayerId { HOST_PLAYER_ID + 1 };
+        std::set<uint32_t> m_removedCoinIds; ///< Subset of m_removedObjectIds that are coins, for late joiners.
 
         // Client-only bookkeeping
         bool m_hasSentJoinRequest { false };

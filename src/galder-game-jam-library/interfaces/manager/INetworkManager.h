@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
@@ -67,6 +68,11 @@ namespace ggj
         [[nodiscard]] virtual std::string publicIpAddress() const = 0;
         [[nodiscard]] virtual int32_t pingToServer() const = 0;
 
+        /*! Client: the connection failed or was closed by the host. Cleared by shutdown(). */
+        [[nodiscard]] virtual bool hasLostConnection() const = 0;
+        /*! Client: the connection was established at some point (tells a dropped session from a failed connect). */
+        [[nodiscard]] virtual bool hasEverConnected() const = 0;
+
         /*! Every player except the local one, keyed by player id, for rendering puppets. */
         [[nodiscard]] virtual const std::map<uint32_t, RemotePlayer>& remotePlayers() const = 0;
 
@@ -78,8 +84,29 @@ namespace ggj
         virtual void notifyLocalObjectDestroyed(uint32_t objectId, bool isCoin) = 0;
         /*! Feeds the local player's authoritative stats (lives/score/kills) for outbound sync. */
         virtual void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) = 0;
-        /*! Clears per-world synced state. Call when (re)entering a world to avoid id reuse bleed. */
-        virtual void clearWorldState() = 0;
+        /*!
+         * Tells the network which stage the local peer is on. Call whenever the stage changes.
+         * Changing stage clears the per-world synced state (object ids restart on every map), and
+         * on the host it also tells every client to switch to the same stage.
+         *
+         * @param stageIndex Index of the stage now being played
+         */
+        virtual void setCurrentStage(int32_t stageIndex) = 0;
+        /*!
+         * Client: the stage the host wants us on, once per change (on join and whenever the host moves on).
+         *
+         * @return The stage to switch to, or std::nullopt if nothing changed since the last call
+         */
+        [[nodiscard]] virtual std::optional<int32_t> takeRequestedStage() = 0;
+
+        /*! Reports that the local player walked into the current stage's portal, so every peer enters it too. */
+        virtual void notifyLocalPortalEntered() = 0;
+        /*!
+         * Consumes a portal entry made by another peer on the current stage.
+         *
+         * @return True once per remote entry; the caller should then send the local player through the portal
+         */
+        [[nodiscard]] virtual bool takeRemotePortalEntry() = 0;
 
         /*! Client: latest authoritative enemy positions keyed by object id. */
         [[nodiscard]] virtual const std::map<uint32_t, EnemyNetworkState>& enemyStates() const = 0;

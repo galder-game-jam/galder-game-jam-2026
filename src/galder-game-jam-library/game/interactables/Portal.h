@@ -31,6 +31,14 @@ namespace ggj
 
             void update(float timeDelta) override;
             void beginContact(PhysicsObject *a, PhysicsObject *b, b2Contact *contact) override;
+
+            /*!
+             * Starts the teleport, after which the world is cleared. Used both when the local player
+             * walks in and when a netplay peer did, so everyone goes through the same portal.
+             *
+             * @return False if the portal was already used
+             */
+            bool enter();
             // [[nodiscard]] float getTimeUntilPortalOpens() const;
 
         private:

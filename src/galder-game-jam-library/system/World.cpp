@@ -562,6 +562,12 @@ namespace ggj
             m_networkObjectSpawns[id] = PhysicsObject::ConvertToVector2(obj->getBody()->GetPosition());
     }
 
+    void World::notifyLocalPortalEntered()
+    {
+        if (m_network != nullptr && m_network->isActive())
+            m_network->notifyLocalPortalEntered();
+    }
+
     void World::syncNetworkObjects()
     {
         // Always prune destroyed objects so raw pointers in m_networkObjects never outlive
@@ -593,6 +599,10 @@ namespace ggj
 
         if (m_network == nullptr || !m_network->isActive())
             return;
+
+        // A peer walked into this stage's portal: follow them through it.
+        if (m_network->takeRemotePortalEntry() && m_portal != nullptr)
+            m_portal->enter();
 
         // Feed the local player's authoritative stats out for syncing.
         if (m_player != nullptr)

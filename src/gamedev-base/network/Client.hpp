@@ -36,7 +36,7 @@ namespace ggj
         [[nodiscard]] ConnectionStatus status() const override { return m_status; }
         [[nodiscard]] ServerHostInfo getServerInfo() const override;
         void ping() const override;
-        void disconnect() const override;
+        void disconnect() override;
 
         virtual void onSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo);
 
@@ -75,8 +75,8 @@ namespace ggj
         //private:
 
         //Steam network stuff
-        ISteamNetworkingSockets* m_netInterface;
-        HSteamNetConnection m_connection;
+        ISteamNetworkingSockets* m_netInterface { nullptr };
+        HSteamNetConnection m_connection { k_HSteamNetConnection_Invalid };
         std::mutex m_mutexUserInputQueue;
         std::queue<std::string> m_queueUserInput;
         //std::thread *m_threadUserInput = nullptr;
@@ -135,11 +135,25 @@ namespace ggj
 
     template <class TClientData, class TServerData> void Client<TClientData, TServerData>::ping() const {}
 
-    template <class TClientData, class TServerData> void Client<TClientData, TServerData>::disconnect() const {}
+    template <class TClientData, class TServerData> void Client<TClientData, TServerData>::disconnect()
+    {
+        m_quit = true;
+        m_status = ConnectionStatus::None;
+        if (m_netInterface == nullptr || m_connection == k_HSteamNetConnection_Invalid)
+            return;
+
+        // Linger so the close reaches the server and it drops us immediately. Without this the
+        // library keeps the connection alive and the server keeps a ghost of this player.
+        m_netInterface->CloseConnection(m_connection, 0, "Client disconnected", true);
+        m_connection = k_HSteamNetConnection_Invalid;
+    }
 
     template <class TClientData, class TServerData> void Client<TClientData, TServerData>::onSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo)
     {
-        //assert( pInfo->m_hConn == m_connection || m_connection == k_HSteamNetConnection_Invalid );
+        // The callback is a process-wide static, so it can report on a connection an earlier
+        // client instance closed. Those must not touch the state of the current connection.
+        if (pInfo->m_hConn != m_connection)
+            return;
 
         // What's the state of the connection?
         switch (pInfo->m_info.m_eState)

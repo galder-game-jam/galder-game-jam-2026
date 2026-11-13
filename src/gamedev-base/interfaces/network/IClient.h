@@ -33,7 +33,8 @@ namespace ggj
 
         [[nodiscard]] virtual ServerHostInfo getServerInfo() const = 0;
         virtual void ping() const = 0;
-        virtual void disconnect() const = 0;
+        /*! Gracefully closes the connection so the server drops this client right away instead of timing out. */
+        virtual void disconnect() = 0;
         virtual void queueData(const TClientData& data) { m_queue.push(data); };
 
         protected:

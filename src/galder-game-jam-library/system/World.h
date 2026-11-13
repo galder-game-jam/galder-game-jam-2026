@@ -65,6 +65,8 @@ namespace ggj
 
         /*! When set, remote players synced by the network manager are drawn into this world. */
         void setNetworkManager(INetworkManager* network) { m_network = network; }
+        /*! Called by the Portal when the local player walks in, so netplay peers follow through it. */
+        void notifyLocalPortalEntered();
         [[nodiscard]] int getEnemies() const;
 #ifdef GAME_DEV_DEBUG
         void setDebugState(ggj::DebugState* pState);

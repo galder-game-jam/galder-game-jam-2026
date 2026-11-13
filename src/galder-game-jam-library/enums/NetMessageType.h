@@ -27,7 +27,11 @@ namespace ggj
         CoinState,
         GameEvent,
         ProjectileFired,  ///< Either direction: a player fired a projectile (objectId = projectile id).
-        ProjectileImpact  ///< Either direction: that projectile exploded at position.
+        ProjectileImpact, ///< Either direction: that projectile exploded at position.
+
+        // --- Shared progression ---
+        PortalEntered, ///< Either direction: a player walked into the portal of stageIndex; everyone follows.
+        StageChanged   ///< Server -> Client: the host moved on to stageIndex; clients switch to it.
     };
 } // namespace ggj
 

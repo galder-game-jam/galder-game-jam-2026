@@ -55,6 +55,17 @@ namespace ggj
 
         [[nodiscard]] size_t connectedClientCount() const { return m_mapClients.size(); }
 
+        /*!
+         * Closes every client connection (lingering so the close is delivered) and the listen
+         * socket. Clients see the connection closed by the host straight away instead of timing out.
+         */
+        void closeAllConnections()
+        {
+            if (m_netInterface == nullptr)
+                return;
+            closeConnections();
+        }
+
         /*! Round-trip ping in ms for a connection, or -1 if unavailable. */
         [[nodiscard]] int getPing(HSteamNetConnection connection) const
         {
@@ -74,10 +85,12 @@ namespace ggj
                 case k_ESteamNetworkingConnectionState_ClosedByPeer:
                 case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
                 {
-                    if (pInfo->m_eOldState == k_ESteamNetworkingConnectionState_Connected)
+                    // Clients are registered while still Connecting, so drop them whatever the old
+                    // state was; otherwise a client that bails mid-handshake stays in m_mapClients
+                    // and every broadcast keeps queueing data for a dead connection.
+                    if (m_mapClients.erase(pInfo->m_hConn) > 0)
                     {
                         m_logger.information(fmt::format("Client {0} disconnected", pInfo->m_info.m_szConnectionDescription));
-                        m_mapClients.erase(pInfo->m_hConn);
                         m_disconnected.push(pInfo->m_hConn);
                     }
 

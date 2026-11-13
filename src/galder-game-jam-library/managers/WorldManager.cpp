@@ -12,6 +12,7 @@
 #include "../system/TalentScreen.h"
 #include "ServerInfoMenu.hpp"
 #include <cstdlib>
+#include <optional>
 
 #ifdef GAME_DEV_DEBUG
     #include "DebugMenu.hpp"
@@ -159,6 +160,21 @@ namespace ggj
     void WorldManager::update(float timeDelta)
     {
         m_soundManager.update(timeDelta);
+        updateActiveScreen(timeDelta);
+        updateNetplay(timeDelta);
+    }
+
+    void WorldManager::updateActiveScreen(float timeDelta)
+    {
+        if (m_connectionLostPopup.isOpen())
+        {
+            // The popup itself is drawn by ImGui (drawImGui); keyboard confirms too.
+            if (m_input.keyPressed(KeyboardKey::Enter) || m_input.keyPressed(KeyboardKey::Space) || m_input.keyPressed(KeyboardKey::Escape))
+                m_connectionLostPopup.dismiss();
+            if (m_connectionLostPopup.isDismissed())
+                returnToMainMenu();
+            return;
+        }
 
         if (m_mainMenuScreenActive)
         {
@@ -264,6 +280,7 @@ namespace ggj
                         m_network.startClient(m_netplayScreen.getIpAddress(), m_netplayScreen.getPort(), playerName, nameColor, m_pickedCharacter);
 
                     m_worlds[m_currentStageIndex]->setNetworkManager(&m_network);
+                    m_network.setCurrentStage(m_currentStageIndex);
                 }
 
                 startMusicForStage(m_currentStageIndex);
@@ -291,14 +308,7 @@ namespace ggj
                 }
                 else if (m_inGameMenuScreen.isExitSelected())
                 {
-                    m_inGameMenuActive = false;
-                    m_inGameMenuScreen.reset();
-                    m_mainMenuScreenActive = true;
-                    m_mainMenuScreen.reset();
-                    m_soundManager.stopMusic();
-#ifdef GAME_DEV_DEBUG
-                    m_managers.debugState.isGameActive = false;
-#endif
+                    returnToMainMenu();
                 }
                 return;
             }
@@ -349,30 +359,7 @@ namespace ggj
             {
                 const int32_t requestedStage = m_managers.debugState.requestedStage;
                 m_managers.debugState.requestedStage = -1;
-                if (m_worlds.count(requestedStage) > 0)
-                {
-                    if (m_worlds.count(m_currentStageIndex) > 0)
-                    {
-                        IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                        m_managers.persistentState.lives              = prevPlayer->getLives();
-                        m_managers.persistentState.score              = prevPlayer->getScore();
-                        m_managers.persistentState.level              = prevPlayer->getLevel();
-                        m_managers.persistentState.currentXp          = prevPlayer->getCurrentXp();
-                        m_managers.persistentState.totalXp            = prevPlayer->getTotalXp();
-                        m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
-                        m_managers.persistentState.talentPoints       = m_worlds[m_currentStageIndex]->getPlayerTalentPoints(0);
-                        m_managers.persistentState.talentState        = m_worlds[m_currentStageIndex]->getPlayerTalentState(0);
-                    }
-
-                    m_currentStageIndex = requestedStage;
-                    m_worlds[m_currentStageIndex]->getPlayer()->restoreState(m_managers.persistentState);
-                    startMusicForStage(m_currentStageIndex);
-                    m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
-                    m_hud.setWorld(m_worlds[m_currentStageIndex].get());
-                    m_hud.setMinimap(m_worlds[m_currentStageIndex]->getMinimap());
-                    m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
-                    m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
-                }
+                changeStage(requestedStage);
             }
 
             if (m_managers.debugState.gainXp)
@@ -443,59 +430,129 @@ namespace ggj
 
             if (m_worlds.count(m_currentStageIndex) > 0)
             {
-                m_worlds[m_currentStageIndex]->update(timeDelta);
+                World* world = m_worlds[m_currentStageIndex].get();
+                world->update(timeDelta);
 
-                if (m_isNetplay)
+                if (world->isLevelCleared())
                 {
-                    IPlayer* localPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                    if (localPlayer != nullptr)
-                    {
-                        m_network.setLocalPlayerPosition(localPlayer->getPosition());
-                        m_network.setLocalPlayerAnimation(localPlayer->getPlayerState(), localPlayer->isFacingLeft());
-                    }
-                    m_network.poll(timeDelta);
-                }
-
-                if (m_worlds[m_currentStageIndex]->isLevelCleared())
-                {
-                    IPlayer* prevPlayer = m_worlds[m_currentStageIndex]->getPlayer();
-                    m_managers.persistentState.lives               = prevPlayer->getLives();
-                    m_managers.persistentState.score               = prevPlayer->getScore();
-                    m_managers.persistentState.level               = prevPlayer->getLevel();
-                    m_managers.persistentState.currentXp           = prevPlayer->getCurrentXp();
-                    m_managers.persistentState.totalXp             = prevPlayer->getTotalXp();
-                    m_managers.persistentState.totalEnemiesKilled  = prevPlayer->getEnemiesKilled();
-                    m_managers.persistentState.talentPoints        = m_worlds[m_currentStageIndex]->getPlayerTalentPoints(0);
-                    m_managers.persistentState.talentState         = m_worlds[m_currentStageIndex]->getPlayerTalentState(0);
-
-                    m_worlds[m_currentStageIndex]->setLevelCleared(false);
-                    ++m_currentStageIndex;
-
-                    if (m_worlds.count(m_currentStageIndex) == 0)
-                        m_currentStageIndex = FINAL_MAP_ID;
-
-                    if (m_worlds.count(m_currentStageIndex) > 0)
-                        m_worlds[m_currentStageIndex]->getPlayer()->restoreState(m_managers.persistentState);
-
-                    startMusicForStage(m_currentStageIndex);
-
-                    m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
-                    m_hud.setWorld(m_worlds[m_currentStageIndex].get());
-                    m_hud.setMinimap(m_worlds[m_currentStageIndex]->getMinimap());
-
-                    m_dialog.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
-                    m_dialog.setWorld(m_worlds[m_currentStageIndex].get());
-
-                    if (m_isNetplay)
-                    {
-                        // Each peer changes stage independently; reset per-world sync state so reused
-                        // object ids on the new map are not treated as already-removed.
-                        m_network.clearWorldState();
-                        m_worlds[m_currentStageIndex]->setNetworkManager(&m_network);
-                    }
+                    world->setLevelCleared(false);
+                    // Netplay clients don't move on by themselves: they wait for the host's
+                    // StageChanged so every peer lands on the same map at the same time.
+                    if (!m_isNetplay || m_network.role() != NetworkRole::Client)
+                        changeStage(getNextStageIndex());
                 }
             }
         }
+    }
+
+    void WorldManager::updateNetplay(float timeDelta)
+    {
+        if (!m_isNetplay || !m_network.isActive() || m_connectionLostPopup.isOpen() || m_worlds.count(m_currentStageIndex) == 0)
+            return;
+
+        IPlayer* localPlayer = m_worlds[m_currentStageIndex]->getPlayer();
+        if (localPlayer != nullptr)
+        {
+            m_network.setLocalPlayerPosition(localPlayer->getPosition());
+            m_network.setLocalPlayerAnimation(localPlayer->getPlayerState(), localPlayer->isFacingLeft());
+        }
+        m_network.poll(timeDelta);
+
+        if (m_network.hasLostConnection())
+        {
+            showConnectionLostPopup(m_network.hasEverConnected() ? "Disconnected from server." : "Could not connect to server.");
+            return;
+        }
+
+        if (const std::optional<int32_t> stage = m_network.takeRequestedStage(); stage.has_value() && *stage != m_currentStageIndex)
+            changeStage(*stage);
+    }
+
+    void WorldManager::changeStage(int32_t stageIndex)
+    {
+        if (m_worlds.count(stageIndex) == 0)
+        {
+            m_logger.warning(fmt::format("Cannot change to stage {0}: no such map loaded", stageIndex));
+            return;
+        }
+
+        if (m_worlds.count(m_currentStageIndex) > 0)
+        {
+            World* prevWorld = m_worlds[m_currentStageIndex].get();
+            IPlayer* prevPlayer = prevWorld->getPlayer();
+            m_managers.persistentState.lives = prevPlayer->getLives();
+            m_managers.persistentState.score = prevPlayer->getScore();
+            m_managers.persistentState.level = prevPlayer->getLevel();
+            m_managers.persistentState.currentXp = prevPlayer->getCurrentXp();
+            m_managers.persistentState.totalXp = prevPlayer->getTotalXp();
+            m_managers.persistentState.totalEnemiesKilled = prevPlayer->getEnemiesKilled();
+            m_managers.persistentState.talentPoints = prevWorld->getPlayerTalentPoints(0);
+            m_managers.persistentState.talentState = prevWorld->getPlayerTalentState(0);
+            prevWorld->setLevelCleared(false);
+        }
+
+        m_currentStageIndex = stageIndex;
+        World* world = m_worlds[m_currentStageIndex].get();
+        world->getPlayer()->restoreState(m_managers.persistentState);
+
+        startMusicForStage(m_currentStageIndex);
+
+        m_hud.setPlayer(world->getPlayer());
+        m_hud.setWorld(world);
+        m_hud.setMinimap(world->getMinimap());
+
+        m_dialog.setPlayer(world->getPlayer());
+        m_dialog.setWorld(world);
+
+        if (m_isNetplay)
+        {
+            world->setNetworkManager(&m_network);
+            // Resets per-world sync state (ids restart on every map); the host also tells clients to follow.
+            m_network.setCurrentStage(m_currentStageIndex);
+        }
+    }
+
+    int32_t WorldManager::getNextStageIndex() const
+    {
+        const int32_t nextStageIndex = m_currentStageIndex + 1;
+        return m_worlds.count(nextStageIndex) > 0 ? nextStageIndex : FINAL_MAP_ID;
+    }
+
+    void WorldManager::returnToMainMenu()
+    {
+        if (m_isNetplay)
+        {
+            // Close the session for real: otherwise the connection stays open in the background and
+            // the host keeps a ghost of this player around.
+            m_network.shutdown();
+            m_isNetplay = false;
+        }
+
+        m_connectionLostPopup.close();
+        m_inGameMenuActive = false;
+        m_inGameMenuScreen.reset();
+        m_talentScreenActive = false;
+        m_talentScreen.reset();
+        m_optionsScreenActive = false;
+        m_optionsReturnToInGame = false;
+        m_optionsScreen.reset();
+        m_mainMenuScreenActive = true;
+        m_mainMenuScreen.reset();
+        m_soundManager.stopMusic();
+#ifdef GAME_DEV_DEBUG
+        m_managers.debugState.isGameActive = false;
+#endif
+    }
+
+    void WorldManager::showConnectionLostPopup(const std::string& message)
+    {
+        m_logger.information(message);
+        m_network.shutdown();
+        m_inGameMenuActive = false;
+        m_talentScreenActive = false;
+        m_optionsScreenActive = false;
+        m_optionsReturnToInGame = false;
+        m_connectionLostPopup.open("Connection lost", message);
     }
 
     void WorldManager::draw()
@@ -556,6 +613,12 @@ namespace ggj
         if (m_netplayScreenActive)
         {
             m_netplayScreen.drawImGui();
+            return;
+        }
+
+        if (m_connectionLostPopup.isOpen())
+        {
+            m_connectionLostPopup.draw();
             return;
         }
 
