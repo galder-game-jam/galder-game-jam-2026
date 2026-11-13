@@ -7,7 +7,7 @@
     },
     "hud": {
         "alpha": 0.706,
-        "imguiScale": 2.0,
+        "imguiScale": 1.0,
         "showMinimap": true,
         "showQuestLog": true,
         "showInventory": true

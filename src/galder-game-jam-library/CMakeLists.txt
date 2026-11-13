@@ -69,3 +69,8 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         system/TalentScreen.h
         data/TalentData.hpp
         data/TalentState.hpp)
+
+# Link raylib_imgui so its PUBLIC compile definitions (IMGUI_DISABLE_OBSOLETE_*) reach every file
+# that includes imgui.h. Without them, ImGuiIO/ImGuiStyle get a different layout here than in
+# imgui.cpp, and writes to them corrupt neighbouring ImGui state.
+target_link_libraries(galder-game-jam-library PUBLIC raylib_imgui)
