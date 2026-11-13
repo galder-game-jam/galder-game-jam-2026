@@ -65,6 +65,8 @@ namespace ggj
         [[nodiscard]] bool isInDialog() const override;
         std::string getDialogId() override;
         void setHasFinishedDialog() override;
+        [[nodiscard]] PlayerState getPlayerState() const override { return m_playerState; }
+        [[nodiscard]] bool isFacingLeft() const override { return m_flip; }
 
         void beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) override;
         void update(float timeDelta) override;

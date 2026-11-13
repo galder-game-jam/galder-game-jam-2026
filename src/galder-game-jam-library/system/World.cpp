@@ -236,6 +236,7 @@ namespace ggj
 
         m_hud.update(timeDelta);
         m_dialog.update(timeDelta);
+        updateRemotePlayerSprites(timeDelta);
 
         if (m_player != nullptr)
         {
@@ -325,29 +326,57 @@ namespace ggj
         m_dialog.draw();
     }
 
+    void World::updateRemotePlayerSprites(float timeDelta)
+    {
+        if (m_network == nullptr || !m_network->isActive())
+        {
+            m_remotePlayerSprites.clear();
+            return;
+        }
+
+        const std::map<uint32_t, RemotePlayer>& remotes = m_network->remotePlayers();
+        std::erase_if(m_remotePlayerSprites, [&remotes](const auto& entry) { return remotes.count(entry.first) == 0; });
+
+        for (const auto& [playerId, remote] : remotes)
+        {
+            const bool isNew = m_remotePlayerSprites.count(playerId) == 0;
+            RemotePlayerSprite& sprite = m_remotePlayerSprites[playerId];
+            // Restart the animation on a state change, exactly like Player::setPlayerState().
+            if (isNew || sprite.state != remote.state)
+            {
+                sprite.state = remote.state;
+                sprite.animation = m_animationManager.getAnimation(m_mapper.getAnimationNameByPlayerState(remote.state));
+            }
+            if (sprite.animation.isValid())
+                sprite.animation.update(timeDelta);
+        }
+    }
+
     void World::drawRemotePlayers()
     {
         if (m_network == nullptr || !m_network->isActive())
             return;
 
+        constexpr int FONT_SIZE = 10;
+        constexpr float NAME_OFFSET_Y = 6.0f; ///< Label sits this far below the top edge of the 64px frame.
+
         for (const auto& [playerId, remote] : m_network->remotePlayers())
         {
-            // Approximate the sprite centre; remote.position is the same space as IPlayer::getPosition().
-            const raylib::Vector2 centre { remote.position.x + 8.0f, remote.position.y + 8.0f };
-            const raylib::Color bodyColor = (remote.character == PlayerPickedCharacter::Wizard) ? VIOLET : SKYBLUE;
+            raylib::Texture* texture = (remote.character == PlayerPickedCharacter::Wizard) ? m_wizardTexture : m_rogueTexture;
+            auto found = m_remotePlayerSprites.find(playerId);
+            if (texture == nullptr || found == m_remotePlayerSprites.end() || !found->second.animation.isValid())
+                continue;
 
-            DrawCircleV(centre, 8.0f, bodyColor);
-            DrawCircleLines(static_cast<int>(centre.x), static_cast<int>(centre.y), 8.0f, BLACK);
-
-            // Small facing indicator.
-            const float eyeX = centre.x + (remote.facingLeft ? -3.0f : 3.0f);
-            DrawCircleV(raylib::Vector2 { eyeX, centre.y - 1.0f }, 1.5f, BLACK);
+            // Mirrors PhysicsSprite::draw(): negative source width flips the frame horizontally.
+            const raylib::Rectangle& frame = found->second.animation.getDrawingRect();
+            const raylib::Rectangle source { frame.x, frame.y, remote.facingLeft ? -frame.width : frame.width, frame.height };
+            texture->Draw(source, raylib::Rectangle { remote.position.x, remote.position.y, frame.width, frame.height }, m_playerSpriteOrigin, 0.0f, WHITE);
 
             if (!remote.name.empty())
             {
-                const int fontSize = 10;
-                const int textWidth = MeasureText(remote.name.c_str(), fontSize);
-                ::DrawText(remote.name.c_str(), static_cast<int>(centre.x) - textWidth / 2, static_cast<int>(centre.y) - 22, fontSize, remote.nameColor);
+                const int textWidth = MeasureText(remote.name.c_str(), FONT_SIZE);
+                const float top = remote.position.y - m_playerSpriteOrigin.y + NAME_OFFSET_Y;
+                ::DrawText(remote.name.c_str(), static_cast<int>(remote.position.x) - textWidth / 2, static_cast<int>(top), FONT_SIZE, remote.nameColor);
             }
         }
     }
@@ -520,6 +549,13 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
                 raylib::Vector2 physicsSize = raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y);
+
+                // Remember the sprite setup so remote peers can be drawn exactly like a local player.
+                // Same origin formula as PhysicsSprite; the map sprite is the Rogue texture.
+                const bool isCircle = body->GetFixtureList()->GetShape()->GetType() == b2Shape::e_circle;
+                m_playerSpriteOrigin = raylib::Vector2 { spriteSize.x / 2.f, isCircle ? spriteSize.y - physicsSize.y : spriteSize.y - physicsSize.y / 2.f };
+                m_rogueTexture = tex;
+                m_wizardTexture = m_textures.get(TextureName::WizardPlayer);
 
                 const int32_t playerIndex = m_nextPlayerIndex++;
                 m_playerStats[playerIndex] = PlayerStats {};

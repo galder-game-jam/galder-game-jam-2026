@@ -443,7 +443,10 @@ namespace ggj
                 {
                     IPlayer* localPlayer = m_worlds[m_currentStageIndex]->getPlayer();
                     if (localPlayer != nullptr)
+                    {
                         m_network.setLocalPlayerPosition(localPlayer->getPosition());
+                        m_network.setLocalPlayerAnimation(localPlayer->getPlayerState(), localPlayer->isFacingLeft());
+                    }
                     m_network.poll(timeDelta);
                 }
 

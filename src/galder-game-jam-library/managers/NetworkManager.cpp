@@ -218,6 +218,8 @@ namespace ggj
         hostState.nameColor = m_localNameColor;
         hostState.character = static_cast<uint8_t>(m_localCharacter);
         hostState.position = m_localPosition;
+        hostState.animationState = static_cast<uint8_t>(m_localPlayerState);
+        hostState.facingLeft = m_isLocalFacingLeft;
         hostState.lives = m_localLives;
         hostState.score = m_localScore;
         hostState.kills = m_localKills;
@@ -232,6 +234,8 @@ namespace ggj
             state.nameColor = remote.nameColor;
             state.character = static_cast<uint8_t>(remote.character);
             state.position = remote.targetPosition;
+            state.animationState = static_cast<uint8_t>(remote.state);
+            state.facingLeft = remote.facingLeft;
             state.lives = remote.lives;
             state.score = remote.score;
             state.kills = remote.kills;
@@ -269,6 +273,8 @@ namespace ggj
             state.nameColor = m_localNameColor;
             state.character = static_cast<uint8_t>(m_localCharacter);
             state.position = m_localPosition;
+            state.animationState = static_cast<uint8_t>(m_localPlayerState);
+            state.facingLeft = m_isLocalFacingLeft;
             state.lives = m_localLives;
             state.score = m_localScore;
             state.kills = m_localKills;
@@ -321,6 +327,8 @@ namespace ggj
         remote.nameColor = message.nameColor;
         remote.character = static_cast<PlayerPickedCharacter>(message.character);
         remote.targetPosition = message.position;
+        remote.state = static_cast<PlayerState>(message.animationState);
+        remote.facingLeft = message.facingLeft;
         remote.lives = message.lives;
         remote.score = message.score;
         remote.kills = message.kills;
@@ -341,6 +349,8 @@ namespace ggj
         remote.nameColor = message.nameColor;
         remote.character = static_cast<PlayerPickedCharacter>(message.character);
         remote.targetPosition = message.position;
+        remote.state = static_cast<PlayerState>(message.animationState);
+        remote.facingLeft = message.facingLeft;
         remote.lives = message.lives;
         remote.score = message.score;
         remote.kills = message.kills;
@@ -460,8 +470,6 @@ namespace ggj
             const float dy = remote.targetPosition.y - remote.position.y;
 
             remote.isMoving = (dx * dx + dy * dy) > MOVING_THRESHOLD_SQUARED;
-            if (std::fabs(dx) > 0.01f)
-                remote.facingLeft = dx < 0.0f;
 
             remote.position.x += dx * t;
             remote.position.y += dy * t;

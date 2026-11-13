@@ -37,6 +37,11 @@ namespace ggj
 
         void poll(float timeDelta) override;
         void setLocalPlayerPosition(const raylib::Vector2& position) override { m_localPosition = position; }
+        void setLocalPlayerAnimation(PlayerState state, bool isFacingLeft) override
+        {
+            m_localPlayerState = state;
+            m_isLocalFacingLeft = isFacingLeft;
+        }
 
         [[nodiscard]] NetworkRole role() const override { return m_role; }
         [[nodiscard]] bool isActive() const override { return m_role != NetworkRole::None; }
@@ -94,6 +99,8 @@ namespace ggj
         std::string m_cachedPublicIp {};
         PlayerPickedCharacter m_localCharacter { PlayerPickedCharacter::Rogue };
         raylib::Vector2 m_localPosition {};
+        PlayerState m_localPlayerState { PlayerState::Idle };
+        bool m_isLocalFacingLeft { false };
         int32_t m_localLives { 0 };
         int32_t m_localScore { 0 };
         int32_t m_localKills { 0 };

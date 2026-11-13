@@ -47,6 +47,14 @@ namespace ggj
         /*! Feeds the local player's authoritative position in for outbound sync. Call before poll(). */
         virtual void setLocalPlayerPosition(const raylib::Vector2& position) = 0;
 
+        /*!
+         * Sets the local player's animation state and facing, streamed to peers with each snapshot.
+         *
+         * @param state Current PlayerState of the local player
+         * @param isFacingLeft True when the local sprite is drawn flipped
+         */
+        virtual void setLocalPlayerAnimation(PlayerState state, bool isFacingLeft) = 0;
+
         [[nodiscard]] virtual NetworkRole role() const = 0;
         [[nodiscard]] virtual bool isActive() const = 0; ///< role() != None
         [[nodiscard]] virtual ConnectionStatus status() const = 0;

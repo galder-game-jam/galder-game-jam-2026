@@ -171,6 +171,8 @@ namespace ggj
         void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
+        /*! Steps each remote peer's animation from its synced PlayerState and drops departed peers. */
+        void updateRemotePlayerSprites(float timeDelta);
 
         /*! Assigns a deterministic network id to a syncable object (enemy/coin) and registers it. */
         void registerNetworkObject(PhysicsObject* obj);
@@ -233,6 +235,18 @@ namespace ggj
         int            m_bossMaxLives { 0 };
 
         INetworkManager* m_network = nullptr;
+
+        /*! Locally-animated sprite for a remote netplay peer, driven by its synced PlayerState. */
+        struct RemotePlayerSprite
+        {
+            PlayerState state { PlayerState::Idle };
+            Animation animation {};
+        };
+        std::map<uint32_t, RemotePlayerSprite> m_remotePlayerSprites; ///< By network player id.
+        // Local player sprite setup, captured in generatePlayer() so remote peers draw identically.
+        raylib::Texture* m_rogueTexture { nullptr };
+        raylib::Texture* m_wizardTexture { nullptr };
+        raylib::Vector2 m_playerSpriteOrigin {};
         std::map<uint32_t, raylib::Vector2> m_networkObjectSpawns; ///< Spawn position (pixels) by network id.
         std::map<uint32_t, PhysicsObject*> m_networkObjects; ///< Syncable objects (enemies/coins) by network id.
         std::set<uint32_t> m_reportedDestroyed;              ///< Ids already reported destroyed to the network.

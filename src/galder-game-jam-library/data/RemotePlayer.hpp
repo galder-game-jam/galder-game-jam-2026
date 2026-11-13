@@ -6,6 +6,7 @@
 #define GALDER_GAME_JAM_2026_PROJECT_REMOTEPLAYER_HPP
 
 #include "../enums/PlayerPickedCharacter.h"
+#include "../enums/PlayerState.h"
 #include "raylib-cpp.hpp"
 #include <cstdint>
 #include <string>
@@ -26,7 +27,8 @@ namespace ggj
 
         raylib::Vector2 position {};       ///< Rendered (interpolated) position.
         raylib::Vector2 targetPosition {}; ///< Latest authoritative position from the network.
-        bool facingLeft { false };
+        bool facingLeft { false };                 ///< Synced from the owner (sprite flip).
+        PlayerState state { PlayerState::Idle };  ///< Synced animation state, drives the remote sprite.
         bool isMoving { false }; ///< Derived from movement, drives walk/idle animation.
 
         // Latest synced stats (for ServerInfo / overhead display).
