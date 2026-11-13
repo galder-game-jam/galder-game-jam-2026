@@ -43,6 +43,9 @@ namespace ggj
             case 6: // Forest level #2
                 track = MusicName::Forest2;
                 break;
+            case 7: // Treant Boss level
+                track = MusicName::BossBattle2;
+                break;
             case 99999: // Final diamond map
                 track = MusicName::Victory1;
                 break;

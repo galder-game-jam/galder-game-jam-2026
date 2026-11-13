@@ -177,6 +177,7 @@ namespace ggj
         void generatePortal(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generatePowerUp(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateClaude(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
+        void generateTreant(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateClaudling(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void doSpawnClaudling(raylib::Vector2 position, float followSpeed, float knockback);

@@ -180,6 +180,15 @@ namespace ggj
                         }
                 };
 
+        // The treant only has a single 64x64 frame; it is scaled up when drawn (see sprite_size_x/y in the map).
+        m_animations[AnimationName::EnemyTreantIdle] =
+                {
+                        raylib::Vector2(64, 64),
+                        {
+                                {raylib::Vector2(0, 0), 150},
+                        }
+                };
+
         m_animations[AnimationName::EnemyClaudlingIdle] =
                 {
                         raylib::Vector2(32, 32),

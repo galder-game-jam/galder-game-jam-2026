@@ -7,6 +7,7 @@
 #include "../game/Hud.h"
 #include "../graphics/Sprite.h"
 #include "../game/enemies/ClaudeEnemy.h"
+#include "../game/enemies/TreantEnemy.h"
 #include "../game/enemies/Claudling.h"
 #include "../game/projectiles/MageBall.hpp"
 
@@ -541,13 +542,18 @@ namespace ggj
             generateClaudling(name, body, generatorData);
             ++m_numberOfEnemies;
         }
+        else if (name == "treant")
+        {
+            generateTreant(name, body, generatorData);
+            ++m_numberOfEnemies;
+        }
         else
             generateGenericPhysicsObject(name, body, generatorData);
 
         // Enemies and coins are synced over the network. They are generated in the same order on
         // every peer (same map + generators), so a per-spawn counter yields matching ids everywhere.
         if (name == "bat" || name == "snake" || name == "spider" || name == "thing" || name == "ghost" || name == "coin"
-            || name == "claude" || name == "claudling")
+            || name == "claude" || name == "claudling" || name == "treant")
             registerNetworkObject(m_userDataManager.getUserData(body));
     }
 
@@ -1191,6 +1197,38 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::ClaudeEnemy>(
+                    m_animationManager, m_mapper, m_soundManager, body,
+                    raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
+                    spriteSize, r, tex, generatorData.userData, generatorData.lives,
+                    generatorData.followSpeed, generatorData.knockback, m_player, this);
+                m_userDataManager.addUserData(body, physicsObject);
+                if (generatorData.isBoss && physicsObject != nullptr)
+                {
+                    m_boss         = physicsObject;
+                    m_bossName     = generatorData.bossName;
+                    m_bossMaxLives = generatorData.lives;
+                }
+            }
+        }
+    }
+
+    void World::generateTreant(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
+    {
+        TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
+        if (id != TextureName::None)
+        {
+            raylib::Texture* tex = m_textures.get(id);
+            if (tex != nullptr)
+            {
+                // The treant sprite is a single 64x64 frame, regardless of the object's physics size.
+                const raylib::Rectangle r { 0.f, 0.f, 64.f, 64.f };
+
+                // sprite_size_x/y is the size the frame is scaled up to when drawn.
+                raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
+                if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
+                    spriteSize = raylib::Vector2(generatorData.spriteSize.x, generatorData.spriteSize.y);
+
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::TreantEnemy>(
                     m_animationManager, m_mapper, m_soundManager, body,
                     raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
                     spriteSize, r, tex, generatorData.userData, generatorData.lives,
