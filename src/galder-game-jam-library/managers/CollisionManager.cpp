@@ -3,6 +3,7 @@
 //
 
 #include "CollisionManager.h"
+#include "../game/projectiles/Projectile.h"
 
 namespace ggj
 {
@@ -16,6 +17,12 @@ namespace ggj
         
         if(a != nullptr && b != nullptr)
         {
+            // An exploded projectile has already spent its hit; it must not damage a second target.
+            const Projectile* projectileA = dynamic_cast<const Projectile*>(a);
+            const Projectile* projectileB = dynamic_cast<const Projectile*>(b);
+            if((projectileA != nullptr && projectileA->isImpactActive()) || (projectileB != nullptr && projectileB->isImpactActive()))
+                return;
+
             a->beginContact(a, b, contact);
             b->beginContact(b, a, contact);
             UserData* userDataA = a->getUserData();

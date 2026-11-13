@@ -25,7 +25,14 @@ namespace ggj
     
             void update(float timeDelta) override;
             void beginContact(PhysicsObject *a, PhysicsObject *b, b2Contact *contact) override;
+            /*!
+             * Turns the projectile into its impact effect: it stops moving, can no longer hit anything
+             * and despawns after IMPACT_DURATION so one projectile can never hit several targets.
+             */
             void explode();
+
+            /*! True once the projectile has exploded and must be ignored by collision handling. */
+            [[nodiscard]] bool isImpactActive() const { return m_isImpactActive; }
             void setOwner(PhysicsObject* owner);
             PhysicsObject* getOwner();
     
@@ -35,6 +42,8 @@ namespace ggj
             float m_timeToLive {};
             float m_timeAlive {};
             bool m_isImpactActive{};
+            bool m_isBodyDisabled{};   ///< Body is disabled outside the physics step, after exploding.
+            static constexpr float IMPACT_DURATION = 0.5f; ///< Seconds the impact animation stays before despawning.
             PhysicsObject* m_owner {nullptr};
     
             IAnimationManager<Animation, AnimationName> &m_animationManager;
