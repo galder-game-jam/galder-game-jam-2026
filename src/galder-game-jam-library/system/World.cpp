@@ -7,6 +7,7 @@
 #include "../graphics/Sprite.h"
 #include "../game/enemies/ClaudeEnemy.h"
 #include "../game/enemies/Claudling.h"
+#include "../game/projectiles/MageBall.hpp"
 
 #ifdef GAME_DEV_DEBUG
     #include "../managers/DebugMenu.hpp"
@@ -237,6 +238,7 @@ namespace ggj
         m_hud.update(timeDelta);
         m_dialog.update(timeDelta);
         updateRemotePlayerSprites(timeDelta);
+        updateRemoteProjectiles(timeDelta);
 
         if (m_player != nullptr)
         {
@@ -307,6 +309,7 @@ namespace ggj
             layer.second.draw();
         }
         drawRemotePlayers();
+        drawRemoteProjectiles();
 
         for (const FloatingTextEntry& e : m_floatingTexts)
         {
@@ -349,6 +352,117 @@ namespace ggj
             }
             if (sprite.animation.isValid())
                 sprite.animation.update(timeDelta);
+        }
+    }
+
+    void World::registerLocalProjectile(Projectile* projectile)
+    {
+        if (projectile == nullptr || m_network == nullptr || !m_network->isActive())
+            return;
+
+        const uint32_t projectileId = m_nextProjectileId++;
+        m_localProjectiles[projectileId] = LocalProjectile { projectile, false };
+        // Body position, not getPosition(): m_position is only refreshed on the projectile's first update.
+        const raylib::Vector2 position = PhysicsObject::ConvertToVector2(projectile->getBody()->GetPosition());
+        m_network->notifyLocalProjectileFired(projectileId, position, projectile->getVelocity());
+    }
+
+    void World::syncLocalProjectiles()
+    {
+        // Runs before destroyMarkedObjects(), so pointers are still valid while shouldBeDestroyed() is set.
+        const bool isOnline = m_network != nullptr && m_network->isActive();
+        for (auto it = m_localProjectiles.begin(); it != m_localProjectiles.end();)
+        {
+            Projectile* projectile = it->second.projectile;
+            const bool isGone = projectile->shouldBeDestroyed();
+            if ((projectile->isExploded() || isGone) && !it->second.hasReportedImpact)
+            {
+                if (isOnline)
+                    m_network->notifyLocalProjectileImpact(it->first, projectile->getPosition());
+                it->second.hasReportedImpact = true;
+            }
+
+            if (isGone)
+                it = m_localProjectiles.erase(it);
+            else
+                ++it;
+        }
+    }
+
+    void World::updateRemoteProjectiles(float timeDelta)
+    {
+        if (m_network == nullptr || !m_network->isActive())
+        {
+            m_remoteProjectiles.clear();
+            return;
+        }
+
+        for (const ProjectileEvent& event : m_network->takeProjectileEvents())
+        {
+            if (!event.isImpact)
+            {
+                RemoteProjectile projectile;
+                projectile.ownerId = event.ownerId;
+                projectile.projectileId = event.projectileId;
+                projectile.position = event.position;
+                projectile.velocity = event.velocity;
+                projectile.animation = m_animationManager.getAnimation(AnimationName::MageBallFlightRed);
+                m_remoteProjectiles.push_back(projectile);
+                continue;
+            }
+
+            for (RemoteProjectile& projectile : m_remoteProjectiles)
+            {
+                if (projectile.ownerId == event.ownerId && projectile.projectileId == event.projectileId && !projectile.isImpact)
+                {
+                    projectile.position = event.position;
+                    projectile.isImpact = true;
+                    projectile.timeAlive = 0.0f;
+                    projectile.animation = m_animationManager.getAnimation(AnimationName::MageBallImpactRed);
+                    break;
+                }
+            }
+        }
+
+        // Same lifecycle as Projectile::update(): fly for TTL, then show the impact for TTL. The
+        // owner's impact event normally cuts the flight short; the timer is only the fallback.
+        for (RemoteProjectile& projectile : m_remoteProjectiles)
+        {
+            projectile.timeAlive += timeDelta;
+            if (!projectile.isImpact)
+            {
+                projectile.position.x += projectile.velocity.x * PhysicsObject::PPM * timeDelta;
+                projectile.position.y += projectile.velocity.y * PhysicsObject::PPM * timeDelta;
+                if (projectile.timeAlive >= MageBall::DEFAULT_TTL)
+                {
+                    projectile.isImpact = true;
+                    projectile.timeAlive = 0.0f;
+                    projectile.animation = m_animationManager.getAnimation(AnimationName::MageBallImpactRed);
+                }
+            }
+            if (projectile.animation.isValid())
+                projectile.animation.update(timeDelta);
+        }
+
+        std::erase_if(m_remoteProjectiles, [](const RemoteProjectile& projectile) { return projectile.isImpact && projectile.timeAlive >= MageBall::DEFAULT_TTL; });
+    }
+
+    void World::drawRemoteProjectiles()
+    {
+        raylib::Texture* texture = m_textures.get(TextureName::MageBall);
+        if (texture == nullptr)
+            return;
+
+        // Origin matches PhysicsSprite for a 16x16 circle body: (size.x / 2, size.y - physicsSize.y).
+        constexpr float MAGE_BALL_SIZE = 16.0f;
+        const raylib::Vector2 origin { MAGE_BALL_SIZE / 2.0f, 0.0f };
+        for (RemoteProjectile& projectile : m_remoteProjectiles)
+        {
+            if (!projectile.animation.isValid())
+                continue;
+
+            const raylib::Rectangle& frame = projectile.animation.getDrawingRect();
+            texture->Draw(frame, raylib::Rectangle { projectile.position.x, projectile.position.y, frame.width, frame.height }, origin, 0.0f, WHITE);
         }
     }
 
@@ -475,6 +589,8 @@ namespace ggj
             }
         }
 
+        syncLocalProjectiles();
+
         if (m_network == nullptr || !m_network->isActive())
             return;
 
@@ -497,14 +613,19 @@ namespace ggj
             }
         }
 
-        // 2. Client: snap enemies to the host's authoritative positions.
+        // 2. Client: snap enemies to the host's authoritative position and facing. The client still
+        //    runs each enemy's own AI, whose turn decisions drift from the host's, so the facing
+        //    has to be overwritten too or sprites end up looking the wrong way.
         if (m_network->role() == NetworkRole::Client)
         {
-            for (const auto& [id, position] : m_network->enemyPositions())
+            for (const auto& [id, state] : m_network->enemyStates())
             {
                 auto found = m_networkObjects.find(id);
                 if (found != m_networkObjects.end())
-                    found->second->setNetworkPosition(position);
+                {
+                    found->second->setNetworkPosition(state.position);
+                    found->second->setFlipped(state.isFlipped);
+                }
             }
         }
 
@@ -516,7 +637,7 @@ namespace ggj
                 for (const auto& [id, obj] : m_networkObjects)
                 {
                     if (obj->getUserData()->getObjectType() == ObjectType::Enemy)
-                        m_network->publishEnemyState(id, obj->getPosition(), false);
+                        m_network->publishEnemyState(id, obj->getPosition(), obj->isFlipped());
                 }
             }
             m_enemyStateThrottle = (m_enemyStateThrottle + 1) % ENEMY_STATE_THROTTLE_FRAMES;

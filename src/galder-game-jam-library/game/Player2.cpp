@@ -308,7 +308,8 @@ namespace ggj
         const Vector2 dir = Vector2Normalize({ m_lastMoveDirection.x, m_lastMoveDirection.y });
         const raylib::Vector2 velocity { dir.x * projSpeed, dir.y * projSpeed };
         MageBall* ball =
-            m_world->createProjectile<ggj::MageBall>(TextureName::MageBall, raylib::Vector2 { 16.f, 16.f }, raylib::Vector2 { m_position.x, m_position.y - 8 }, velocity, 2.f);
+            m_world->createProjectile<ggj::MageBall>(TextureName::MageBall, raylib::Vector2 { 16.f, 16.f }, raylib::Vector2 { m_position.x, m_position.y - 8 }, velocity, MageBall::DEFAULT_TTL);
         ball->setOwner(this);
+        m_world->registerLocalProjectile(ball);
     }
 } // namespace ggj

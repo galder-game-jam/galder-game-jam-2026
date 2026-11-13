@@ -101,8 +101,9 @@ namespace ggj
         m_connectionToPlayerId.clear();
         m_nextPlayerId = HOST_PLAYER_ID + 1;
         m_hasSentJoinRequest = false;
-        m_enemyPositions.clear();
+        m_enemyStates.clear();
         m_removedObjectIds.clear();
+        m_projectileEvents.clear();
     }
 
     ConnectionStatus NetworkManager::status() const
@@ -177,6 +178,24 @@ namespace ggj
                     auto it = m_connectionToPlayerId.find(connection);
                     if (it != m_connectionToPlayerId.end())
                         applyPlayerSnapshot(it->second, message);
+                    break;
+                }
+                case NetMessageType::ProjectileFired:
+                case NetMessageType::ProjectileImpact:
+                {
+                    auto it = m_connectionToPlayerId.find(connection);
+                    if (it == m_connectionToPlayerId.end())
+                        break;
+
+                    queueProjectileEvent(message.type, it->second, message.objectId, message.position, message.velocity);
+
+                    ServerMessage relay {};
+                    relay.type = message.type;
+                    relay.playerId = it->second;
+                    relay.objectId = message.objectId;
+                    relay.position = message.position;
+                    relay.velocity = message.velocity;
+                    m_server->broadcast(relay);
                     break;
                 }
                 case NetMessageType::GameEvent:
@@ -297,16 +316,22 @@ namespace ggj
                     m_remotePlayers.erase(message.playerId);
                     break;
                 case NetMessageType::EnemyState:
-                    if (message.flag) // alive: update position
-                        m_enemyPositions[message.objectId] = message.position;
+                    if (message.flag) // alive: update position + facing
+                        m_enemyStates[message.objectId] = EnemyNetworkState { message.position, message.facingLeft };
                     else // dead: remove
                     {
-                        m_enemyPositions.erase(message.objectId);
+                        m_enemyStates.erase(message.objectId);
                         m_removedObjectIds.insert(message.objectId);
                     }
                     break;
                 case NetMessageType::CoinState:
                     m_removedObjectIds.insert(message.objectId);
+                    break;
+                case NetMessageType::ProjectileFired:
+                case NetMessageType::ProjectileImpact:
+                    // The server relays to everyone, including the shooter; skip our own.
+                    if (message.playerId != m_localPlayerId)
+                        queueProjectileEvent(message.type, message.playerId, message.objectId, message.position, message.velocity);
                     break;
                 default:
                     break;
@@ -407,7 +432,7 @@ namespace ggj
         return result;
     }
 
-    void NetworkManager::publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool facingLeft)
+    void NetworkManager::publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool isFlipped)
     {
         if (m_role != NetworkRole::Server || !m_server)
             return;
@@ -416,7 +441,7 @@ namespace ggj
         state.type = NetMessageType::EnemyState;
         state.objectId = objectId;
         state.position = position;
-        state.facingLeft = facingLeft;
+        state.facingLeft = isFlipped;
         state.flag = true; // alive
         m_server->broadcast(state);
     }
@@ -459,6 +484,55 @@ namespace ggj
             m_client->sendToServer(event);
             m_removedObjectIds.insert(objectId);
         }
+    }
+
+    void NetworkManager::notifyLocalProjectileFired(uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity)
+    {
+        sendProjectileEvent(NetMessageType::ProjectileFired, projectileId, position, velocity);
+    }
+
+    void NetworkManager::notifyLocalProjectileImpact(uint32_t projectileId, const raylib::Vector2& position)
+    {
+        sendProjectileEvent(NetMessageType::ProjectileImpact, projectileId, position, raylib::Vector2 { 0.0f, 0.0f });
+    }
+
+    std::vector<ProjectileEvent> NetworkManager::takeProjectileEvents()
+    {
+        std::vector<ProjectileEvent> events;
+        events.swap(m_projectileEvents);
+        return events;
+    }
+
+    void NetworkManager::sendProjectileEvent(NetMessageType type, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity)
+    {
+        if (m_role == NetworkRole::Server && m_server)
+        {
+            ServerMessage message {};
+            message.type = type;
+            message.playerId = HOST_PLAYER_ID;
+            message.objectId = projectileId;
+            message.position = position;
+            message.velocity = velocity;
+            m_server->broadcast(message);
+        }
+        else if (m_role == NetworkRole::Client && m_client && m_client->status() == ConnectionStatus::Connected)
+        {
+            ClientMessage message {};
+            message.type = type;
+            message.playerId = m_localPlayerId;
+            message.objectId = projectileId;
+            message.position = position;
+            message.velocity = velocity;
+            m_client->sendToServer(message);
+        }
+    }
+
+    void NetworkManager::queueProjectileEvent(NetMessageType type, uint32_t ownerId, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity)
+    {
+        if (m_projectileEvents.size() >= MAX_QUEUED_PROJECTILE_EVENTS)
+            return;
+
+        m_projectileEvents.push_back(ProjectileEvent { ownerId, projectileId, type == NetMessageType::ProjectileImpact, position, velocity });
     }
 
     void NetworkManager::interpolateRemotePlayers(float timeDelta)

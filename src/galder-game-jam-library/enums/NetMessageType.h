@@ -25,7 +25,9 @@ namespace ggj
         WorldSnapshot,
         EnemyState,
         CoinState,
-        GameEvent
+        GameEvent,
+        ProjectileFired,  ///< Either direction: a player fired a projectile (objectId = projectile id).
+        ProjectileImpact  ///< Either direction: that projectile exploded at position.
     };
 } // namespace ggj
 

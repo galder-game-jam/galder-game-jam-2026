@@ -28,6 +28,9 @@ namespace ggj
             void explode();
             void setOwner(PhysicsObject* owner);
             PhysicsObject* getOwner();
+            [[nodiscard]] const raylib::Vector2& getVelocity() const { return m_velocity; }
+            /*! True once the impact animation has started (hit something or ran out of time). */
+            [[nodiscard]] bool isExploded() const { return m_isImpactActive; }
     
         protected:
             World *m_world{nullptr};

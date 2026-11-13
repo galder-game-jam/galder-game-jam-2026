@@ -25,6 +25,8 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         data/RemotePlayer.hpp
         data/ConnectedPlayer.hpp
         data/DiscoveredServer.hpp
+        data/EnemyNetworkState.hpp
+        data/ProjectileEvent.hpp
         enums/NetMessageType.h
         enums/NetworkRole.h
         interfaces/manager/INetworkManager.h
