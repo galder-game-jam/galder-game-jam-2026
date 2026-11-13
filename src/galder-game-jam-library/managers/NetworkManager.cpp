@@ -24,12 +24,13 @@ namespace ggj
         }
     } // namespace
 
-    void NetworkManager::startHost(uint16_t port, const std::string& playerName, const std::string& serverName, PlayerPickedCharacter character)
+    void NetworkManager::startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character)
     {
         shutdown();
 
         m_role = NetworkRole::Server;
         m_localName = playerName;
+        m_localNameColor = nameColor;
         m_serverName = serverName;
         m_localCharacter = character;
         m_localPlayerId = HOST_PLAYER_ID;
@@ -43,16 +44,18 @@ namespace ggj
             shutdown();
             return;
         }
-        m_beacon.startAdvertising(serverName, port);
+        if (!m_beacon.startAdvertising(serverName, port))
+            m_logger.warning(fmt::format("LAN discovery unavailable: could not bind UDP port {0} (clients can still join by IP)", LanBeacon::DISCOVERY_PORT));
         m_logger.information(fmt::format("Hosting on port {0} as '{1}' (server: '{2}')", port, playerName, serverName));
     }
 
-    void NetworkManager::startClient(const std::string& ipAddress, uint16_t port, const std::string& name, PlayerPickedCharacter character)
+    void NetworkManager::startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character)
     {
         shutdown();
 
         m_role = NetworkRole::Client;
         m_localName = name;
+        m_localNameColor = nameColor;
         m_localCharacter = character;
         m_localPlayerId = INVALID_PLAYER_ID; // assigned by the server via JoinAccept
         m_hasSentJoinRequest = false;
@@ -99,8 +102,9 @@ namespace ggj
         m_connectionToPlayerId.clear();
         m_nextPlayerId = HOST_PLAYER_ID + 1;
         m_hasSentJoinRequest = false;
-        m_enemyPositions.clear();
+        m_enemyStates.clear();
         m_removedObjectIds.clear();
+        m_projectileEvents.clear();
     }
 
     ConnectionStatus NetworkManager::status() const
@@ -162,6 +166,7 @@ namespace ggj
                     ServerMessage accept {};
                     accept.type = NetMessageType::JoinAccept;
                     accept.playerId = playerId;
+                    copyName(accept.name, m_serverName);
                     m_server->sendTo(connection, accept);
 
                     applyPlayerSnapshot(playerId, message);
@@ -174,6 +179,24 @@ namespace ggj
                     auto it = m_connectionToPlayerId.find(connection);
                     if (it != m_connectionToPlayerId.end())
                         applyPlayerSnapshot(it->second, message);
+                    break;
+                }
+                case NetMessageType::ProjectileFired:
+                case NetMessageType::ProjectileImpact:
+                {
+                    auto it = m_connectionToPlayerId.find(connection);
+                    if (it == m_connectionToPlayerId.end())
+                        break;
+
+                    queueProjectileEvent(message.type, it->second, message.objectId, message.position, message.velocity);
+
+                    ServerMessage relay {};
+                    relay.type = message.type;
+                    relay.playerId = it->second;
+                    relay.objectId = message.objectId;
+                    relay.position = message.position;
+                    relay.velocity = message.velocity;
+                    m_server->broadcast(relay);
                     break;
                 }
                 case NetMessageType::GameEvent:
@@ -212,8 +235,11 @@ namespace ggj
         hostState.type = NetMessageType::PlayerState;
         hostState.playerId = HOST_PLAYER_ID;
         copyName(hostState.name, m_localName);
+        hostState.nameColor = m_localNameColor;
         hostState.character = static_cast<uint8_t>(m_localCharacter);
         hostState.position = m_localPosition;
+        hostState.animationState = static_cast<uint8_t>(m_localPlayerState);
+        hostState.facingLeft = m_isLocalFacingLeft;
         hostState.lives = m_localLives;
         hostState.score = m_localScore;
         hostState.kills = m_localKills;
@@ -225,8 +251,11 @@ namespace ggj
             state.type = NetMessageType::PlayerState;
             state.playerId = playerId;
             copyName(state.name, remote.name);
+            state.nameColor = remote.nameColor;
             state.character = static_cast<uint8_t>(remote.character);
             state.position = remote.targetPosition;
+            state.animationState = static_cast<uint8_t>(remote.state);
+            state.facingLeft = remote.facingLeft;
             state.lives = remote.lives;
             state.score = remote.score;
             state.kills = remote.kills;
@@ -248,6 +277,7 @@ namespace ggj
                 ClientMessage join {};
                 join.type = NetMessageType::JoinRequest;
                 copyName(join.name, m_localName);
+                join.nameColor = m_localNameColor;
                 join.character = static_cast<uint8_t>(m_localCharacter);
                 join.position = m_localPosition;
                 std::strncpy(join.localIp, m_cachedLocalIp.c_str(), sizeof(join.localIp) - 1);
@@ -260,8 +290,11 @@ namespace ggj
             state.type = NetMessageType::PlayerState;
             state.playerId = m_localPlayerId;
             copyName(state.name, m_localName);
+            state.nameColor = m_localNameColor;
             state.character = static_cast<uint8_t>(m_localCharacter);
             state.position = m_localPosition;
+            state.animationState = static_cast<uint8_t>(m_localPlayerState);
+            state.facingLeft = m_isLocalFacingLeft;
             state.lives = m_localLives;
             state.score = m_localScore;
             state.kills = m_localKills;
@@ -274,7 +307,8 @@ namespace ggj
             {
                 case NetMessageType::JoinAccept:
                     m_localPlayerId = message.playerId;
-                    m_logger.information(fmt::format("Joined as player id {0}", message.playerId));
+                    m_serverName = std::string(message.name, strnlen(message.name, sizeof(message.name)));
+                    m_logger.information(fmt::format("Joined '{0}' as player id {1}", m_serverName, message.playerId));
                     break;
                 case NetMessageType::PlayerState:
                     applyPlayerSnapshot(message);
@@ -283,16 +317,22 @@ namespace ggj
                     m_remotePlayers.erase(message.playerId);
                     break;
                 case NetMessageType::EnemyState:
-                    if (message.flag) // alive: update position
-                        m_enemyPositions[message.objectId] = message.position;
+                    if (message.flag) // alive: update position + facing
+                        m_enemyStates[message.objectId] = EnemyNetworkState { message.position, message.facingLeft };
                     else // dead: remove
                     {
-                        m_enemyPositions.erase(message.objectId);
+                        m_enemyStates.erase(message.objectId);
                         m_removedObjectIds.insert(message.objectId);
                     }
                     break;
                 case NetMessageType::CoinState:
                     m_removedObjectIds.insert(message.objectId);
+                    break;
+                case NetMessageType::ProjectileFired:
+                case NetMessageType::ProjectileImpact:
+                    // The server relays to everyone, including the shooter; skip our own.
+                    if (message.playerId != m_localPlayerId)
+                        queueProjectileEvent(message.type, message.playerId, message.objectId, message.position, message.velocity);
                     break;
                 default:
                     break;
@@ -310,8 +350,11 @@ namespace ggj
         RemotePlayer& remote = m_remotePlayers[message.playerId];
         remote.playerId = message.playerId;
         remote.name = message.name;
+        remote.nameColor = message.nameColor;
         remote.character = static_cast<PlayerPickedCharacter>(message.character);
         remote.targetPosition = message.position;
+        remote.state = static_cast<PlayerState>(message.animationState);
+        remote.facingLeft = message.facingLeft;
         remote.lives = message.lives;
         remote.score = message.score;
         remote.kills = message.kills;
@@ -329,8 +372,11 @@ namespace ggj
         RemotePlayer& remote = m_remotePlayers[playerId];
         remote.playerId = playerId;
         remote.name = message.name;
+        remote.nameColor = message.nameColor;
         remote.character = static_cast<PlayerPickedCharacter>(message.character);
         remote.targetPosition = message.position;
+        remote.state = static_cast<PlayerState>(message.animationState);
+        remote.facingLeft = message.facingLeft;
         remote.lives = message.lives;
         remote.score = message.score;
         remote.kills = message.kills;
@@ -387,7 +433,7 @@ namespace ggj
         return result;
     }
 
-    void NetworkManager::publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool facingLeft)
+    void NetworkManager::publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool isFlipped)
     {
         if (m_role != NetworkRole::Server || !m_server)
             return;
@@ -396,7 +442,7 @@ namespace ggj
         state.type = NetMessageType::EnemyState;
         state.objectId = objectId;
         state.position = position;
-        state.facingLeft = facingLeft;
+        state.facingLeft = isFlipped;
         state.flag = true; // alive
         m_server->broadcast(state);
     }
@@ -441,6 +487,55 @@ namespace ggj
         }
     }
 
+    void NetworkManager::notifyLocalProjectileFired(uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity)
+    {
+        sendProjectileEvent(NetMessageType::ProjectileFired, projectileId, position, velocity);
+    }
+
+    void NetworkManager::notifyLocalProjectileImpact(uint32_t projectileId, const raylib::Vector2& position)
+    {
+        sendProjectileEvent(NetMessageType::ProjectileImpact, projectileId, position, raylib::Vector2 { 0.0f, 0.0f });
+    }
+
+    std::vector<ProjectileEvent> NetworkManager::takeProjectileEvents()
+    {
+        std::vector<ProjectileEvent> events;
+        events.swap(m_projectileEvents);
+        return events;
+    }
+
+    void NetworkManager::sendProjectileEvent(NetMessageType type, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity)
+    {
+        if (m_role == NetworkRole::Server && m_server)
+        {
+            ServerMessage message {};
+            message.type = type;
+            message.playerId = HOST_PLAYER_ID;
+            message.objectId = projectileId;
+            message.position = position;
+            message.velocity = velocity;
+            m_server->broadcast(message);
+        }
+        else if (m_role == NetworkRole::Client && m_client && m_client->status() == ConnectionStatus::Connected)
+        {
+            ClientMessage message {};
+            message.type = type;
+            message.playerId = m_localPlayerId;
+            message.objectId = projectileId;
+            message.position = position;
+            message.velocity = velocity;
+            m_client->sendToServer(message);
+        }
+    }
+
+    void NetworkManager::queueProjectileEvent(NetMessageType type, uint32_t ownerId, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity)
+    {
+        if (m_projectileEvents.size() >= MAX_QUEUED_PROJECTILE_EVENTS)
+            return;
+
+        m_projectileEvents.push_back(ProjectileEvent { ownerId, projectileId, type == NetMessageType::ProjectileImpact, position, velocity });
+    }
+
     void NetworkManager::interpolateRemotePlayers(float timeDelta)
     {
         const float t = std::clamp(timeDelta * INTERPOLATION_RATE, 0.0f, 1.0f);
@@ -450,8 +545,6 @@ namespace ggj
             const float dy = remote.targetPosition.y - remote.position.y;
 
             remote.isMoving = (dx * dx + dy * dy) > MOVING_THRESHOLD_SQUARED;
-            if (std::fabs(dx) > 0.01f)
-                remote.facingLeft = dx < 0.0f;
 
             remote.position.x += dx * t;
             remote.position.y += dy * t;

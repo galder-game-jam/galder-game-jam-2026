@@ -9,6 +9,8 @@
 #include "../../enums/PlayerPickedCharacter.h"
 #include "../../data/RemotePlayer.hpp"
 #include "../../data/ConnectedPlayer.hpp"
+#include "../../data/EnemyNetworkState.hpp"
+#include "../../data/ProjectileEvent.hpp"
 #include "../../data/DiscoveredServer.hpp"
 #include "../../../gamedev-base/enums/ConnectionStatus.hpp"
 #include "raylib-cpp.hpp"
@@ -35,9 +37,9 @@ namespace ggj
         virtual ~INetworkManager() = default;
 
         /*! Begins hosting on the given port. The host is also player HOST_PLAYER_ID. */
-        virtual void startHost(uint16_t port, const std::string& playerName, const std::string& serverName, PlayerPickedCharacter character) = 0;
+        virtual void startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character) = 0;
         /*! Begins (non-blocking) connecting to a host. */
-        virtual void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, PlayerPickedCharacter character) = 0;
+        virtual void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character) = 0;
         /*! Tears down any active server/client and returns to NetworkRole::None. */
         virtual void shutdown() = 0;
 
@@ -46,6 +48,14 @@ namespace ggj
 
         /*! Feeds the local player's authoritative position in for outbound sync. Call before poll(). */
         virtual void setLocalPlayerPosition(const raylib::Vector2& position) = 0;
+
+        /*!
+         * Sets the local player's animation state and facing, streamed to peers with each snapshot.
+         *
+         * @param state Current PlayerState of the local player
+         * @param isFacingLeft True when the local sprite is drawn flipped
+         */
+        virtual void setLocalPlayerAnimation(PlayerState state, bool isFacingLeft) = 0;
 
         [[nodiscard]] virtual NetworkRole role() const = 0;
         [[nodiscard]] virtual bool isActive() const = 0; ///< role() != None
@@ -62,8 +72,8 @@ namespace ggj
 
         // --- World-state sync (Phase 2) ---
 
-        /*! Server: broadcast an enemy's authoritative position. No-op when not hosting. */
-        virtual void publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool facingLeft) = 0;
+        /*! Server: broadcast an enemy's authoritative position and sprite flip. No-op when not hosting. */
+        virtual void publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool isFlipped) = 0;
         /*! Reports a networked object destroyed locally (coin picked up / enemy killed) so the server can reconcile. */
         virtual void notifyLocalObjectDestroyed(uint32_t objectId, bool isCoin) = 0;
         /*! Feeds the local player's authoritative stats (lives/score/kills) for outbound sync. */
@@ -72,7 +82,29 @@ namespace ggj
         virtual void clearWorldState() = 0;
 
         /*! Client: latest authoritative enemy positions keyed by object id. */
-        [[nodiscard]] virtual const std::map<uint32_t, raylib::Vector2>& enemyPositions() const = 0;
+        [[nodiscard]] virtual const std::map<uint32_t, EnemyNetworkState>& enemyStates() const = 0;
+
+        /*!
+         * Tells the other peers that the local player fired a projectile.
+         *
+         * @param projectileId Id unique among this player's projectiles
+         * @param position Spawn position in pixels
+         * @param velocity Physics velocity (Box2D units)
+         */
+        virtual void notifyLocalProjectileFired(uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity) = 0;
+        /*!
+         * Tells the other peers that a local projectile exploded.
+         *
+         * @param projectileId Id passed to notifyLocalProjectileFired()
+         * @param position Impact position in pixels
+         */
+        virtual void notifyLocalProjectileImpact(uint32_t projectileId, const raylib::Vector2& position) = 0;
+        /*!
+         * Drains projectile events from remote peers received since the last call.
+         *
+         * @return Fired/impact events in arrival order
+         */
+        [[nodiscard]] virtual std::vector<ProjectileEvent> takeProjectileEvents() = 0;
         /*! Object ids the server has declared gone (collected coins / dead enemies). */
         [[nodiscard]] virtual const std::set<uint32_t>& removedObjectIds() const = 0;
 

@@ -8,6 +8,7 @@
 #include "raylib-cpp.hpp"
 #include <string>
 #include "../../data/PlayerPersistentState.hpp"
+#include "../../enums/PlayerState.h"
 
 namespace ggj
 {
@@ -45,6 +46,11 @@ namespace ggj
             [[nodiscard]] virtual bool isInDialog() const = 0;
             virtual std::string getDialogId() = 0;
             virtual void setHasFinishedDialog() = 0;
+
+            /*! Current animation state. Mirrored to remote peers so they can animate this player. */
+            [[nodiscard]] virtual PlayerState getPlayerState() const = 0;
+            /*! True when the sprite is drawn flipped (facing left). */
+            [[nodiscard]] virtual bool isFacingLeft() const = 0;
     };
 } // namespace ggj
 

@@ -72,6 +72,11 @@ namespace ggj
             m_position = pixelPosition;
         }
 
+        /*! Whether the sprite is drawn mirrored. Objects without a sprite are never flipped. */
+        [[nodiscard]] virtual bool isFlipped() const { return false; }
+        /*! Overrides the sprite mirroring, e.g. with the host's authoritative facing. */
+        virtual void setFlipped(bool isFlipped) {}
+
         //Static helpers
         static constexpr float PPM = 30.f;
         static b2Vec2 ConvertToB2Vec2(const raylib::Vector2& vector);

@@ -36,6 +36,7 @@ namespace ggj
 namespace ggj
 {
     class Hud; // Forward declaration
+    class Projectile;
 
     class World : public ggj::IWorld<int32_t>
     {
@@ -113,6 +114,13 @@ namespace ggj
         template <typename T> T* createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive);
 
         /*!
+         * Registers a projectile fired by the local player so netplay peers can render it. No-op offline.
+         *
+         * @param projectile Freshly created projectile owned by a world layer
+         */
+        void registerLocalProjectile(Projectile* projectile);
+
+        /*!
          * Queues a Claudling to be spawned at @p position after the current update loop finishes.
          * Must be queued (not spawned immediately) because calling createGameObject during layer
          * iteration would invalidate the vector iterator.
@@ -171,6 +179,13 @@ namespace ggj
         void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
+        /*! Steps each remote peer's animation from its synced PlayerState and drops departed peers. */
+        void updateRemotePlayerSprites(float timeDelta);
+        /*! Reports local projectile impacts and prunes local projectiles about to be freed. */
+        void syncLocalProjectiles();
+        /*! Spawns/explodes/advances the visual-only projectiles fired by remote peers. */
+        void updateRemoteProjectiles(float timeDelta);
+        void drawRemoteProjectiles();
 
         /*! Assigns a deterministic network id to a syncable object (enemy/coin) and registers it. */
         void registerNetworkObject(PhysicsObject* obj);
@@ -233,6 +248,43 @@ namespace ggj
         int            m_bossMaxLives { 0 };
 
         INetworkManager* m_network = nullptr;
+
+        /*! Locally-animated sprite for a remote netplay peer, driven by its synced PlayerState. */
+        struct RemotePlayerSprite
+        {
+            PlayerState state { PlayerState::Idle };
+            Animation animation {};
+        };
+        std::map<uint32_t, RemotePlayerSprite> m_remotePlayerSprites; ///< By network player id.
+        // Local player sprite setup, captured in generatePlayer() so remote peers draw identically.
+        raylib::Texture* m_rogueTexture { nullptr };
+        raylib::Texture* m_wizardTexture { nullptr };
+        raylib::Vector2 m_playerSpriteOrigin {};
+
+        /*! A projectile fired by the local player, tracked so its impact can be reported once. */
+        struct LocalProjectile
+        {
+            Projectile* projectile { nullptr };
+            bool hasReportedImpact { false };
+        };
+        std::map<uint32_t, LocalProjectile> m_localProjectiles; ///< By projectile id.
+        uint32_t m_nextProjectileId { 1 };
+
+        /*!
+         * Visual-only copy of a remote peer's projectile. No physics body: the shooter resolves hits
+         * and reports kills itself, so a real body here would double-count or credit the wrong player.
+         */
+        struct RemoteProjectile
+        {
+            uint32_t ownerId { 0 };
+            uint32_t projectileId { 0 };
+            raylib::Vector2 position {}; ///< Pixels.
+            raylib::Vector2 velocity {}; ///< Box2D units (metres/s).
+            float timeAlive { 0.0f };
+            bool isImpact { false };
+            Animation animation {};
+        };
+        std::vector<RemoteProjectile> m_remoteProjectiles;
         std::map<uint32_t, raylib::Vector2> m_networkObjectSpawns; ///< Spawn position (pixels) by network id.
         std::map<uint32_t, PhysicsObject*> m_networkObjects; ///< Syncable objects (enemies/coins) by network id.
         std::set<uint32_t> m_reportedDestroyed;              ///< Ids already reported destroyed to the network.

@@ -24,7 +24,7 @@ namespace ggj
             // static constexpr raylib::Vector2 DEFAULT_SIZE {16.f, 16.f};
             // static constexpr raylib::Vector2 DEFAULT_VELOCITY {25.f, 0.f};
             static constexpr float DEFAULT_SPEED {25.f};
-            static constexpr float DEFAULT_TTL {1.f};
+            static constexpr float DEFAULT_TTL {2.f}; ///< Seconds of flight, then the same again for the impact animation.
     };
 }
 #endif // MAGEBALL_HPP

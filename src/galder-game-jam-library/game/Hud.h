@@ -29,6 +29,7 @@ namespace ggj
             void setFont(raylib::Font *font);
             void setPlayer(IPlayer *player);
             void setPlayerName(const std::string &name);
+            void setPlayerNameColor(const raylib::Color& color) { m_playerNameColor = color; }
             void setWorld(World *world);
             void setMinimap(Minimap *minimap);
             void setPickedCharacter(PlayerPickedCharacter character);
@@ -66,6 +67,7 @@ namespace ggj
             Minimap *m_minimap    = nullptr;
 
             std::string m_playerName {};
+            raylib::Color m_playerNameColor { RED };
 
             raylib::Vector2 m_size {};
             raylib::Vector2 m_origin {};

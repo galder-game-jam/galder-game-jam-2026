@@ -26,7 +26,7 @@ namespace ggj
                   const std::string& localIp,
                   const std::string& publicIp)
         {
-            ImGui::SetNextWindowSize({ 560, 280 }, ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize({ 460, 360 }, ImGuiCond_FirstUseEver);
             ImGui::Begin("Server Info");
 
             ImGui::Text("Server: %s", serverName.c_str());
@@ -39,7 +39,7 @@ namespace ggj
             ImGui::Separator();
 
             constexpr ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp;
-            if (ImGui::BeginTable("players", 8, flags))
+            if (ImGui::BeginTable("players", 6, flags))
             {
                 ImGui::TableSetupColumn("Name");
                 ImGui::TableSetupColumn("Pos");
@@ -47,8 +47,6 @@ namespace ggj
                 ImGui::TableSetupColumn("Kills");
                 ImGui::TableSetupColumn("Lives");
                 ImGui::TableSetupColumn("Ping");
-                ImGui::TableSetupColumn("Local IP");
-                ImGui::TableSetupColumn("Public IP");
                 ImGui::TableHeadersRow();
 
                 for (const ConnectedPlayer& player : players)
@@ -56,7 +54,7 @@ namespace ggj
                     ImGui::TableNextRow();
 
                     ImGui::TableNextColumn();
-                    ImGui::Text("%s%s", player.name.c_str(), player.isHost ? " (host)" : "");
+                    drawPlayerName(player);
                     ImGui::TableNextColumn();
                     ImGui::Text("%d, %d", static_cast<int>(player.position.x), static_cast<int>(player.position.y));
                     ImGui::TableNextColumn();
@@ -70,6 +68,26 @@ namespace ggj
                         ImGui::Text("%d ms", player.pingMs);
                     else
                         ImGui::TextUnformatted("-");
+                }
+                ImGui::EndTable();
+            }
+
+            // Addresses live in their own table so the stats table above stays narrow.
+            ImGui::Spacing();
+            ImGui::TextUnformatted("Network");
+            if (ImGui::BeginTable("addresses", 3, flags))
+            {
+                ImGui::TableSetupColumn("Name");
+                ImGui::TableSetupColumn("Local IP");
+                ImGui::TableSetupColumn("Public IP");
+                ImGui::TableHeadersRow();
+
+                for (const ConnectedPlayer& player : players)
+                {
+                    ImGui::TableNextRow();
+
+                    ImGui::TableNextColumn();
+                    drawPlayerName(player);
                     ImGui::TableNextColumn();
                     ImGui::TextUnformatted(player.localIp.empty() ? "-" : player.localIp.c_str());
                     ImGui::TableNextColumn();
@@ -82,6 +100,11 @@ namespace ggj
         }
 
         private:
+        static void drawPlayerName(const ConnectedPlayer& player)
+        {
+            ImGui::Text("%s%s", player.name.c_str(), player.isHost ? " (host)" : "");
+        }
+
         static void drawIpRow(const char* label, const std::string& ip)
         {
             ImGui::TextUnformatted(label);

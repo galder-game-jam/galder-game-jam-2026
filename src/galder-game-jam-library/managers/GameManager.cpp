@@ -36,7 +36,7 @@ namespace
         ImFont* font = fontForScale(scale);
         if (font)
             ImGui::GetIO().FontDefault = font;
-        ImGui::GetIO().FontGlobalScale = 1.0f;
+        ImGui::GetStyle().FontScaleMain = 1.0f;
     }
 }
 
@@ -115,7 +115,7 @@ void ggj::GameManager::render()
                    { 0, 0 }, 0.0f, WHITE);
     m_debugManager.draw();
 
-    // Apply scale before rlImGuiBegin so FontGlobalScale is set before NewFrame() computes
+    // Apply scale before rlImGuiBegin so the font scale is set before NewFrame() computes
     // g.FontBaseSize — setting it after NewFrame produces stale sizing for that frame.
     applyImGuiScale(m_options.getHudOptions().imguiScale);
 

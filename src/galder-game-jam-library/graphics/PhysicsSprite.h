@@ -28,6 +28,8 @@ namespace ggj
                     m_origin = raylib::Vector2(spriteSize.x / 2, spriteSize.y - physicsSize.y / 2);
             }
             void draw() override;
+            [[nodiscard]] bool isFlipped() const override { return m_flip; }
+            void setFlipped(bool isFlipped) override { m_flip = isFlipped; }
 
         protected:
             raylib::Texture *m_texture {nullptr};

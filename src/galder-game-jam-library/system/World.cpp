@@ -7,6 +7,7 @@
 #include "../graphics/Sprite.h"
 #include "../game/enemies/ClaudeEnemy.h"
 #include "../game/enemies/Claudling.h"
+#include "../game/projectiles/MageBall.hpp"
 
 #ifdef GAME_DEV_DEBUG
     #include "../managers/DebugMenu.hpp"
@@ -236,6 +237,8 @@ namespace ggj
 
         m_hud.update(timeDelta);
         m_dialog.update(timeDelta);
+        updateRemotePlayerSprites(timeDelta);
+        updateRemoteProjectiles(timeDelta);
 
         if (m_player != nullptr)
         {
@@ -306,6 +309,7 @@ namespace ggj
             layer.second.draw();
         }
         drawRemotePlayers();
+        drawRemoteProjectiles();
 
         for (const FloatingTextEntry& e : m_floatingTexts)
         {
@@ -325,29 +329,168 @@ namespace ggj
         m_dialog.draw();
     }
 
+    void World::updateRemotePlayerSprites(float timeDelta)
+    {
+        if (m_network == nullptr || !m_network->isActive())
+        {
+            m_remotePlayerSprites.clear();
+            return;
+        }
+
+        const std::map<uint32_t, RemotePlayer>& remotes = m_network->remotePlayers();
+        std::erase_if(m_remotePlayerSprites, [&remotes](const auto& entry) { return remotes.count(entry.first) == 0; });
+
+        for (const auto& [playerId, remote] : remotes)
+        {
+            const bool isNew = m_remotePlayerSprites.count(playerId) == 0;
+            RemotePlayerSprite& sprite = m_remotePlayerSprites[playerId];
+            // Restart the animation on a state change, exactly like Player::setPlayerState().
+            if (isNew || sprite.state != remote.state)
+            {
+                sprite.state = remote.state;
+                sprite.animation = m_animationManager.getAnimation(m_mapper.getAnimationNameByPlayerState(remote.state));
+            }
+            if (sprite.animation.isValid())
+                sprite.animation.update(timeDelta);
+        }
+    }
+
+    void World::registerLocalProjectile(Projectile* projectile)
+    {
+        if (projectile == nullptr || m_network == nullptr || !m_network->isActive())
+            return;
+
+        const uint32_t projectileId = m_nextProjectileId++;
+        m_localProjectiles[projectileId] = LocalProjectile { projectile, false };
+        // Body position, not getPosition(): m_position is only refreshed on the projectile's first update.
+        const raylib::Vector2 position = PhysicsObject::ConvertToVector2(projectile->getBody()->GetPosition());
+        m_network->notifyLocalProjectileFired(projectileId, position, projectile->getVelocity());
+    }
+
+    void World::syncLocalProjectiles()
+    {
+        // Runs before destroyMarkedObjects(), so pointers are still valid while shouldBeDestroyed() is set.
+        const bool isOnline = m_network != nullptr && m_network->isActive();
+        for (auto it = m_localProjectiles.begin(); it != m_localProjectiles.end();)
+        {
+            Projectile* projectile = it->second.projectile;
+            const bool isGone = projectile->shouldBeDestroyed();
+            if ((projectile->isExploded() || isGone) && !it->second.hasReportedImpact)
+            {
+                if (isOnline)
+                    m_network->notifyLocalProjectileImpact(it->first, projectile->getPosition());
+                it->second.hasReportedImpact = true;
+            }
+
+            if (isGone)
+                it = m_localProjectiles.erase(it);
+            else
+                ++it;
+        }
+    }
+
+    void World::updateRemoteProjectiles(float timeDelta)
+    {
+        if (m_network == nullptr || !m_network->isActive())
+        {
+            m_remoteProjectiles.clear();
+            return;
+        }
+
+        for (const ProjectileEvent& event : m_network->takeProjectileEvents())
+        {
+            if (!event.isImpact)
+            {
+                RemoteProjectile projectile;
+                projectile.ownerId = event.ownerId;
+                projectile.projectileId = event.projectileId;
+                projectile.position = event.position;
+                projectile.velocity = event.velocity;
+                projectile.animation = m_animationManager.getAnimation(AnimationName::MageBallFlightRed);
+                m_remoteProjectiles.push_back(projectile);
+                continue;
+            }
+
+            for (RemoteProjectile& projectile : m_remoteProjectiles)
+            {
+                if (projectile.ownerId == event.ownerId && projectile.projectileId == event.projectileId && !projectile.isImpact)
+                {
+                    projectile.position = event.position;
+                    projectile.isImpact = true;
+                    projectile.timeAlive = 0.0f;
+                    projectile.animation = m_animationManager.getAnimation(AnimationName::MageBallImpactRed);
+                    break;
+                }
+            }
+        }
+
+        // Same lifecycle as Projectile::update(): fly for TTL, then show the impact for TTL. The
+        // owner's impact event normally cuts the flight short; the timer is only the fallback.
+        for (RemoteProjectile& projectile : m_remoteProjectiles)
+        {
+            projectile.timeAlive += timeDelta;
+            if (!projectile.isImpact)
+            {
+                projectile.position.x += projectile.velocity.x * PhysicsObject::PPM * timeDelta;
+                projectile.position.y += projectile.velocity.y * PhysicsObject::PPM * timeDelta;
+                if (projectile.timeAlive >= MageBall::DEFAULT_TTL)
+                {
+                    projectile.isImpact = true;
+                    projectile.timeAlive = 0.0f;
+                    projectile.animation = m_animationManager.getAnimation(AnimationName::MageBallImpactRed);
+                }
+            }
+            if (projectile.animation.isValid())
+                projectile.animation.update(timeDelta);
+        }
+
+        std::erase_if(m_remoteProjectiles, [](const RemoteProjectile& projectile) { return projectile.isImpact && projectile.timeAlive >= MageBall::DEFAULT_TTL; });
+    }
+
+    void World::drawRemoteProjectiles()
+    {
+        raylib::Texture* texture = m_textures.get(TextureName::MageBall);
+        if (texture == nullptr)
+            return;
+
+        // Origin matches PhysicsSprite for a 16x16 circle body: (size.x / 2, size.y - physicsSize.y).
+        constexpr float MAGE_BALL_SIZE = 16.0f;
+        const raylib::Vector2 origin { MAGE_BALL_SIZE / 2.0f, 0.0f };
+        for (RemoteProjectile& projectile : m_remoteProjectiles)
+        {
+            if (!projectile.animation.isValid())
+                continue;
+
+            const raylib::Rectangle& frame = projectile.animation.getDrawingRect();
+            texture->Draw(frame, raylib::Rectangle { projectile.position.x, projectile.position.y, frame.width, frame.height }, origin, 0.0f, WHITE);
+        }
+    }
+
     void World::drawRemotePlayers()
     {
         if (m_network == nullptr || !m_network->isActive())
             return;
 
+        constexpr int FONT_SIZE = 10;
+        constexpr float NAME_OFFSET_Y = 6.0f; ///< Label sits this far below the top edge of the 64px frame.
+
         for (const auto& [playerId, remote] : m_network->remotePlayers())
         {
-            // Approximate the sprite centre; remote.position is the same space as IPlayer::getPosition().
-            const raylib::Vector2 centre { remote.position.x + 8.0f, remote.position.y + 8.0f };
-            const raylib::Color bodyColor = (remote.character == PlayerPickedCharacter::Wizard) ? VIOLET : SKYBLUE;
+            raylib::Texture* texture = (remote.character == PlayerPickedCharacter::Wizard) ? m_wizardTexture : m_rogueTexture;
+            auto found = m_remotePlayerSprites.find(playerId);
+            if (texture == nullptr || found == m_remotePlayerSprites.end() || !found->second.animation.isValid())
+                continue;
 
-            DrawCircleV(centre, 8.0f, bodyColor);
-            DrawCircleLines(static_cast<int>(centre.x), static_cast<int>(centre.y), 8.0f, BLACK);
-
-            // Small facing indicator.
-            const float eyeX = centre.x + (remote.facingLeft ? -3.0f : 3.0f);
-            DrawCircleV(raylib::Vector2 { eyeX, centre.y - 1.0f }, 1.5f, BLACK);
+            // Mirrors PhysicsSprite::draw(): negative source width flips the frame horizontally.
+            const raylib::Rectangle& frame = found->second.animation.getDrawingRect();
+            const raylib::Rectangle source { frame.x, frame.y, remote.facingLeft ? -frame.width : frame.width, frame.height };
+            texture->Draw(source, raylib::Rectangle { remote.position.x, remote.position.y, frame.width, frame.height }, m_playerSpriteOrigin, 0.0f, WHITE);
 
             if (!remote.name.empty())
             {
-                const int fontSize = 10;
-                const int textWidth = MeasureText(remote.name.c_str(), fontSize);
-                DrawText(remote.name.c_str(), static_cast<int>(centre.x) - textWidth / 2, static_cast<int>(centre.y) - 22, fontSize, WHITE);
+                const int textWidth = MeasureText(remote.name.c_str(), FONT_SIZE);
+                const float top = remote.position.y - m_playerSpriteOrigin.y + NAME_OFFSET_Y;
+                ::DrawText(remote.name.c_str(), static_cast<int>(remote.position.x) - textWidth / 2, static_cast<int>(top), FONT_SIZE, remote.nameColor);
             }
         }
     }
@@ -446,6 +589,8 @@ namespace ggj
             }
         }
 
+        syncLocalProjectiles();
+
         if (m_network == nullptr || !m_network->isActive())
             return;
 
@@ -468,14 +613,19 @@ namespace ggj
             }
         }
 
-        // 2. Client: snap enemies to the host's authoritative positions.
+        // 2. Client: snap enemies to the host's authoritative position and facing. The client still
+        //    runs each enemy's own AI, whose turn decisions drift from the host's, so the facing
+        //    has to be overwritten too or sprites end up looking the wrong way.
         if (m_network->role() == NetworkRole::Client)
         {
-            for (const auto& [id, position] : m_network->enemyPositions())
+            for (const auto& [id, state] : m_network->enemyStates())
             {
                 auto found = m_networkObjects.find(id);
                 if (found != m_networkObjects.end())
-                    found->second->setNetworkPosition(position);
+                {
+                    found->second->setNetworkPosition(state.position);
+                    found->second->setFlipped(state.isFlipped);
+                }
             }
         }
 
@@ -487,7 +637,7 @@ namespace ggj
                 for (const auto& [id, obj] : m_networkObjects)
                 {
                     if (obj->getUserData()->getObjectType() == ObjectType::Enemy)
-                        m_network->publishEnemyState(id, obj->getPosition(), false);
+                        m_network->publishEnemyState(id, obj->getPosition(), obj->isFlipped());
                 }
             }
             m_enemyStateThrottle = (m_enemyStateThrottle + 1) % ENEMY_STATE_THROTTLE_FRAMES;
@@ -520,6 +670,13 @@ namespace ggj
 
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
                 raylib::Vector2 physicsSize = raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y);
+
+                // Remember the sprite setup so remote peers can be drawn exactly like a local player.
+                // Same origin formula as PhysicsSprite; the map sprite is the Rogue texture.
+                const bool isCircle = body->GetFixtureList()->GetShape()->GetType() == b2Shape::e_circle;
+                m_playerSpriteOrigin = raylib::Vector2 { spriteSize.x / 2.f, isCircle ? spriteSize.y - physicsSize.y : spriteSize.y - physicsSize.y / 2.f };
+                m_rogueTexture = tex;
+                m_wizardTexture = m_textures.get(TextureName::WizardPlayer);
 
                 const int32_t playerIndex = m_nextPlayerIndex++;
                 m_playerStats[playerIndex] = PlayerStats {};
