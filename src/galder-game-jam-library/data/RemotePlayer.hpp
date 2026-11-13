@@ -5,6 +5,7 @@
 #ifndef GALDER_GAME_JAM_2026_PROJECT_REMOTEPLAYER_HPP
 #define GALDER_GAME_JAM_2026_PROJECT_REMOTEPLAYER_HPP
 
+#include "CharacterColors.hpp"
 #include "../enums/PlayerPickedCharacter.h"
 #include "../enums/PlayerState.h"
 #include "raylib-cpp.hpp"
@@ -24,6 +25,7 @@ namespace ggj
         std::string name {};
         raylib::Color nameColor { RED }; ///< Player-chosen colour for the overhead name label.
         PlayerPickedCharacter character { PlayerPickedCharacter::Rogue };
+        CharacterColors colors {}; ///< Picked sprite colours, synced from the owner.
 
         raylib::Vector2 position {};       ///< Rendered (interpolated) position.
         raylib::Vector2 targetPosition {}; ///< Latest authoritative position from the network.

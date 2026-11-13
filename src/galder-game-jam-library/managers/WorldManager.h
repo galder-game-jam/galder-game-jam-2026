@@ -124,6 +124,7 @@ namespace ggj
             bool m_isNetplay{false};
             MessagePopup m_connectionLostPopup {};
             PlayerPickedCharacter m_pickedCharacter { PlayerPickedCharacter::Rogue };
+            CharacterColors m_pickedColors {};
             raylib::Font m_font;
             //std::vector<std::unique_ptr<tson::Map>> m_maps;
 

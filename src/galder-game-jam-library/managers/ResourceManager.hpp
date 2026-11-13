@@ -129,6 +129,8 @@ namespace ggj
 
         add(ggj::ResourceName::ConfigOptions, "options.json");
 
+        add(ggj::ResourceName::ShaderPaletteSwap, "shaders/palette_swap.fs");
+
         add(ggj::ResourceName::SoundCoinPickup, "audio/sfx/coin_pickup.wav");
         add(ggj::ResourceName::SoundEnemyDie, "audio/sfx/enemy_die.wav");
         add(ggj::ResourceName::SoundPortalUse, "audio/sfx/portal_use.wav");

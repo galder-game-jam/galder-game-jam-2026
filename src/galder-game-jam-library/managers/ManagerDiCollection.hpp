@@ -7,6 +7,7 @@
 
 #include "../data/PlayerPersistentState.hpp"
 #include "../interfaces/manager/INetworkManager.h"
+#include "../interfaces/graphics/IPaletteSwapShader.h"
 
 #ifdef GAME_DEV_DEBUG
 namespace ggj
@@ -23,14 +24,16 @@ namespace ggj
         ManagerDiCollection(ggj::IResourceManager<ResourceName>& resourceManager, ggj::ITextureManager<TextureName, raylib::Texture>& textureManager,
                             ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::CollisionManager& collisionManager, ggj::IDebugManager& debugManager,
                             ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IUserDataManager<PhysicsObject*>& userDataManager,
-                            ggj::ISoundManager& soundManager, ggj::PlayerPersistentState& persistentState, ggj::INetworkManager& networkManager
+                            ggj::ISoundManager& soundManager, ggj::PlayerPersistentState& persistentState, ggj::INetworkManager& networkManager,
+                            ggj::IPaletteSwapShader& paletteSwapShader
 #ifdef GAME_DEV_DEBUG
                             ,
                             ggj::DebugState& debugState
 #endif
                             )
             : resources { resourceManager }, textures { textureManager }, input { inputManager }, collision { collisionManager }, debug { debugManager },
-              animation { animationManager }, userData { userDataManager }, sound { soundManager }, persistentState { persistentState }, network { networkManager }
+              animation { animationManager }, userData { userDataManager }, sound { soundManager }, persistentState { persistentState }, network { networkManager },
+              paletteSwap { paletteSwapShader }
 #ifdef GAME_DEV_DEBUG
               ,
               debugState { debugState }
@@ -48,6 +51,7 @@ namespace ggj
         ggj::ISoundManager& sound;
         ggj::PlayerPersistentState& persistentState;
         ggj::INetworkManager& network;
+        ggj::IPaletteSwapShader& paletteSwap;
 #ifdef GAME_DEV_DEBUG
         ggj::DebugState& debugState;
 #endif

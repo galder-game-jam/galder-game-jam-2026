@@ -8,6 +8,7 @@
 #include "../game/enemies/ClaudeEnemy.h"
 #include "../game/enemies/Claudling.h"
 #include "../game/projectiles/MageBall.hpp"
+#include "../graphics/CharacterPalette.h"
 
 #ifdef GAME_DEV_DEBUG
     #include "../managers/DebugMenu.hpp"
@@ -484,7 +485,9 @@ namespace ggj
             // Mirrors PhysicsSprite::draw(): negative source width flips the frame horizontally.
             const raylib::Rectangle& frame = found->second.animation.getDrawingRect();
             const raylib::Rectangle source { frame.x, frame.y, remote.facingLeft ? -frame.width : frame.width, frame.height };
+            m_paletteSwap.begin(CharacterPalette::BuildPaletteSwap(remote.character, remote.colors));
             texture->Draw(source, raylib::Rectangle { remote.position.x, remote.position.y, frame.width, frame.height }, m_playerSpriteOrigin, 0.0f, WHITE);
+            m_paletteSwap.end();
 
             if (!remote.name.empty())
             {
@@ -672,6 +675,21 @@ namespace ggj
     void World::setPickedCharacter(PlayerPickedCharacter character)
     {
         m_pickedCharacter = character;
+    }
+
+    void World::setPlayerColors(const CharacterColors& colors)
+    {
+        m_playerPaletteSwap = CharacterPalette::BuildPaletteSwap(m_pickedCharacter, colors);
+    }
+
+    void World::beginPlayerPalette()
+    {
+        m_paletteSwap.begin(m_playerPaletteSwap);
+    }
+
+    void World::endPlayerPalette()
+    {
+        m_paletteSwap.end();
     }
 
     void World::generatePlayer(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)

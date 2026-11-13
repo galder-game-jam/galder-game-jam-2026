@@ -42,7 +42,8 @@ namespace ggj
         }
     } // namespace
 
-    void NetworkManager::startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character)
+    void NetworkManager::startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character,
+                                   const CharacterColors& colors)
     {
         shutdown();
 
@@ -51,6 +52,7 @@ namespace ggj
         m_localNameColor = nameColor;
         m_serverName = serverName;
         m_localCharacter = character;
+        m_localColors = colors;
         m_localPlayerId = HOST_PLAYER_ID;
         m_cachedLocalIp = m_resolver.getLocalIpAddress();
         m_cachedPublicIp = m_resolver.getPublicIpAddress();
@@ -67,7 +69,8 @@ namespace ggj
         m_logger.information(fmt::format("Hosting on port {0} as '{1}' (server: '{2}')", port, playerName, serverName));
     }
 
-    void NetworkManager::startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character)
+    void NetworkManager::startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character,
+                                     const CharacterColors& colors)
     {
         shutdown();
 
@@ -75,6 +78,7 @@ namespace ggj
         m_localName = name;
         m_localNameColor = nameColor;
         m_localCharacter = character;
+        m_localColors = colors;
         m_localPlayerId = INVALID_PLAYER_ID; // assigned by the server via JoinAccept
         m_hasSentJoinRequest = false;
         m_cachedLocalIp = m_resolver.getLocalIpAddress();
@@ -365,6 +369,7 @@ namespace ggj
         copyName(hostState.name, m_localName);
         hostState.nameColor = m_localNameColor;
         hostState.character = static_cast<uint8_t>(m_localCharacter);
+        hostState.colors = m_localColors;
         hostState.position = m_localPosition;
         hostState.animationState = static_cast<uint8_t>(m_localPlayerState);
         hostState.facingLeft = m_isLocalFacingLeft;
@@ -381,6 +386,7 @@ namespace ggj
             copyName(state.name, remote.name);
             state.nameColor = remote.nameColor;
             state.character = static_cast<uint8_t>(remote.character);
+            state.colors = remote.colors;
             state.position = remote.targetPosition;
             state.animationState = static_cast<uint8_t>(remote.state);
             state.facingLeft = remote.facingLeft;
@@ -407,6 +413,7 @@ namespace ggj
                 copyName(join.name, m_localName);
                 join.nameColor = m_localNameColor;
                 join.character = static_cast<uint8_t>(m_localCharacter);
+                join.colors = m_localColors;
                 join.position = m_localPosition;
                 join.stageIndex = m_currentStage;
                 std::strncpy(join.localIp, m_cachedLocalIp.c_str(), sizeof(join.localIp) - 1);
@@ -421,6 +428,7 @@ namespace ggj
             copyName(state.name, m_localName);
             state.nameColor = m_localNameColor;
             state.character = static_cast<uint8_t>(m_localCharacter);
+            state.colors = m_localColors;
             state.position = m_localPosition;
             state.animationState = static_cast<uint8_t>(m_localPlayerState);
             state.facingLeft = m_isLocalFacingLeft;
@@ -494,6 +502,7 @@ namespace ggj
         remote.name = message.name;
         remote.nameColor = message.nameColor;
         remote.character = static_cast<PlayerPickedCharacter>(message.character);
+        remote.colors = message.colors;
         remote.targetPosition = message.position;
         remote.state = static_cast<PlayerState>(message.animationState);
         remote.facingLeft = message.facingLeft;
@@ -516,6 +525,7 @@ namespace ggj
         remote.name = message.name;
         remote.nameColor = message.nameColor;
         remote.character = static_cast<PlayerPickedCharacter>(message.character);
+        remote.colors = message.colors;
         remote.targetPosition = message.position;
         remote.state = static_cast<PlayerState>(message.animationState);
         remote.facingLeft = message.facingLeft;

@@ -119,9 +119,11 @@ namespace ggj
                                 m_startupIndex = getStageIndexByFilename(file.filename().string());
                             }
                         }
-                        m_worlds[stage] = std::make_unique<World>(m_logger, m_resources, m_mapper, m_textures, m_window, m_input, m_collisionManager, m_debugManager,
-                                                                  m_animationManager, m_userDataManager, m_soundManager, std::move(map), m_hud, m_dialog, m_optionsManager);
+                        m_worlds[stage] =
+                            std::make_unique<World>(m_logger, m_resources, m_mapper, m_textures, m_window, m_input, m_collisionManager, m_debugManager, m_animationManager,
+                                                    m_userDataManager, m_soundManager, std::move(map), m_hud, m_dialog, m_optionsManager, m_managers.paletteSwap);
                         m_worlds[stage]->setPickedCharacter(m_pickedCharacter);
+                        m_worlds[stage]->setPlayerColors(m_pickedColors);
                         m_worlds[stage]->initialize();
 #ifdef GAME_DEV_DEBUG
                         m_worlds[stage]->setDebugState(&m_managers.debugState);
@@ -256,6 +258,7 @@ namespace ggj
             if (m_characterSelectScreen.isCharacterSelected())
             {
                 m_pickedCharacter = m_characterSelectScreen.getPickedCharacter();
+                m_pickedColors = m_characterSelectScreen.getPickedColors();
                 m_talentScreen.setPickedCharacter(m_pickedCharacter);
                 parseProject();
                 m_hud.initialize();
@@ -275,9 +278,9 @@ namespace ggj
                     m_hud.setPlayerName(playerName);
                     m_hud.setPlayerNameColor(nameColor);
                     if (m_netplayScreen.isHost())
-                        m_network.startHost(m_netplayScreen.getPort(), playerName, nameColor, m_netplayScreen.getServerName(), m_pickedCharacter);
+                        m_network.startHost(m_netplayScreen.getPort(), playerName, nameColor, m_netplayScreen.getServerName(), m_pickedCharacter, m_pickedColors);
                     else
-                        m_network.startClient(m_netplayScreen.getIpAddress(), m_netplayScreen.getPort(), playerName, nameColor, m_pickedCharacter);
+                        m_network.startClient(m_netplayScreen.getIpAddress(), m_netplayScreen.getPort(), playerName, nameColor, m_pickedCharacter, m_pickedColors);
 
                     m_worlds[m_currentStageIndex]->setNetworkManager(&m_network);
                     m_network.setCurrentStage(m_currentStageIndex);
@@ -628,6 +631,12 @@ namespace ggj
         if (m_connectionLostPopup.isOpen())
         {
             m_connectionLostPopup.draw();
+            return;
+        }
+
+        if (m_characterSelectScreenActive)
+        {
+            m_characterSelectScreen.drawImGui();
             return;
         }
 

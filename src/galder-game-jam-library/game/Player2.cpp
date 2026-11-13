@@ -11,7 +11,11 @@ namespace ggj
 {
     void Player2::draw()
     {
+        if (m_world != nullptr)
+            m_world->beginPlayerPalette();
         PhysicsSprite::draw();
+        if (m_world != nullptr)
+            m_world->endPlayerPalette();
         m_hitbox.draw();
     }
 

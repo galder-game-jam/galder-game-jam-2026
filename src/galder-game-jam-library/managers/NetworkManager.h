@@ -33,8 +33,10 @@ namespace ggj
         /*! Closes any open session gracefully so peers drop us right away when the game quits. */
         ~NetworkManager() override { shutdown(); }
 
-        void startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character) override;
-        void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character) override;
+        void startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character,
+                       const CharacterColors& colors) override;
+        void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character,
+                         const CharacterColors& colors) override;
         void shutdown() override;
 
         void poll(float timeDelta) override;
@@ -113,6 +115,7 @@ namespace ggj
         std::string m_cachedLocalIp {};
         std::string m_cachedPublicIp {};
         PlayerPickedCharacter m_localCharacter { PlayerPickedCharacter::Rogue };
+        CharacterColors m_localColors {};
         raylib::Vector2 m_localPosition {};
         PlayerState m_localPlayerState { PlayerState::Idle };
         bool m_isLocalFacingLeft { false };

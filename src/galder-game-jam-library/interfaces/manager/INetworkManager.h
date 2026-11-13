@@ -8,6 +8,7 @@
 #include "../../enums/NetworkRole.h"
 #include "../../enums/PlayerPickedCharacter.h"
 #include "../../data/RemotePlayer.hpp"
+#include "../../data/CharacterColors.hpp"
 #include "../../data/ConnectedPlayer.hpp"
 #include "../../data/EnemyNetworkState.hpp"
 #include "../../data/ProjectileEvent.hpp"
@@ -38,9 +39,11 @@ namespace ggj
         virtual ~INetworkManager() = default;
 
         /*! Begins hosting on the given port. The host is also player HOST_PLAYER_ID. */
-        virtual void startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character) = 0;
+        virtual void startHost(uint16_t port, const std::string& playerName, const raylib::Color& nameColor, const std::string& serverName, PlayerPickedCharacter character,
+                               const CharacterColors& colors) = 0;
         /*! Begins (non-blocking) connecting to a host. */
-        virtual void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character) = 0;
+        virtual void startClient(const std::string& ipAddress, uint16_t port, const std::string& name, const raylib::Color& nameColor, PlayerPickedCharacter character,
+                                 const CharacterColors& colors) = 0;
         /*! Tears down any active server/client and returns to NetworkRole::None. */
         virtual void shutdown() = 0;
 
