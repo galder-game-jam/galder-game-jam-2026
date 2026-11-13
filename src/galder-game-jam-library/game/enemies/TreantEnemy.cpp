@@ -1,7 +1,9 @@
 #include "TreantEnemy.h"
 #include "../projectiles/Projectile.h"
 #include "../../system/World.h"
+#include <algorithm>
 #include <cmath>
+#include <numbers>
 
 namespace ggj
 {
@@ -63,6 +65,8 @@ namespace ggj
                 m_tint = WHITE;
                 break;
         }
+
+        m_stateDuration = m_stateTimer;
     }
 
     void TreantEnemy::update(float timeDelta)
@@ -88,6 +92,7 @@ namespace ggj
         }
 
         m_stateTimer -= timeDelta;
+        m_animTime += timeDelta;
 
         const float speedMultiplier = isEnraged() ? ENRAGED_SPEED_MULTIPLIER : 1.f;
         b2Vec2 velocity { 0.f, 0.f };
@@ -152,10 +157,74 @@ namespace ggj
 
         // The sprite sheet is smaller than the boss, so scale the frame up to the sprite size from the map
         // (PhysicsSprite::draw would use the frame size as-is).
+        const TreantPose pose = computePose();
         const float sourceWidth = m_flip ? -m_drawingRect.width : m_drawingRect.width;
         const raylib::Rectangle source { m_drawingRect.x, m_drawingRect.y, sourceWidth, m_drawingRect.height };
-        const raylib::Rectangle destination { m_position.x, m_position.y, m_spriteSize.x, m_spriteSize.y };
-        m_texture->Draw(source, destination, m_origin, m_rotation, m_tint);
+        const raylib::Rectangle destination { m_position.x, m_position.y, m_spriteSize.x * pose.scaleX, m_spriteSize.y * pose.scaleY };
+        // The origin scales with the sprite so the feet stay on the same spot while squashing and stretching.
+        const raylib::Vector2 origin { m_origin.x * pose.scaleX, m_origin.y * pose.scaleY };
+        m_texture->Draw(source, destination, origin, m_rotation + pose.rotation, m_tint);
+    }
+
+    TreantEnemy::TreantPose TreantEnemy::computePose() const
+    {
+        TreantPose pose;
+
+        switch (m_state)
+        {
+            case TreantState::Idle:
+            {
+                // Slow breathing: the chest swells while the sprite sways a touch.
+                const float breath = std::sin(m_animTime * 2.5f);
+                pose.scaleY = 1.f + 0.03f * breath;
+                pose.scaleX = 1.f - 0.015f * breath;
+                pose.rotation = 1.5f * std::sin(m_animTime * 1.2f);
+                break;
+            }
+
+            case TreantState::Walk:
+            {
+                // Heavy waddle: rock from foot to foot, dipping a little on every step.
+                const float phase = m_animTime * WALK_STEPS_PER_SECOND * std::numbers::pi_v<float>;
+                pose.rotation = 6.f * std::sin(phase);
+                pose.scaleY = 1.f - 0.05f * std::abs(std::sin(phase));
+                pose.scaleX = 1.f + 0.03f * std::abs(std::sin(phase));
+                break;
+            }
+
+            case TreantState::Windup:
+            {
+                // Coil up: crouch lower and wider the closer the charge gets, trembling harder as it builds.
+                const float progress = m_stateDuration > 0.f ? 1.f - std::max(0.f, m_stateTimer) / m_stateDuration : 1.f;
+                pose.scaleY = 1.f - 0.12f * progress;
+                pose.scaleX = 1.f + 0.08f * progress;
+                pose.rotation = (1.f + 4.f * progress) * std::sin(m_animTime * 60.f);
+                break;
+            }
+
+            case TreantState::Charge:
+            {
+                // Lean into the run and pound the ground with each stride.
+                const float phase = m_animTime * CHARGE_STEPS_PER_SECOND * std::numbers::pi_v<float>;
+                const float lean = m_chargeDirection.x < 0.f ? -1.f : 1.f;
+                pose.rotation = lean * 14.f + 3.f * std::sin(phase);
+                pose.scaleX = 1.1f;
+                pose.scaleY = 0.95f + 0.03f * std::abs(std::sin(phase));
+                break;
+            }
+
+            case TreantState::Recover:
+            {
+                // Out of breath: hunched over and heaving.
+                const float heave = std::sin(m_animTime * 7.f);
+                pose.scaleY = 0.92f + 0.02f * heave;
+                pose.scaleX = 1.04f;
+                pose.rotation = 3.f * std::sin(m_animTime * 2.f);
+                break;
+            }
+        }
+
+        return pose;
     }
 
     void TreantEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft)

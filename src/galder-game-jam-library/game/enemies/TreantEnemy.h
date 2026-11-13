@@ -58,6 +58,23 @@ namespace ggj
         void faceTowards(const raylib::Vector2& direction);
 
         /*!
+         * How the single sprite frame is deformed this frame to fake animation. Squash and stretch are
+         * applied around the feet so the treant stays planted on the ground.
+         */
+        struct TreantPose
+        {
+            float rotation { 0.f }; ///< Degrees, clockwise; leans the treant around its feet.
+            float scaleX { 1.f };
+            float scaleY { 1.f };
+        };
+
+        /*!
+         * Picks the pose for the current state: breathing when idle, a waddle when walking, a coiled
+         * shake during the windup, a forward lean while charging and a slump while recovering.
+         */
+        [[nodiscard]] TreantPose computePose() const;
+
+        /*!
              * Unit vector from the treant towards the player.
              *
              * @return The direction, or a zero vector when there is no player or they are on top of the treant
@@ -80,7 +97,9 @@ namespace ggj
 
         TreantState m_state { TreantState::Idle };
         float m_stateTimer { IDLE_DURATION };
-        int32_t m_chargesLeft { 0 }; ///< Charges still to perform before returning to Idle.
+        float m_stateDuration { IDLE_DURATION }; ///< Length of the current state, to turn m_stateTimer into progress.
+        float m_animTime { 0.f };                ///< Seconds since spawn; drives the procedural animation.
+        int32_t m_chargesLeft { 0 };             ///< Charges still to perform before returning to Idle.
         raylib::Vector2 m_chargeDirection { 0.f, 0.f };
 
         // Invulnerability + flash
@@ -99,6 +118,8 @@ namespace ggj
         static constexpr float CHARGE_SPEED_MULTIPLIER = 3.f;
         static constexpr float ENRAGED_SPEED_MULTIPLIER = 1.5f;
         static constexpr float CHARGE_KNOCKBACK_MULTIPLIER = 1.5f;
+        static constexpr float WALK_STEPS_PER_SECOND = 2.f;
+        static constexpr float CHARGE_STEPS_PER_SECOND = 6.f;
     };
 
 } // namespace ggj
