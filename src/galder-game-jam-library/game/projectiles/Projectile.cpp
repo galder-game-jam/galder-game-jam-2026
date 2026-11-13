@@ -18,6 +18,13 @@ void ggj::Projectile::update(float timeDelta)
     
     if(m_isImpactActive)
     {
+        // Removing the hitbox can't happen inside a contact callback (world is locked), so do it here.
+        if(!m_isBodyDisabled && m_body != nullptr)
+        {
+            m_body->SetEnabled(false);
+            m_isBodyDisabled = true;
+        }
+
         if(m_timeAlive >= m_timeToLive)
         {
             destroy();
@@ -55,8 +62,12 @@ void ggj::Projectile::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact
 
 void ggj::Projectile::explode()
 {
+    if(m_isImpactActive)
+        return;
+
     m_isImpactActive = true;
     m_timeAlive = 0;
+    m_timeToLive = IMPACT_DURATION;
     m_velocity.x = 0.f;
     m_velocity.y = 0.f;
     m_animation = m_impactAnimation;
