@@ -63,6 +63,10 @@ namespace ggj
         ImGui::SetNextWindowPos({ SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f }, ImGuiCond_FirstUseEver, { 0.5f, 0.5f });
         ImGui::Begin("Netplay", nullptr, ImGuiWindowFlags_NoCollapse);
 
+        // Sampled before the widgets run: ImGui uses Esc to cancel a text edit, so if a field is being
+        // edited the first Esc should only cancel that edit rather than leave the screen.
+        const bool isEscapePressed = IsKeyPressed(KEY_ESCAPE) && !ImGui::IsAnyItemActive();
+
         ImGui::TextUnformatted("Choose your role");
         ImGui::Separator();
 
@@ -136,7 +140,7 @@ namespace ggj
             ImGui::EndDisabled();
 
         ImGui::SameLine();
-        if (ImGui::Button("Back", { 120.0f, 0.0f }))
+        if (ImGui::Button("Back", { 120.0f, 0.0f }) || isEscapePressed)
             m_isBack = true;
 
         ImGui::End();

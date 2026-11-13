@@ -2,6 +2,7 @@
 // Created by robin on 05.11.22.
 //
 
+#include <algorithm>
 #include "Player.h"
 #include "../system/World.h"
 
@@ -11,7 +12,10 @@ namespace ggj
     {
         if (m_world != nullptr)
             m_world->beginPlayerPalette();
-        PhysicsSprite::draw();
+        // Blink while invulnerable so the player can see the cooldown is active.
+        const bool isBlinkedOut = m_damageCooldown > 0.f && static_cast<int32_t>(m_damageCooldown / DAMAGE_BLINK_INTERVAL) % 2 == 0;
+        if (!isBlinkedOut)
+            PhysicsSprite::draw();
         if (m_world != nullptr)
             m_world->endPlayerPalette();
         m_hitbox.draw();
@@ -21,6 +25,9 @@ namespace ggj
     {
         if (m_body == nullptr)
             return;
+
+        if (m_damageCooldown > 0.f)
+            m_damageCooldown = std::max(0.f, m_damageCooldown - timeDelta);
 
         if (m_isDead)
         {
@@ -78,6 +85,7 @@ namespace ggj
                 setPlayerState(PlayerState::Idle);
                 m_isDead = false;
                 m_world->resetPlayerLives(m_playerIndex);
+                m_damageCooldown = 0.f;
                 m_hitbox.setIsActive(true);
                 m_body->SetEnabled(true);
                 m_soundManager.playSound(SoundName::PlayerRespawn);
@@ -214,8 +222,9 @@ namespace ggj
         b2WorldManifold worldManifold;
         contact->GetWorldManifold(&worldManifold); //Required to calculate manifold when circle hits circle
 
-        if (b->getUserData()->getObjectType() == ObjectType::Enemy)
+        if (b->getUserData()->getObjectType() == ObjectType::Enemy && m_damageCooldown <= 0.f && !m_isDead)
         {
+            m_damageCooldown = DAMAGE_COOLDOWN_SECONDS;
             if (m_world->getPlayerScore(m_playerIndex) != 0)
                 m_world->addPlayerScore(m_playerIndex, -1);
 

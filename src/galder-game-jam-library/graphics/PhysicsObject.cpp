@@ -83,6 +83,9 @@ namespace ggj
 
     void PhysicsObject::onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker)
     {
+        // Already dying: further hits must not decrement lives or count the kill again.
+        if (shouldBeDestroyed())
+            return;
         --m_lives;
         if (m_lives > 0)
             return;

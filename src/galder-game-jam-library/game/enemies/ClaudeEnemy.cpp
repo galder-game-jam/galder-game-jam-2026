@@ -101,7 +101,8 @@ namespace ggj
 
     void ClaudeEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft)
     {
-        if (m_invulTimer > 0.f)
+        // Already dead (waiting for removal): don't count the boss kill a second time.
+        if (shouldBeDestroyed() || m_invulTimer > 0.f)
             return;
 
         --m_lives;

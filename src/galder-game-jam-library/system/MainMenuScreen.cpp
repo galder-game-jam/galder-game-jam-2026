@@ -53,6 +53,34 @@ namespace ggj
         IGameObject::destroy();
     }
 
+    raylib::Rectangle MainMenuScreen::itemRect(const int index) const
+    {
+        // Full panel width so the hit area doesn't shift with the "> " selection marker.
+        return raylib::Rectangle { 180.0f, MENU_START_Y + static_cast<float>(index) * MENU_SPACING,
+            440.0f, static_cast<float>(MENU_FONT_SIZE) };
+    }
+
+    void MainMenuScreen::activateSelected()
+    {
+        switch (m_selectedOption)
+        {
+            case MainMenuOption::SinglePlayer:
+                m_isSinglePlayerSelected = true;
+                break;
+            case MainMenuOption::Netplay:
+                m_isNetplaySelected = true;
+                break;
+            case MainMenuOption::Options:
+                m_isOptionsSelected = true;
+                break;
+            case MainMenuOption::ExitGame:
+                m_isExitGameSelected = true;
+                break;
+            default:
+                break;
+        }
+    }
+
     void MainMenuScreen::update(float timeDelta)
     {
         int option = static_cast<int>(m_selectedOption);
@@ -66,27 +94,27 @@ namespace ggj
         if (option != static_cast<int>(m_selectedOption))
             m_soundManager.playSound(SoundName::DialogMumble);
 
+        // Hovering only moves the cursor when the mouse actually moved, so it doesn't fight the keyboard.
+        const raylib::Vector2 mouse = getVirtualMousePosition(SCREEN_WIDTH, SCREEN_HEIGHT);
+        const bool hasMouseMoved = GetMouseDelta().x != 0.0f || GetMouseDelta().y != 0.0f;
+        int hoveredOption = -1;
+        for (int i = 0; i < MENU_ITEM_COUNT; ++i)
+        {
+            if (CheckCollisionPointRec(mouse, itemRect(i)))
+                hoveredOption = i;
+        }
+        if (hasMouseMoved && hoveredOption >= 0 && hoveredOption != option)
+        {
+            option = hoveredOption;
+            m_soundManager.playSound(SoundName::DialogMumble);
+        }
+
         m_selectedOption = static_cast<MainMenuOption>(option);
 
-        if (m_inputManager.keyPressed(KeyboardKey::Space) || m_inputManager.keyPressed(KeyboardKey::Enter))
+        if (m_inputManager.keyPressed(KeyboardKey::Space) || m_inputManager.keyPressed(KeyboardKey::Enter)
+            || (hoveredOption >= 0 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)))
         {
-            switch (m_selectedOption)
-            {
-                case MainMenuOption::SinglePlayer:
-                    m_isSinglePlayerSelected = true;
-                    break;
-                case MainMenuOption::Netplay:
-                    m_isNetplaySelected = true;
-                    break;
-                case MainMenuOption::Options:
-                    m_isOptionsSelected = true;
-                    break;
-                case MainMenuOption::ExitGame:
-                    m_isExitGameSelected = true;
-                    break;
-                default:
-                    break;
-            }
+            activateSelected();
         }
     }
 
@@ -98,9 +126,6 @@ namespace ggj
         m_backgroundTexture->Draw(raylib::Vector2{0.0f, 0.0f});
 
         DrawRectangle(180, 225, 440, 290, Color{0, 0, 0, 140});
-
-        const float MENU_START_Y = 250.0f;
-        const float MENU_SPACING = 70.0f;
 
         for (int i = 0; i < MENU_ITEM_COUNT; ++i)
         {

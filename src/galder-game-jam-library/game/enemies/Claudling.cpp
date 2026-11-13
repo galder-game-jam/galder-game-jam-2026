@@ -81,10 +81,14 @@ namespace ggj
         }
         else if (userDataB->getObjectType() == ObjectType::Projectile)
         {
-            m_soundManager.playSound(SoundName::EnemyDie);
-            destroy();
             Projectile* p = dynamic_cast<Projectile*>(b);
             p->explode();
+            // A kill must only be counted once: a second projectile can reach an enemy that is
+            // already marked for destruction before it is actually removed.
+            if (shouldBeDestroyed())
+                return;
+            m_soundManager.playSound(SoundName::EnemyDie);
+            destroy();
             p->getOwner()->getUserData()->enemiesKilled++;
         }
     }
