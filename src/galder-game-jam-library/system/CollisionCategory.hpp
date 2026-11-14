@@ -21,6 +21,22 @@ namespace ggj
         static constexpr uint16_t BOMB = 0x0004;    ///< King Claude's bombs: collide with terrain only.
 
         /*!
+         * Whether any fixture of @p body is tagged as terrain (a solid wall).
+         *
+         * @param body Body to inspect
+         * @return True for walls; false for triggers such as the enemy turn objects
+         */
+        [[nodiscard]] static bool IsTerrain(const b2Body& body)
+        {
+            for (const b2Fixture* fixture = body.GetFixtureList(); fixture != nullptr; fixture = fixture->GetNext())
+            {
+                if ((fixture->GetFilterData().categoryBits & TERRAIN) != 0)
+                    return true;
+            }
+            return false;
+        }
+
+        /*!
          * Tags every fixture of a solid static map body as terrain, on top of the default
          * category, so it still collides with everything it did before.
          *

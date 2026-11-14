@@ -3,6 +3,7 @@
 //
 
 #include "Projectile.h"
+#include "../../system/CollisionCategory.hpp"
 
 void ggj::Projectile::update(float timeDelta)
 {
@@ -55,6 +56,13 @@ void ggj::Projectile::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact
         Projectile* other = dynamic_cast<Projectile*>(b);
         if (other == nullptr || other->getOwner() != m_owner)
             destroy();
+        return;
+    }
+
+    // Walls stop the projectile. Enemy turn objects are non-solid triggers, so they are never terrain.
+    if (b->getBody() != nullptr && userDataB->getCommand() != "enemy_turn" && CollisionCategory::IsTerrain(*b->getBody()))
+    {
+        explode();
         return;
     }
     PhysicsSprite::beginContact(a, b, contact);
