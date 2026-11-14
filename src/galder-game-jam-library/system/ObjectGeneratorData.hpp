@@ -27,6 +27,7 @@ namespace ggj
         int   lives       { 1 };
         float followSpeed { 0.f };
         float knockback   { 0.f };
+        float idleTime    { 2.5f }; ///< King Claude: base seconds spent in each state before rolling the next.
 
         bool        isBoss   { false };
         std::string bossName {};
@@ -35,6 +36,7 @@ namespace ggj
         float bombMinTime { 3.f };
         float bombMaxTime { 5.f };
         float bombSpawnIdleStateTime { 3.f };
+        int bombSpawnCount { 5 };
 
         int layerIndex{};
         tson::Object obj{};

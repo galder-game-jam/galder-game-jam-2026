@@ -41,13 +41,18 @@ namespace ggj
             ClaudeEnemy() = default;
             ClaudeEnemy(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper, ggj::ISoundManager& soundManager, b2Body* body,
                         const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture,
-                        const UserData& userData, int lives, float followSpeed, float knockback, World* world, IPaletteSwapShader& paletteSwap, const ClaudeBombConfig& bombConfig,
-                        bool isVisible = true)
+                        const UserData& userData, int lives, float followSpeed, float knockback, float idleTime, World* world, IPaletteSwapShader& paletteSwap,
+                        const ClaudeBombConfig& bombConfig, bool isVisible = true)
                 : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager { animationManager }, m_mapper { mapper },
                   m_soundManager { soundManager }, m_paletteSwap { paletteSwap }, m_followSpeed { followSpeed }, m_knockback { knockback }, m_world { world },
                   m_bombConfig { bombConfig }, m_maxLives { lives }
             {
                 m_lives = lives;
+                if (idleTime > 0.f)
+                {
+                    m_stateInterval = idleTime;
+                    m_stateTimer    = idleTime;
+                }
                 m_body->SetFixedRotation(true);
                 m_idleAnimation   = m_animationManager.getAnimation(AnimationName::EnemyClaudeIdle);
                 m_walkAnimation   = m_animationManager.getAnimation(AnimationName::EnemyClaudeWalk);
@@ -125,14 +130,13 @@ namespace ggj
             bool m_isSittingDuck { false }; ///< Force Idle for testing; set to true to disable AI.
             ClaudeState m_bossState { ClaudeState::Idle };
             float m_stateTimer { 2.5f };
-            float m_stateInterval { 2.5f }; ///< Seconds between state rolls; shortened once enraged.
+            float m_stateInterval { 2.5f }; ///< Seconds between state rolls (map "idle_time"); shortened once enraged.
 
             // Enrage (half health) + bombs
             bool m_hasTransformed { false };
             float m_transformElapsed { 0.f }; ///< Seconds into ClaudeState::Transform; drives the recolour.
             float m_shakeTime { 0.f };        ///< Free-running clock for the shake offset.
             static constexpr float TRANSFORM_DURATION = 5.f;
-            static constexpr int32_t BOMBS_PER_PLAYER = 3;
             static constexpr float ENRAGED_INTERVAL_FACTOR = 0.75f; ///< Enraged state rolls come 25% sooner.
             static constexpr float SHAKE_AMPLITUDE = 3.f;           ///< Pixels.
 
