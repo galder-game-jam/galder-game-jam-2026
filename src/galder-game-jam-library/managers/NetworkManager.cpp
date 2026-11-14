@@ -3,6 +3,7 @@
 //
 
 #include "NetworkManager.h"
+#include "../system/ChatText.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -150,6 +151,7 @@ namespace ggj
         m_hasSentJoinRequest = false;
         m_currentStage = NO_STAGE;
         m_requestedStage.reset();
+        m_chatMessages.clear();
         clearWorldState();
     }
 
@@ -372,6 +374,24 @@ namespace ggj
             }
         }
 
+        // Relay chat. Who sent it comes from the connection, and the name / colour from our own
+        // record of that player, so a client can't speak as somebody else.
+        for (auto& [connection, chat] : m_server->takeInboundChat())
+        {
+            const auto it = m_connectionToPlayerId.find(connection);
+            if (it == m_connectionToPlayerId.end())
+                continue;
+
+            chat.playerId = it->second;
+            if (const auto player = m_remotePlayers.find(it->second); player != m_remotePlayers.end())
+            {
+                copyName(chat.name, player->second.name);
+                chat.nameColor = player->second.nameColor;
+            }
+            queueChatMessage(chat);
+            m_server->broadcastChat(chat);
+        }
+
         // Handle drops: remove the player and tell everyone.
         for (HSteamNetConnection connection : m_server->takeDisconnected())
         {
@@ -525,6 +545,13 @@ namespace ggj
                 default:
                     break;
             }
+        }
+
+        // The host relays to everyone, including the sender; ours is already queued.
+        for (const ChatMessage& chat : m_client->takeInboundChat())
+        {
+            if (chat.playerId != m_localPlayerId)
+                queueChatMessage(chat);
         }
 
         interpolateRemotePlayers(timeDelta);
@@ -782,6 +809,49 @@ namespace ggj
         std::vector<ProjectileEvent> events;
         events.swap(m_projectileEvents);
         return events;
+    }
+
+    void NetworkManager::sendChatMessage(const std::string& text)
+    {
+        ChatMessage chat {};
+        chat.type = NetMessageType::Chat;
+        chat.playerId = m_localPlayerId;
+        copyName(chat.name, m_localName);
+        chat.nameColor = m_localNameColor;
+        ChatText::CopyUtf8Truncated(chat.text, sizeof(chat.text), text);
+        if (chat.text[0] == '\0')
+            return;
+
+        if (m_role == NetworkRole::Server && m_server)
+        {
+            m_server->broadcastChat(chat);
+            queueChatMessage(chat);
+        }
+        // A client only has a player id (and so can be relayed) once the host accepted the join.
+        else if (m_role == NetworkRole::Client && m_client && m_client->status() == ConnectionStatus::Connected && m_localPlayerId != HOST_PLAYER_ID)
+        {
+            m_client->sendChatToServer(chat);
+            queueChatMessage(chat);
+        }
+    }
+
+    std::vector<ChatEntry> NetworkManager::takeChatMessages()
+    {
+        std::vector<ChatEntry> messages;
+        messages.swap(m_chatMessages);
+        return messages;
+    }
+
+    void NetworkManager::queueChatMessage(const ChatMessage& message)
+    {
+        if (m_chatMessages.size() >= MAX_QUEUED_CHAT_MESSAGES)
+            m_chatMessages.erase(m_chatMessages.begin());
+
+        ChatEntry entry {};
+        entry.name = std::string(message.name, strnlen(message.name, sizeof(message.name)));
+        entry.nameColor = message.nameColor;
+        entry.text = std::string(message.text, strnlen(message.text, sizeof(message.text)));
+        m_chatMessages.push_back(entry);
     }
 
     void NetworkManager::sendProjectileEvent(NetMessageType type, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity)

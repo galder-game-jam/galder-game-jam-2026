@@ -16,7 +16,8 @@ auto buildInjector(ggj::ILogger& logger, raylib::Window& window)
     auto injector = boost::di::make_injector(
         boost::di::bind<ggj::IGameManager>().to<ggj::GameManager>(), boost::di::bind<ggj::IWorldManager>().to<ggj::WorldManager>(),
         boost::di::bind<ggj::ITextureManager<ggj::TextureName, raylib::Texture>>().to<ggj::TextureManager>(), boost::di::bind<ggj::IMapper>().to<ggj::Mapper>(),
-        boost::di::bind<ggj::IInputManager<ggj::KeyboardKey>>().to<ggj::InputManager>(),
+        // Singleton: the keyboard capture flag (chat) must be shared by every consumer.
+        boost::di::bind<ggj::IInputManager<ggj::KeyboardKey>>().to<ggj::InputManager>().in(boost::di::singleton),
         boost::di::bind<ggj::IResourceManager<ggj::ResourceName>>().to<ggj::ResourceManager<ggj::ResourceName>>(),
         boost::di::bind<ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>>().to<ggj::AnimationManager>(),
         boost::di::bind<ggj::IUserDataManager<ggj::PhysicsObject*>>().to<ggj::UserDataManager>(),

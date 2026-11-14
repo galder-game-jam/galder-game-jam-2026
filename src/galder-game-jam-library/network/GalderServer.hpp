@@ -6,15 +6,21 @@
 #define GALDER_GAME_JAM_2024_PROJECT_GALDERSERVER_HPP
 
 #include "../../gamedev-base/GameDevBase.h"
+#include "../data/ChatMessage.hpp"
 #include "../data/ClientMessage.hpp"
 #include "../data/ServerMessage.hpp"
 
+#include <cstring>
 #include <queue>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace ggj
 {
+    static_assert(std::is_trivially_copyable_v<ChatMessage>, "ChatMessage is sent as raw bytes");
+    static_assert(sizeof(ChatMessage) != sizeof(ClientMessage) && sizeof(ChatMessage) != sizeof(ServerMessage), "Receivers tell ChatMessage apart from the envelopes by its size");
+
     /*!
      * Game-side authoritative server transport. Thin wrapper over the non-blocking Server
      * template: it accepts connections, drains inbound ClientMessages into a queue, and records
@@ -37,6 +43,32 @@ namespace ggj
             {
                 result.push_back(m_inbound.front());
                 m_inbound.pop();
+            }
+            return result;
+        }
+
+        /*! Sends a chat line to a single client connection. */
+        void sendChatTo(HSteamNetConnection connection, const ChatMessage& message)
+        {
+            if (m_netInterface != nullptr)
+                m_netInterface->SendMessageToConnection(connection, &message, sizeof(message), k_nSteamNetworkingSend_Reliable, nullptr);
+        }
+
+        /*! Sends a chat line to every client. */
+        void broadcastChat(const ChatMessage& message)
+        {
+            for (const auto& [connection, client] : m_mapClients)
+                sendChatTo(connection, message);
+        }
+
+        /*! Drains and returns all chat lines received since the last call, with their sender. */
+        std::vector<std::pair<HSteamNetConnection, ChatMessage>> takeInboundChat()
+        {
+            std::vector<std::pair<HSteamNetConnection, ChatMessage>> result;
+            while (!m_inboundChat.empty())
+            {
+                result.push_back(m_inboundChat.front());
+                m_inboundChat.pop();
             }
             return result;
         }
@@ -156,6 +188,18 @@ namespace ggj
                     ClientMessage data = *static_cast<ClientMessage*>(incomingMsg->m_pData);
                     m_inbound.emplace(incomingMsg->m_conn, data);
                 }
+                else if (incomingMsg->m_cbSize == sizeof(ChatMessage))
+                {
+                    ChatMessage chat {};
+                    std::memcpy(&chat, incomingMsg->m_pData, sizeof(chat));
+                    if (chat.type == NetMessageType::Chat)
+                    {
+                        // Never trust a peer to have terminated its strings.
+                        chat.name[sizeof(chat.name) - 1] = '\0';
+                        chat.text[sizeof(chat.text) - 1] = '\0';
+                        m_inboundChat.emplace(incomingMsg->m_conn, chat);
+                    }
+                }
 
                 incomingMsg->Release();
             }
@@ -163,6 +207,7 @@ namespace ggj
 
         private:
         std::queue<std::pair<HSteamNetConnection, ClientMessage>> m_inbound;
+        std::queue<std::pair<HSteamNetConnection, ChatMessage>> m_inboundChat;
         std::queue<HSteamNetConnection> m_disconnected;
     };
 
