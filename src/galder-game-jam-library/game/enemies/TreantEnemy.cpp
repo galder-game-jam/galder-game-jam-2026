@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numbers>
+#include <vector>
 
 namespace ggj
 {
@@ -135,20 +136,65 @@ namespace ggj
 
     void TreantEnemy::throwRoots()
     {
-        if (m_world == nullptr || m_player == nullptr)
+        // Clients get the host's roots over the network instead of rolling their own.
+        if (m_world == nullptr || !m_world->isEnemyAuthority())
             return;
 
-        const raylib::Vector2 target = m_player->getVisualCenter();
-        const int32_t count = isEnraged() ? ENRAGED_ROOT_COUNT : ROOT_COUNT;
+        const int32_t countPerPlayer = isEnraged() ? m_rootConfig.enragedRootCount : m_rootConfig.normalRootCount;
+        constexpr float TWO_PI = 2.f * std::numbers::pi_v<float>;
+        std::vector<raylib::Vector2> landings;
 
-        for (int32_t i = 0; i < count; ++i)
+        // Every player is targeted at once; each gets the full count of roots.
+        for (const raylib::Vector2& target : m_world->getPlayerCenters())
         {
-            // The first root lands (almost) on the player; the rest fan out so dodging one is not enough.
-            const float angle = randomRange(0.f, 2.f * std::numbers::pi_v<float>);
-            const float distance = (i == 0) ? randomRange(0.f, ROOT_AIMED_SCATTER) : randomRange(ROOT_MIN_SCATTER, ROOT_MAX_SCATTER);
-            const raylib::Vector2 landing { target.x + std::cos(angle) * distance, target.y + std::sin(angle) * distance };
-            m_world->spawnTreantRoot(getPosition(), landing, ROOT_FLIGHT_DURATION, randomRange(ROOT_MIN_SPIKE_DELAY, ROOT_MAX_SPIKE_DELAY));
+            // Roots are spread evenly around the player, starting at a random angle, so they fan out
+            // instead of clumping on one side.
+            const float firstAngle = randomRange(0.f, TWO_PI);
+            const float angleStep = TWO_PI / static_cast<float>(std::max(countPerPlayer, 1));
+
+            for (int32_t i = 0; i < countPerPlayer; ++i)
+            {
+                for (int32_t attempt = 0; attempt < ROOT_PLACEMENT_ATTEMPTS; ++attempt)
+                {
+                    // The first root lands (almost) on the player; the rest ring them at varying distances.
+                    const float angle = firstAngle + angleStep * (static_cast<float>(i) + randomRange(-0.4f, 0.4f));
+                    const float distance = (i == 0) ? randomRange(0.f, ROOT_AIMED_SCATTER) : randomRange(ROOT_MIN_SCATTER, ROOT_MAX_SCATTER);
+                    const raylib::Vector2 landing { target.x + std::cos(angle) * distance, target.y + std::sin(angle) * distance };
+
+                    if (m_world->isSolidAt(landing) || isTooCloseToAnyRoot(landings, landing))
+                        continue;
+
+                    landings.push_back(landing);
+                    m_world->spawnTreantRoot(getPosition(), landing, ROOT_FLIGHT_DURATION, randomRange(ROOT_MIN_SPIKE_DELAY, ROOT_MAX_SPIKE_DELAY));
+                    break;
+                }
+            }
         }
+    }
+
+    bool TreantEnemy::isTooCloseToAnyRoot(const std::vector<raylib::Vector2>& landings, const raylib::Vector2& landing)
+    {
+        return std::any_of(landings.begin(), landings.end(),
+                           [&landing](const raylib::Vector2& other)
+                           {
+                               const float dx = other.x - landing.x;
+                               const float dy = other.y - landing.y;
+                               return dx * dx + dy * dy < ROOT_MIN_SPACING * ROOT_MIN_SPACING;
+                           });
+    }
+
+    void TreantEnemy::die()
+    {
+        if (m_world != nullptr)
+            m_world->spawnTreantRootsAcrossMap(getPosition(), m_rootConfig.deathRootCount, DEATH_ROOT_MIN_FLIGHT, DEATH_ROOT_MAX_FLIGHT, ROOT_MIN_SPIKE_DELAY,
+                                               ROOT_MAX_SPIKE_DELAY);
+
+        m_soundManager.playSound(SoundName::EnemyDie);
+        destroy();
+        if (m_killer != nullptr)
+            m_killer->getUserData()->enemiesKilled++;
+        if (m_world != nullptr)
+            m_world->clearBoss();
     }
 
     void TreantEnemy::setState(TreantState newState)
@@ -182,6 +228,12 @@ namespace ggj
             case TreantState::Recover:
                 m_stateTimer = RECOVER_DURATION;
                 m_tint = WHITE;
+                break;
+            case TreantState::Dying:
+                m_stateTimer = DYING_DURATION;
+                m_tint = WHITE;
+                m_invulTimer = 0.f;
+                m_isVisible = true;
                 break;
             case TreantState::RootThrow:
                 m_stateTimer = isEnraged() ? ENRAGED_ROOT_WINDUP_DURATION : ROOT_WINDUP_DURATION;
@@ -260,6 +312,17 @@ namespace ggj
             case TreantState::Recover:
                 if (m_stateTimer <= 0.f)
                     setState(TreantState::Idle);
+                break;
+
+            case TreantState::Dying:
+                // Flash between sickly green and white, faster as the end nears.
+                m_tint = (static_cast<int32_t>(m_animTime * (6.f + 10.f * (1.f - std::max(0.f, m_stateTimer) / m_stateDuration))) % 2 == 0) ? raylib::Color { 140, 255, 140, 255 }
+                                                                                                                                            : WHITE;
+                if (m_stateTimer <= 0.f)
+                {
+                    die();
+                    return;
+                }
                 break;
 
             case TreantState::RootThrow:
@@ -342,6 +405,16 @@ namespace ggj
                 break;
             }
 
+            case TreantState::Dying:
+            {
+                // Convulse and swell like it is about to burst, shaking harder the closer the end gets.
+                const float progress = m_stateDuration > 0.f ? 1.f - std::max(0.f, m_stateTimer) / m_stateDuration : 1.f;
+                pose.scaleY = 1.f + 0.25f * progress;
+                pose.scaleX = 1.f - 0.08f * progress;
+                pose.rotation = (3.f + 12.f * progress) * std::sin(m_animTime * 70.f);
+                break;
+            }
+
             case TreantState::RootThrow:
             {
                 // Hunch down to gather the roots, then rear up tall right before the throw.
@@ -381,20 +454,17 @@ namespace ggj
     void TreantEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage)
     {
         // Already dead (waiting for removal): don't count the boss kill a second time.
-        if (shouldBeDestroyed() || m_invulTimer > 0.f)
+        if (shouldBeDestroyed() || m_state == TreantState::Dying || m_invulTimer > 0.f)
             return;
 
         m_lives -= damage;
 
         if (m_lives <= 0)
         {
-            if (soundManager != nullptr)
-                soundManager->playSound(SoundName::EnemyDie);
-            destroy();
-            if (attacker != nullptr)
-                attacker->getUserData()->enemiesKilled++;
-            if (m_world != nullptr)
-                m_world->clearBoss();
+            // Hold the death for a few seconds of convulsing; die() credits whoever landed this blow.
+            m_lives = 0;
+            m_killer = attacker;
+            setState(TreantState::Dying);
         }
         else
         {

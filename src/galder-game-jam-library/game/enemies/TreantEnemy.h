@@ -4,12 +4,14 @@
 #define GGJ_TREANTENEMY_H
 
 #include "../../graphics/PhysicsSprite.h"
+#include <vector>
 #include "../../managers/AnimationManager.h"
 #include "../../interfaces/system/IMapper.h"
 #include "../../interfaces/game/IPlayer.h"
 #include "../../../gamedev-base/interfaces/managers/ISoundManager.h"
 #include "../../enums/SoundName.h"
 #include "../../interfaces/graphics/ITintShader.h"
+#include "../../data/TreantRootConfig.hpp"
 
 namespace ggj
 {
@@ -22,12 +24,13 @@ namespace ggj
      */
     enum class TreantState
     {
-        Idle,     ///< Standing still between cycles.
-        Walk,     ///< Slowly lumbering towards the player.
-        Windup,   ///< Rooted and glowing red; the charge direction is locked when this ends.
-        Charge,   ///< Fast, straight-line dash in the locked direction.
-        Recover,  ///< Stunned after a charge, the best time to strike.
-        RootThrow ///< Rooted and glowing green; throws roots at the player when this ends.
+        Idle,      ///< Standing still between cycles.
+        Walk,      ///< Slowly lumbering towards the player.
+        Windup,    ///< Rooted and glowing red; the charge direction is locked when this ends.
+        Charge,    ///< Fast, straight-line dash in the locked direction.
+        Recover,   ///< Stunned after a charge, the best time to strike.
+        RootThrow, ///< Rooted and glowing green; throws roots at the player when this ends.
+        Dying      ///< Death throes: invulnerable and convulsing; ends by throwing roots across the whole map.
     };
 
     /*!
@@ -40,10 +43,11 @@ namespace ggj
         TreantEnemy() = default;
         TreantEnemy(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper, ggj::ISoundManager& soundManager, b2Body* body,
                     const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
-                    int lives, float followSpeed, float knockback, IPlayer* player, World* world, ITintShader& tintShader, bool isVisible = true)
+                    int lives, float followSpeed, float knockback, IPlayer* player, World* world, ITintShader& tintShader, const TreantRootConfig& rootConfig,
+                    bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager { animationManager }, m_mapper { mapper },
               m_soundManager { soundManager }, m_followSpeed { followSpeed }, m_knockback { knockback }, m_maxLives { lives }, m_player { player }, m_world { world },
-              m_tintShader { tintShader }
+              m_tintShader { tintShader }, m_rootConfig { rootConfig }
         {
             m_lives = lives;
             m_body->SetFixedRotation(true);
@@ -67,8 +71,14 @@ namespace ggj
          */
         [[nodiscard]] TreantState chooseNextAttack() const;
 
-        /*! Throws roots that land around the player's current position. */
+        /*! Throws roots that land around every player, spread out and never inside walls or on top of each other. */
         void throwRoots();
+
+        /*! Whether a landing spot is too close to one already chosen, which would make two roots overlap. */
+        [[nodiscard]] static bool isTooCloseToAnyRoot(const std::vector<raylib::Vector2>& landings, const raylib::Vector2& landing);
+
+        /*! Finishes the death throes: throws roots across the whole map, credits the kill and removes the treant. */
+        void die();
         void faceTowards(const raylib::Vector2& direction);
 
         /*!
@@ -132,6 +142,8 @@ namespace ggj
         IPlayer* m_player { nullptr };
         World* m_world { nullptr };
         ITintShader& m_tintShader;
+        TreantRootConfig m_rootConfig;
+        PhysicsObject* m_killer { nullptr }; ///< Whoever landed the killing blow; credited once the death throes end.
 
         TreantState m_state { TreantState::Idle };
         float m_stateTimer { IDLE_DURATION };
@@ -162,13 +174,16 @@ namespace ggj
 
         static constexpr float ROOT_WINDUP_DURATION = 0.8f;
         static constexpr float ENRAGED_ROOT_WINDUP_DURATION = 0.55f;
-        static constexpr int32_t ROOT_COUNT = 3;
-        static constexpr int32_t ENRAGED_ROOT_COUNT = 5;
+        static constexpr float DYING_DURATION = 2.f;
+        static constexpr float DEATH_ROOT_MIN_FLIGHT = 0.6f; ///< Death roots fly for different times so they rain down in a spread.
+        static constexpr float DEATH_ROOT_MAX_FLIGHT = 1.4f;
         static constexpr float ROOT_FLIGHT_DURATION = 0.5f;
         static constexpr float ROOT_MIN_SPIKE_DELAY = 1.f; ///< Seconds between a root landing and spiking.
         static constexpr float ROOT_MAX_SPIKE_DELAY = 2.f;
-        static constexpr float ROOT_MIN_SCATTER = 35.f; ///< Pixels from the player the extra roots land at.
-        static constexpr float ROOT_MAX_SCATTER = 110.f;
+        static constexpr float ROOT_MIN_SCATTER = 70.f; ///< Pixels from a player the extra roots land at.
+        static constexpr float ROOT_MAX_SCATTER = 220.f;
+        static constexpr float ROOT_MIN_SPACING = 64.f; ///< Pixels between roots; a bit more than a root's diameter.
+        static constexpr int32_t ROOT_PLACEMENT_ATTEMPTS = 12;
         static constexpr float ROOT_AIMED_SCATTER = 20.f;    ///< The first root lands almost on the player.
         static constexpr float OBSTACLE_LOOKAHEAD = 2.5f;    ///< Metres past the treant's edge to scan for obstacles.
         static constexpr float OBSTACLE_FLANK_FACTOR = 0.9f; ///< Flank rays sit this fraction of the radius off-centre.

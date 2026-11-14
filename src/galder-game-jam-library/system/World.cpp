@@ -163,6 +163,12 @@ namespace ggj
                                 generatorData.bombSpawnIdleStateTime = value.getValue<float>();
                             else if (key == "bomb_spawn_count")
                                 generatorData.bombSpawnCount = value.getValue<int>();
+                            else if (key == "root_count")
+                                generatorData.rootCount = value.getValue<int>();
+                            else if (key == "enraged_root_count")
+                                generatorData.enragedRootCount = value.getValue<int>();
+                            else if (key == "death_root_count")
+                                generatorData.deathRootCount = value.getValue<int>();
                         }
 
                         ObjectType objectType = (ObjectType)userdataObjectType;
@@ -815,6 +821,8 @@ namespace ggj
             spawnHostClaudlings();
             for (const BombSpawnEvent& bomb : m_network->takeBombSpawns())
                 doSpawnBomb(bomb);
+            for (const RootSpawnEvent& root : m_network->takeRootSpawns())
+                doSpawnTreantRoot(root);
             for (const auto& [id, state] : m_network->enemyStates())
             {
                 auto found = m_networkObjects.find(id);
@@ -1392,17 +1400,125 @@ namespace ggj
         }
         m_pendingBombSpawns.clear();
 
-        for (const PendingRootSpawn& root : m_pendingRootSpawns)
+        for (const RootSpawnEvent& root : m_pendingRootSpawns)
+        {
             doSpawnTreantRoot(root);
+            if (isHosting)
+                m_network->publishRootSpawned(root);
+        }
         m_pendingRootSpawns.clear();
     }
 
     void World::spawnTreantRoot(const raylib::Vector2& origin, const raylib::Vector2& target, float flightTime, float spikeDelay)
     {
-        m_pendingRootSpawns.push_back(PendingRootSpawn { origin, target, flightTime, spikeDelay });
+        // Clients get the host's roots over the network so every peer sees the same ones.
+        if (!isEnemyAuthority())
+            return;
+
+        m_pendingRootSpawns.push_back(RootSpawnEvent { origin, target, flightTime, spikeDelay });
     }
 
-    void World::doSpawnTreantRoot(const PendingRootSpawn& root)
+    namespace
+    {
+        /*! Reports whether a point lies inside a solid (non-sensor, static) fixture such as a wall or tree. */
+        class SolidPointCallback : public b2QueryCallback
+        {
+            public:
+            explicit SolidPointCallback(const b2Vec2& point) : m_point { point } {}
+
+            bool ReportFixture(b2Fixture* fixture) override
+            {
+                if (!fixture->IsSensor() && fixture->GetBody()->GetType() == b2_staticBody && fixture->TestPoint(m_point))
+                {
+                    m_isSolid = true;
+                    return false; // One hit is enough.
+                }
+                return true;
+            }
+
+            [[nodiscard]] bool isSolid() const { return m_isSolid; }
+
+            private:
+            b2Vec2 m_point;
+            bool m_isSolid { false };
+        };
+    } // namespace
+
+    bool World::isSolidAt(const raylib::Vector2& point) const
+    {
+        const b2Vec2 position = PhysicsObject::ConvertToB2Vec2(point);
+        constexpr float HALF_EXTENT = 0.01f; ///< Metres; just enough for the AABB query to find fixtures at the point.
+        SolidPointCallback callback { position };
+        m_world.QueryAABB(&callback, b2AABB { position - b2Vec2 { HALF_EXTENT, HALF_EXTENT }, position + b2Vec2 { HALF_EXTENT, HALF_EXTENT } });
+        return callback.isSolid();
+    }
+
+    std::vector<raylib::Vector2> World::getPlayerCenters() const
+    {
+        std::vector<raylib::Vector2> centers;
+        if (m_player != nullptr)
+            centers.push_back(m_player->getVisualCenter());
+
+        if (m_network != nullptr && m_network->isActive())
+        {
+            for (const auto& [playerId, remote] : m_network->remotePlayers())
+            {
+                // Same formula as Player::getVisualCenter(), so remote players are aimed at like the local one.
+                centers.push_back({ remote.position.x, remote.position.y - m_playerSpriteOrigin.y + m_playerSpriteHeight / 2.f });
+            }
+        }
+        return centers;
+    }
+
+    void World::spawnTreantRootsAcrossMap(const raylib::Vector2& origin, int32_t count, float minFlightTime, float maxFlightTime, float minSpikeDelay, float maxSpikeDelay)
+    {
+        if (count <= 0 || m_map == nullptr)
+            return;
+
+        const auto randomBetween = [](float min, float max)
+        {
+            constexpr int32_t STEPS = 10000;
+            return min + (max - min) * static_cast<float>(GetRandomValue(0, STEPS)) / static_cast<float>(STEPS);
+        };
+
+        const float mapWidth = static_cast<float>(m_map->getSize().x * m_map->getTileSize().x);
+        const float mapHeight = static_cast<float>(m_map->getSize().y * m_map->getTileSize().y);
+        if (mapWidth <= 0.f || mapHeight <= 0.f)
+            return;
+
+        // Split the map into a grid with at least one cell per root and drop one root in each, in random
+        // order. Pure random placement clumps; this covers the whole map.
+        const int32_t columns = std::max(1, static_cast<int32_t>(std::ceil(std::sqrt(static_cast<float>(count) * mapWidth / mapHeight))));
+        const int32_t rows = std::max(1, (count + columns - 1) / columns);
+        const float cellWidth = mapWidth / static_cast<float>(columns);
+        const float cellHeight = mapHeight / static_cast<float>(rows);
+
+        std::vector<int32_t> cells(static_cast<size_t>(columns * rows));
+        for (int32_t i = 0; i < columns * rows; ++i)
+            cells[static_cast<size_t>(i)] = i;
+        for (int32_t i = static_cast<int32_t>(cells.size()) - 1; i > 0; --i)
+            std::swap(cells[static_cast<size_t>(i)], cells[static_cast<size_t>(GetRandomValue(0, i))]);
+
+        constexpr int32_t ATTEMPTS_PER_CELL = 8;
+        for (int32_t i = 0; i < count; ++i)
+        {
+            const int32_t cell = cells[static_cast<size_t>(i)];
+            const float cellX = static_cast<float>(cell % columns) * cellWidth;
+            const float cellY = static_cast<float>(cell / columns) * cellHeight;
+
+            for (int32_t attempt = 0; attempt < ATTEMPTS_PER_CELL; ++attempt)
+            {
+                const raylib::Vector2 target { cellX + randomBetween(0.f, cellWidth), cellY + randomBetween(0.f, cellHeight) };
+                if (isSolidAt(target))
+                    continue;
+
+                spawnTreantRoot(origin, target, randomBetween(minFlightTime, maxFlightTime), randomBetween(minSpikeDelay, maxSpikeDelay));
+                break;
+            }
+        }
+    }
+
+    void World::doSpawnTreantRoot(const RootSpawnEvent& root)
     {
         b2BodyDef bodyDef;
         bodyDef.type = b2_dynamicBody;
@@ -1564,7 +1680,8 @@ namespace ggj
                     m_animationManager, m_mapper, m_soundManager, body,
                     raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
                     spriteSize, r, tex, generatorData.userData, generatorData.lives,
-                    generatorData.followSpeed, generatorData.knockback, m_player, this, m_tintShader);
+                    generatorData.followSpeed, generatorData.knockback, m_player, this, m_tintShader,
+                    TreantRootConfig { generatorData.rootCount, generatorData.enragedRootCount, generatorData.deathRootCount });
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {

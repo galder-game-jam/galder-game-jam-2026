@@ -94,6 +94,19 @@ namespace ggj
         [[nodiscard]] bool isEnemyAuthority() const;
 
         /*!
+         * Where every player is, as the point attacks should aim at (the centre of their sprite).
+         * Includes remote netplay peers.
+         */
+        [[nodiscard]] std::vector<raylib::Vector2> getPlayerCenters() const;
+
+        /*!
+         * Whether a point lies inside something solid and immovable such as a wall or a tree.
+         *
+         * @param point Position in pixels
+         */
+        [[nodiscard]] bool isSolidAt(const raylib::Vector2& point) const;
+
+        /*!
          * Client: sends a hit on a host-authoritative enemy (a boss) to the host, which applies it.
          *
          * @param enemy The networked enemy that was hit
@@ -215,8 +228,8 @@ namespace ggj
         void damageLocalPlayerWithin(const raylib::Vector2& center, float radius);
 
         /*!
-         * Queues a root thrown by the treant. It is created after this frame's update pass. Not
-         * networked: every peer's treant throws its own roots, which only hurt the local player.
+         * Queues a root thrown by the treant. It is created after this frame's update pass. Host/offline
+         * only: the host tells the clients, which each create their copy and only hurt their own player.
          *
          * @param origin Where the root is thrown from (pixels)
          * @param target Where it lands (pixels)
@@ -224,6 +237,20 @@ namespace ggj
          * @param spikeDelay Seconds between landing and spiking
          */
         void spawnTreantRoot(const raylib::Vector2& origin, const raylib::Vector2& target, float flightTime, float spikeDelay);
+
+        /*!
+         * Queues @p count roots thrown from @p origin that land spread evenly across the whole map,
+         * never inside walls or trees. Each root gets its own random flight and spike delay, so they
+         * rain down and spike in waves.
+         *
+         * @param origin Where the roots are thrown from (pixels)
+         * @param count Number of roots; fewer if the map has no free spot for some of them
+         * @param minFlightTime Shortest flight (seconds)
+         * @param maxFlightTime Longest flight (seconds)
+         * @param minSpikeDelay Shortest wait between landing and spiking (seconds)
+         * @param maxSpikeDelay Longest wait between landing and spiking (seconds)
+         */
+        void spawnTreantRootsAcrossMap(const raylib::Vector2& origin, int32_t count, float minFlightTime, float maxFlightTime, float minSpikeDelay, float maxSpikeDelay);
 
         void clearBoss() { m_boss = nullptr; }
 
@@ -295,15 +322,8 @@ namespace ggj
         /*! Creates a bomb (not a networked object and not counted as an enemy). */
         void doSpawnBomb(const BombSpawnEvent& bomb);
 
-        struct PendingRootSpawn
-        {
-            raylib::Vector2 origin;
-            raylib::Vector2 target;
-            float flightTime;
-            float spikeDelay;
-        };
         /*! Creates a treant root (not a networked object and not counted as an enemy). */
-        void doSpawnTreantRoot(const PendingRootSpawn& root);
+        void doSpawnTreantRoot(const RootSpawnEvent& root);
         void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
@@ -384,7 +404,7 @@ namespace ggj
 
         std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;
         std::vector<BombSpawnEvent> m_pendingBombSpawns;
-        std::vector<PendingRootSpawn> m_pendingRootSpawns;
+        std::vector<RootSpawnEvent> m_pendingRootSpawns;
 
         PhysicsObject* m_boss        { nullptr };
         std::string    m_bossName    {};

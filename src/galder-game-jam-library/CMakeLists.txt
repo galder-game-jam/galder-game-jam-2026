@@ -32,6 +32,7 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         data/ClaudlingSpawnEvent.hpp
         data/EnemyDamageEvent.hpp
         data/BombSpawnEvent.hpp
+        data/RootSpawnEvent.hpp
         data/ClaudeBombConfig.hpp
         interfaces/game/IPlayerLocator.h
         enums/NetMessageType.h

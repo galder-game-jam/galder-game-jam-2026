@@ -263,6 +263,16 @@
                          "value":"Elder Treant"
                         }, 
                         {
+                         "name":"death_root_count",
+                         "type":"int",
+                         "value":100
+                        }, 
+                        {
+                         "name":"enraged_root_count",
+                         "type":"int",
+                         "value":15
+                        }, 
+                        {
                          "name":"follow_speed",
                          "type":"float",
                          "value":5
@@ -290,7 +300,12 @@
                         {
                          "name":"lives",
                          "type":"int",
-                         "value":8
+                         "value":40
+                        }, 
+                        {
+                         "name":"root_count",
+                         "type":"int",
+                         "value":10
                         }, 
                         {
                          "name":"sprite",
