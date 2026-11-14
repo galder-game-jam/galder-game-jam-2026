@@ -63,6 +63,8 @@ namespace ggj
         [[nodiscard]] int getEnemiesKilled() const override;
         [[nodiscard]] float getEnergy() const override { return m_energy; }
         [[nodiscard]] float getMaxEnergy() const override { return MAX_ENERGY; }
+        [[nodiscard]] float getMana() const override { return 0.f; }    ///< The Rogue uses energy, not mana
+        [[nodiscard]] float getMaxMana() const override { return 0.f; }
         void restoreState(const PlayerPersistentState& state) override;
         Hitbox* getHitbox() override;
         [[nodiscard]] bool isInDialog() const override;
