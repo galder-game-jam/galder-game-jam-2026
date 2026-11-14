@@ -357,8 +357,9 @@ namespace ggj
             const bool isPlayerInDialog = m_worlds.count(m_currentStageIndex) > 0 && m_worlds[m_currentStageIndex]->getPlayer() != nullptr
                 && m_worlds[m_currentStageIndex]->getPlayer()->isInDialog();
 
-            // Before anything else reads the keyboard: while open, the chat captures it.
-            if (m_isNetplay)
+            // Before anything else reads the keyboard: while open, the chat captures it. It also drains the typed
+            // characters every frame, so it must sit out while the kick reason box (ImGui) needs them.
+            if (m_isNetplay && !m_isKickReasonCapturingKeyboard)
                 m_chatBox.handleInput();
 
             if (m_input.keyPressed(KeyboardKey::Escape) && !isPlayerInDialog)
@@ -489,6 +490,13 @@ namespace ggj
         m_network.poll(timeDelta);
         m_chatBox.update(timeDelta);
 
+        if (m_network.wasKicked())
+        {
+            const std::string& reason = m_network.kickReason();
+            showConnectionLostPopup(reason.empty() ? "The host removed you from the server." : "The host removed you from the server.\n\nReason: " + reason, "Kicked");
+            return;
+        }
+
         if (m_network.hasLostConnection())
         {
             showConnectionLostPopup(m_network.hasEverConnected() ? "Disconnected from server." : "Could not connect to server.");
@@ -576,7 +584,7 @@ namespace ggj
 #endif
     }
 
-    void WorldManager::showConnectionLostPopup(const std::string& message)
+    void WorldManager::showConnectionLostPopup(const std::string& message, const std::string& title)
     {
         m_logger.information(message);
         m_network.shutdown();
@@ -585,7 +593,7 @@ namespace ggj
         m_talentScreenActive = false;
         m_optionsScreenActive = false;
         m_optionsReturnToInGame = false;
-        m_connectionLostPopup.open("Connection lost", message);
+        m_connectionLostPopup.open(title, message);
     }
 
     void WorldManager::draw()
@@ -639,8 +647,22 @@ namespace ggj
         }
     }
 
+    void WorldManager::setKickReasonKeyboardCapture(bool isCaptured)
+    {
+        if (m_isKickReasonCapturingKeyboard == isCaptured)
+            return;
+        m_isKickReasonCapturingKeyboard = isCaptured;
+        if (isCaptured)
+            m_chatBox.close(); // An open chat already holds the keyboard; close it so releasing it later can't leave the chat open and uncaptured.
+        m_input.setKeyboardCaptured(isCaptured);
+    }
+
     void WorldManager::drawImGui()
     {
+        // The kick reason box is only drawn in the host window below; if another screen took over, give the keyboard back.
+        if (m_optionsScreenActive || m_netplayScreenActive || m_connectionLostPopup.isOpen() || m_characterSelectScreenActive || !m_isNetplay || m_network.role() != NetworkRole::Server)
+            setKickReasonKeyboardCapture(false);
+
         if (m_optionsScreenActive)
         {
             m_optionsScreen.drawImGui();
@@ -668,11 +690,14 @@ namespace ggj
         // Host gets an in-game window listing connected players and their stats.
         if (m_isNetplay && m_network.role() == NetworkRole::Server)
         {
-            ServerInfoMenu serverInfo;
-            serverInfo.draw(m_network.connectedPlayers(),
-                            m_network.serverName(),
-                            m_network.localIpAddress(),
-                            m_network.publicIpAddress());
+            const std::optional<KickRequest> kick = m_serverInfoMenu.draw(m_network.connectedPlayers(),
+                                                                          m_network.serverName(),
+                                                                          m_network.localIpAddress(),
+                                                                          m_network.publicIpAddress());
+            // Typing the reason must not walk the host around or open menus.
+            setKickReasonKeyboardCapture(m_serverInfoMenu.isKickPopupOpen());
+            if (kick.has_value())
+                m_network.kickPlayer(kick->playerId, kick->reason);
         }
         else if (m_isNetplay && m_network.role() == NetworkRole::Client
                  && m_worlds.count(m_currentStageIndex) > 0)

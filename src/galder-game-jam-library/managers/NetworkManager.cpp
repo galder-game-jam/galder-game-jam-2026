@@ -149,6 +149,8 @@ namespace ggj
         m_connectionToPlayerId.clear();
         m_nextPlayerId = HOST_PLAYER_ID + 1;
         m_hasSentJoinRequest = false;
+        m_wasKicked = false;
+        m_kickReason.clear();
         m_currentStage = NO_STAGE;
         m_requestedStage.reset();
         m_chatMessages.clear();
@@ -555,6 +557,14 @@ namespace ggj
         // The host relays to everyone, including the sender; ours is already queued.
         for (const ChatMessage& chat : m_client->takeInboundChat())
         {
+            if (chat.type == NetMessageType::Kicked)
+            {
+                m_wasKicked = true;
+                m_kickReason = chat.text;
+                m_logger.information(m_kickReason.empty() ? "Kicked by the host" : fmt::format("Kicked by the host: {0}", m_kickReason));
+                continue;
+            }
+
             if (chat.playerId != m_localPlayerId)
                 queueChatMessage(chat);
         }
@@ -653,6 +663,34 @@ namespace ggj
             result.push_back(player);
         }
         return result;
+    }
+
+    bool NetworkManager::kickPlayer(uint32_t playerId, const std::string& reason)
+    {
+        if (m_role != NetworkRole::Server || !m_server || playerId == HOST_PLAYER_ID)
+            return false;
+
+        const auto it = std::find_if(m_connectionToPlayerId.begin(), m_connectionToPlayerId.end(), [playerId](const auto& entry) { return entry.second == playerId; });
+        if (it == m_connectionToPlayerId.end())
+            return false;
+
+        ChatMessage notice {};
+        notice.type = NetMessageType::Kicked;
+        notice.playerId = playerId;
+        ChatText::CopyUtf8Truncated(notice.text, std::min(sizeof(notice.text), MAX_KICK_REASON_BYTES + 1), reason);
+        if (!m_server->kickClient(it->first, notice))
+            return false;
+
+        // The connection is closed on our side, so no disconnect event will arrive: do the same cleanup as a drop.
+        m_remotePlayers.erase(playerId);
+        m_connectionToPlayerId.erase(it);
+
+        ServerMessage left {};
+        left.type = NetMessageType::PlayerLeft;
+        left.playerId = playerId;
+        m_server->broadcast(left);
+        m_logger.information(reason.empty() ? fmt::format("Player id {0} was kicked", playerId) : fmt::format("Player id {0} was kicked: {1}", playerId, reason));
+        return true;
     }
 
     void NetworkManager::publishEnemyState(uint32_t objectId, const EnemyNetworkState& state)

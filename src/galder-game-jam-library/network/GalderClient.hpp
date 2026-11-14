@@ -103,7 +103,7 @@ namespace ggj
                 {
                     ChatMessage chat {};
                     std::memcpy(&chat, incomingMsg->m_pData, sizeof(chat));
-                    if (chat.type == NetMessageType::Chat)
+                    if (chat.type == NetMessageType::Chat || chat.type == NetMessageType::Kicked)
                     {
                         // Never trust a peer to have terminated its strings.
                         chat.name[sizeof(chat.name) - 1] = '\0';
