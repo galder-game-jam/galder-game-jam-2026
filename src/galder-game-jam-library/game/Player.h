@@ -66,6 +66,7 @@ namespace ggj
         [[nodiscard]] bool isInDialog() const override;
         std::string getDialogId() override;
         void setHasFinishedDialog() override;
+        [[nodiscard]] const DialogSpot* getNearbyDialogSpot() const override { return m_nearbyDialogSpot; }
         [[nodiscard]] PlayerState getPlayerState() const override { return m_playerState; }
         [[nodiscard]] bool isFacingLeft() const override { return m_flip; }
 
@@ -107,6 +108,7 @@ namespace ggj
         uint16_t m_attackCounter { 0 }; ///< Counts attack duration
 
         bool m_inDialog {};
+        const DialogSpot* m_nearbyDialogSpot {};
         std::string m_currentDialogId;
 
         int m_previousKillCount { 0 };

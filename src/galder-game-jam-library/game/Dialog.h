@@ -35,6 +35,11 @@ namespace ggj
         void move(const raylib::Vector2& toMove) override;
         void update(float timeDelta) override;
         void draw() override;
+        /*!
+         * Draws the pulsing "Space" prompt above the NPC the player can talk to.
+         * Must be called in world space, i.e. between the camera's BeginMode/EndMode.
+         */
+        void drawPrompt() const;
 
         private:
         void handleInputs(float timeDelta);

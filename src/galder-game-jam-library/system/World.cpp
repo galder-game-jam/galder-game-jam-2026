@@ -3,6 +3,7 @@
 //
 
 #include <algorithm>
+#include <limits>
 #include "World.h"
 #include "../game/Hud.h"
 #include "../graphics/Sprite.h"
@@ -300,6 +301,22 @@ namespace ggj
         });
     }
 
+    const DialogSpot* World::findDialogSpotNear(const raylib::Vector2& point) const
+    {
+        const DialogSpot* closest = nullptr;
+        float closestDistance = std::numeric_limits<float>::max();
+        for (const DialogSpot& spot : m_dialogSpots)
+        {
+            const float distance = point.Distance(spot.position);
+            if (distance <= spot.interactRadius && distance < closestDistance)
+            {
+                closest = &spot;
+                closestDistance = distance;
+            }
+        }
+        return closest;
+    }
+
     void World::spawnFloatingText(raylib::Vector2 pos)
     {
         FloatingTextEntry e;
@@ -340,6 +357,7 @@ namespace ggj
         if (m_pDebugState != nullptr && m_pDebugState->showHitboxes)
             drawPhysicsDebug();
 #endif
+        m_dialog.drawPrompt();
         m_camera.EndMode();
         m_hud.draw();
         m_dialog.draw();
@@ -565,6 +583,15 @@ namespace ggj
         }
         else
             generateGenericPhysicsObject(name, body, generatorData);
+
+        if (generatorData.userData.getObjectType() == ObjectType::Dialog)
+        {
+            constexpr float INTERACT_MARGIN = 28.f; // Reach beyond the NPC's own extent, in pixels
+            const float halfWidth = static_cast<float>(generatorData.originalSize.x) / 2.f;
+            const float halfHeight = static_cast<float>(generatorData.originalSize.y) / 2.f;
+            m_dialogSpots.push_back(DialogSpot { PhysicsObject::ConvertToVector2(body->GetPosition()), halfHeight,
+                                                 std::max(halfWidth, halfHeight) + INTERACT_MARGIN, generatorData.userData.getDialogId() });
+        }
 
         // Enemies and coins are synced over the network. They are generated in the same order on
         // every peer (same map + generators), so a per-spawn counter yields matching ids everywhere.

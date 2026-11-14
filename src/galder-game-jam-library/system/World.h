@@ -33,6 +33,7 @@ namespace ggj
 #include "../interfaces/manager/IOptionsManager.h"
 #include "../interfaces/graphics/IPaletteSwapShader.h"
 #include "../data/CharacterColors.hpp"
+#include "../data/DialogSpot.hpp"
 #include <optional>
 #include <set>
 #include <vector>
@@ -234,6 +235,14 @@ namespace ggj
         /*! Spawns a floating yellow "+1" coin label in world space above the given position. */
         void spawnCoinFloatingText(raylib::Vector2 pos);
 
+        /*!
+         * Finds the NPC closest to the given point that is within its own interaction radius.
+         *
+         * @param point Position to test from, in world pixels
+         * @return The matching spot, or nullptr when no NPC is in range
+         */
+        [[nodiscard]] const DialogSpot* findDialogSpotNear(const raylib::Vector2& point) const;
+
     private:
         struct FloatingTextEntry
         {
@@ -348,6 +357,7 @@ namespace ggj
         std::map<int32_t, PlayerStats> m_playerStats;
 
         std::vector<FloatingTextEntry> m_floatingTexts;
+        std::vector<DialogSpot> m_dialogSpots;
 
         std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;
         std::vector<BombSpawnEvent> m_pendingBombSpawns;
