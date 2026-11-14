@@ -41,7 +41,7 @@ TEST_CASE("Palette swap - default colours leave the sprite unchanged", "[palette
 TEST_CASE("Palette swap - every shade of every slot is mapped", "[palette]")
 {
     REQUIRE(CharacterPalette::BuildPaletteSwap(PlayerPickedCharacter::Rogue, CharacterPalette::GetDefaultColors(PlayerPickedCharacter::Rogue)).count == 10);
-    REQUIRE(CharacterPalette::BuildPaletteSwap(PlayerPickedCharacter::Wizard, CharacterPalette::GetDefaultColors(PlayerPickedCharacter::Wizard)).count == 7);
+    REQUIRE(CharacterPalette::BuildPaletteSwap(PlayerPickedCharacter::Wizard, CharacterPalette::GetDefaultColors(PlayerPickedCharacter::Wizard)).count == 16);
     REQUIRE(CharacterPalette::BuildPaletteSwap(PlayerPickedCharacter::None, CharacterColors {}).count == 0);
 }
 
@@ -90,6 +90,35 @@ TEST_CASE("Palette swap - changing one slot leaves the others untouched", "[pale
     REQUIRE(isSameRgb(swap.to[beardIndex], ::Color { 120, 60, 20, 255 }));
 }
 
+TEST_CASE("Palette swap - Wizard staff tip, wood and pages are separate slots", "[palette]")
+{
+    CharacterColors colors = CharacterPalette::GetDefaultColors(PlayerPickedCharacter::Wizard);
+    colors.slots[2] = ::Color { 255, 0, 0, 255 };
+    colors.slots[3] = ::Color { 0, 255, 0, 255 };
+
+    const PaletteSwap swap = CharacterPalette::BuildPaletteSwap(PlayerPickedCharacter::Wizard, colors);
+    const int32_t tipIndex = findSwap(swap, ::Color { 0x58, 0xa8, 0xf2, 255 });
+    const int32_t woodIndex = findSwap(swap, ::Color { 0xf4, 0xa5, 0x68, 255 });
+    const int32_t pagesIndex = findSwap(swap, ::Color { 0xdf, 0xcd, 0xbf, 255 });
+    REQUIRE(tipIndex >= 0);
+    REQUIRE(woodIndex >= 0);
+    REQUIRE(pagesIndex >= 0);
+    REQUIRE(isSameRgb(swap.to[tipIndex], ::Color { 255, 0, 0, 255 }));
+    REQUIRE(isSameRgb(swap.to[woodIndex], ::Color { 0, 255, 0, 255 }));
+    REQUIRE(isSameRgb(swap.to[pagesIndex], swap.from[pagesIndex]));
+}
+
+TEST_CASE("Palette swap - no source colour is claimed by two slots", "[palette]")
+{
+    for (const PlayerPickedCharacter character : { PlayerPickedCharacter::Rogue, PlayerPickedCharacter::Wizard })
+    {
+        const PaletteSwap swap = CharacterPalette::BuildPaletteSwap(character, CharacterPalette::GetDefaultColors(character));
+        for (int32_t i = 0; i < swap.count; ++i)
+            for (int32_t j = i + 1; j < swap.count; ++j)
+                REQUIRE_FALSE(isSameRgb(swap.from[i], swap.from[j]));
+    }
+}
+
 TEST_CASE("Mask recolor - default colours leave the portrait as painted", "[palette]")
 {
     for (const PlayerPickedCharacter character : { PlayerPickedCharacter::Rogue, PlayerPickedCharacter::Wizard })
@@ -110,7 +139,7 @@ TEST_CASE("Mask recolor - only changed slots are recoloured, relative to the spr
     REQUIRE(recolor.isRecolored[1]);
     REQUIRE(isSameRgb(recolor.base[1], ::Color { 0xfd, 0xfd, 0xfd, 255 }));
     REQUIRE(isSameRgb(recolor.target[1], ::Color { 120, 60, 20, 255 }));
-    // The Wizard only has two slots; the rest must stay untouched even if the colours hold garbage.
+    // Slots beyond the mask's four are sprite-only; the rest stay untouched while left at their default.
     REQUIRE_FALSE(recolor.isRecolored[2]);
     REQUIRE_FALSE(recolor.isRecolored[3]);
 }

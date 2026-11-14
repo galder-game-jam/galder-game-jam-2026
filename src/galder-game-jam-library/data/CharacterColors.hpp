@@ -20,7 +20,7 @@ namespace ggj
      */
     struct CharacterColors
     {
-        static constexpr size_t MAX_SLOTS = 4;
+        static constexpr size_t MAX_SLOTS = 6;
 
         ::Color slots[MAX_SLOTS] {};
     };
@@ -30,7 +30,7 @@ namespace ggj
      */
     struct PaletteSwap
     {
-        static constexpr size_t MAX_COLORS = 16; ///< Must match the array size in palette_swap.fs.
+        static constexpr size_t MAX_COLORS = 24; ///< Must match the array size in palette_swap.fs.
 
         std::array<::Color, MAX_COLORS> from {};
         std::array<::Color, MAX_COLORS> to {};
@@ -43,7 +43,7 @@ namespace ggj
      */
     struct MaskRecolor
     {
-        static constexpr size_t MAX_SLOTS = CharacterColors::MAX_SLOTS; ///< Must match MAX_SLOTS in mask_recolor.fs.
+        static constexpr size_t MAX_SLOTS = 4; ///< Must match MAX_SLOTS in mask_recolor.fs. Portrait masks only encode four slots, so slots beyond these are sprite-only.
 
         std::array<::Color, MAX_SLOTS> base {};     ///< The sprite's base shade; a texel this bright gets exactly the target colour.
         std::array<::Color, MAX_SLOTS> target {};   ///< The picked colour.

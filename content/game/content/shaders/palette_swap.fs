@@ -2,7 +2,7 @@
 
 // Replaces exact sprite colours with player-picked ones. Used to recolour the player characters.
 // Keep MAX_COLORS in sync with PaletteSwap::MAX_COLORS in data/CharacterColors.hpp.
-const int MAX_COLORS = 16;
+const int MAX_COLORS = 24;
 // Half a step of an 8-bit channel: sprites use point filtering, so texels hit the palette exactly.
 const float TOLERANCE = 0.5 / 255.0;
 
