@@ -419,6 +419,16 @@ namespace ggj
             }
             if (sprite.animation.isValid())
                 sprite.animation.update(timeDelta);
+
+            // Every peer sees the same blood: the owner bleeds locally on a hit, and the lives
+            // it syncs tell everyone else. Not on first sight, or a late joiner would "get hurt".
+            if (!isNew && remote.lives < sprite.lives)
+            {
+                // Same formula as Player::getVisualCenter(), so the blood comes out of the body.
+                const raylib::Vector2 visualCenter { remote.position.x, remote.position.y - m_playerSpriteOrigin.y + m_playerSpriteHeight / 2.f };
+                m_blood.emitBlood(visualCenter, { 0.f, 0.f }, remote.lives <= 0 ? KILL_BLOOD_STRENGTH : 1.f);
+            }
+            sprite.lives = remote.lives;
         }
     }
 
@@ -869,6 +879,10 @@ namespace ggj
                 // In netplay the host kills the boss for everyone, so this is where each peer sees it die.
                 if (found->second == m_boss)
                     m_soundManager.playSound(SoundName::EnemyDie);
+                // Ordinary enemies die in one hit, so the removal is the only sign that someone
+                // killed this one. The boss already bled when its synced lives dropped.
+                else if (isEnemy)
+                    m_blood.emitBlood(found->second->getPosition(), { 0.f, 0.f }, KILL_BLOOD_STRENGTH);
                 found->second->destroy();
                 m_reportedDestroyed.insert(id);
                 m_networkObjects.erase(found);

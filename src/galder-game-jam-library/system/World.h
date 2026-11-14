@@ -450,6 +450,7 @@ namespace ggj
         {
             PlayerState state { PlayerState::Idle };
             Animation animation {};
+            int32_t lives { 0 }; ///< Lives seen last frame; a drop means the peer was hurt.
         };
         std::map<uint32_t, RemotePlayerSprite> m_remotePlayerSprites; ///< By network player id.
         // Local player sprite setup, captured in generatePlayer() so remote peers draw identically.
