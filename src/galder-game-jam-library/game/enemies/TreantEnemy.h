@@ -58,6 +58,29 @@ namespace ggj
         void faceTowards(const raylib::Vector2& direction);
 
         /*!
+         * Whether the treant's body would run into something solid when moving along a direction. Casts
+         * three parallel rays (centre and both flanks) so the treant's width is accounted for, not just
+         * its centre line.
+         *
+         * @param direction Unit vector in world space
+         * @return True when a non-sensor static fixture (a tree, a wall) lies within the lookahead distance
+         */
+        [[nodiscard]] bool isPathBlocked(const raylib::Vector2& direction) const;
+
+        /*!
+         * Bends a desired heading around static obstacles. Returns it untouched when the way is clear,
+         * otherwise the closest free heading, preferring the side it last went around so it does not
+         * dither in front of a tree.
+         *
+         * @param desired Unit vector towards where the treant wants to go
+         * @return Unit vector to walk along
+         */
+        [[nodiscard]] raylib::Vector2 steerAroundObstacles(const raylib::Vector2& desired);
+
+        /*! Uniform random float in [min, max]. */
+        [[nodiscard]] static float randomRange(float min, float max);
+
+        /*!
          * How the single sprite frame is deformed this frame to fake animation. Squash and stretch are
          * applied around the feet so the treant stays planted on the ground.
          */
@@ -101,6 +124,7 @@ namespace ggj
         float m_animTime { 0.f };                ///< Seconds since spawn; drives the procedural animation.
         int32_t m_chargesLeft { 0 };             ///< Charges still to perform before returning to Idle.
         raylib::Vector2 m_chargeDirection { 0.f, 0.f };
+        float m_avoidSide { 1.f }; ///< +1/-1: which side of an obstacle the treant is currently going around.
 
         // Invulnerability + flash
         float m_invulTimer { 0.f };
@@ -111,7 +135,12 @@ namespace ggj
         static constexpr float FLASH_INTERVAL = 0.1f;
 
         static constexpr float IDLE_DURATION = 1.f;
-        static constexpr float WALK_DURATION = 3.f;
+        static constexpr float WALK_MIN_DURATION = 2.f;
+        static constexpr float WALK_MAX_DURATION = 4.f;
+        static constexpr float CHARGE_CHANCE = 0.5f; ///< Odds a chase ends in a charge rather than a pause.
+        static constexpr float ENRAGED_CHARGE_CHANCE = 0.75f;
+        static constexpr float OBSTACLE_LOOKAHEAD = 2.5f;    ///< Metres past the treant's edge to scan for obstacles.
+        static constexpr float OBSTACLE_FLANK_FACTOR = 0.9f; ///< Flank rays sit this fraction of the radius off-centre.
         static constexpr float WINDUP_DURATION = 0.9f;
         static constexpr float ENRAGED_WINDUP_DURATION = 0.55f;
         static constexpr float CHARGE_DURATION = 0.8f;

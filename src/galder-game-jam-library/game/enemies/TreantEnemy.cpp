@@ -7,6 +7,93 @@
 
 namespace ggj
 {
+    namespace
+    {
+        /*! Ray cast callback that reports whether anything solid and immovable is in the way. */
+        class ObstacleRayCallback : public b2RayCastCallback
+        {
+            public:
+            explicit ObstacleRayCallback(const b2Body* self) : m_self { self } {}
+
+            float ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float fraction) override
+            {
+                const b2Body* body = fixture->GetBody();
+                // Players, other enemies and projectiles are dynamic, triggers are sensors: only scenery blocks.
+                if (fixture->IsSensor() || body == m_self || body->GetType() != b2_staticBody)
+                    return -1.f;
+
+                m_isBlocked = true;
+                return 0.f; // Any hit is enough, stop the cast.
+            }
+
+            [[nodiscard]] bool isBlocked() const { return m_isBlocked; }
+
+            private:
+            const b2Body* m_self { nullptr };
+            bool m_isBlocked { false };
+        };
+
+        raylib::Vector2 rotateByDegrees(const raylib::Vector2& v, float degrees)
+        {
+            const float radians = degrees * std::numbers::pi_v<float> / 180.f;
+            const float c = std::cos(radians);
+            const float s = std::sin(radians);
+            return { v.x * c - v.y * s, v.x * s + v.y * c };
+        }
+    } // namespace
+
+    float TreantEnemy::randomRange(const float min, const float max)
+    {
+        constexpr int32_t STEPS = 1000;
+        return min + (max - min) * static_cast<float>(GetRandomValue(0, STEPS)) / static_cast<float>(STEPS);
+    }
+
+    bool TreantEnemy::isPathBlocked(const raylib::Vector2& direction) const
+    {
+        if (m_body == nullptr || (direction.x == 0.f && direction.y == 0.f))
+            return false;
+
+        const b2Fixture* fixture = m_body->GetFixtureList();
+        const float radius = (fixture != nullptr) ? fixture->GetShape()->m_radius : 1.f;
+        const float reach = radius + OBSTACLE_LOOKAHEAD;
+        const b2Vec2 origin = m_body->GetPosition();
+        const b2Vec2 dir { direction.x, direction.y };
+        const b2Vec2 side { -dir.y, dir.x };
+
+        for (const float offset : { 0.f, radius * OBSTACLE_FLANK_FACTOR, -radius * OBSTACLE_FLANK_FACTOR })
+        {
+            const b2Vec2 start = origin + offset * side;
+            ObstacleRayCallback callback { m_body };
+            m_body->GetWorld()->RayCast(&callback, start, start + reach * dir);
+            if (callback.isBlocked())
+                return true;
+        }
+
+        return false;
+    }
+
+    raylib::Vector2 TreantEnemy::steerAroundObstacles(const raylib::Vector2& desired)
+    {
+        if (!isPathBlocked(desired))
+            return desired;
+
+        // Fan out from the desired heading, trying the side we last used first so we commit to one way round.
+        for (const float angle : { 30.f, 60.f, 90.f, 120.f, 150.f })
+        {
+            for (const float side : { m_avoidSide, -m_avoidSide })
+            {
+                const raylib::Vector2 candidate = rotateByDegrees(desired, side * angle);
+                if (!isPathBlocked(candidate))
+                {
+                    m_avoidSide = side;
+                    return candidate;
+                }
+            }
+        }
+
+        return desired; // Boxed in; push on and let the physics resolve it.
+    }
+
     void TreantEnemy::move(const raylib::Vector2& toMove) {}
 
     raylib::Vector2 TreantEnemy::directionToPlayer() const
@@ -43,7 +130,7 @@ namespace ggj
                 m_tint = WHITE;
                 break;
             case TreantState::Walk:
-                m_stateTimer = WALK_DURATION;
+                m_stateTimer = randomRange(WALK_MIN_DURATION, WALK_MAX_DURATION);
                 m_tint = WHITE;
                 // An enraged treant chains two charges per cycle; a calm one only throws one.
                 m_chargesLeft = isEnraged() ? 2 : 1;
@@ -106,11 +193,15 @@ namespace ggj
 
             case TreantState::Walk:
             {
-                const raylib::Vector2 direction = directionToPlayer();
+                const raylib::Vector2 direction = steerAroundObstacles(directionToPlayer());
                 faceTowards(direction);
                 velocity = { direction.x * m_followSpeed * speedMultiplier, direction.y * m_followSpeed * speedMultiplier };
                 if (m_stateTimer <= 0.f)
-                    setState(TreantState::Windup);
+                {
+                    // Not every chase ends in a charge; sometimes the treant just stops to catch its breath.
+                    const float chargeChance = isEnraged() ? ENRAGED_CHARGE_CHANCE : CHARGE_CHANCE;
+                    setState(randomRange(0.f, 1.f) < chargeChance ? TreantState::Windup : TreantState::Idle);
+                }
                 break;
             }
 
