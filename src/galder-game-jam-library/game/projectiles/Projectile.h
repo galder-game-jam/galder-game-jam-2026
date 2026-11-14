@@ -18,6 +18,9 @@ namespace ggj
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager {animationManager}, m_mapper{mapper},
               m_velocity{velocity}, m_timeToLive{timeToLive}
             {
+                // The body is a circle centred on the position, so draw the sprite centred on it too.
+                // PhysicsSprite's default circle origin hangs the sprite below the hitbox.
+                m_origin = raylib::Vector2(spriteSize.x / 2.f, spriteSize.y / 2.f);
                 m_body->SetFixedRotation(true);
                 m_body->SetLinearVelocity({m_velocity.x, m_velocity.y});
                 m_world = world;
