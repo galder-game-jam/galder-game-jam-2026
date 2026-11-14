@@ -16,6 +16,7 @@
 #include "../graphics/Animation.h"
 #include "../enums/AnimationName.h"
 #include <memory>
+#include <random>
 
 namespace ggj
 {
@@ -85,6 +86,7 @@ namespace ggj
             std::unique_ptr<raylib::RenderTexture> m_previewTexture {}; ///< Created in initialize(): needs a GL context.
             CharacterColors m_rogueColors {};
             CharacterColors m_wizardColors {};
+            std::mt19937 m_randomGenerator { std::random_device {}() }; ///< Drives the Randomize button.
 
             raylib::Font *m_font = nullptr;
 

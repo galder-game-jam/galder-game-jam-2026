@@ -279,6 +279,9 @@ namespace ggj
                 }
             }
 
+            if (ImGui::Button("Randomize"))
+                colors = CharacterPalette::GetRandomColors(m_pickedCharacter, m_randomGenerator);
+            ImGui::SameLine();
             if (ImGui::Button("Reset to default"))
                 colors = CharacterPalette::GetDefaultColors(m_pickedCharacter);
         }

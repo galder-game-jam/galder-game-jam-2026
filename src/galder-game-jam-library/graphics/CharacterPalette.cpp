@@ -62,6 +62,24 @@ namespace ggj
         return colors;
     }
 
+    CharacterColors CharacterPalette::GetRandomColors(const PlayerPickedCharacter character, std::mt19937& generator)
+    {
+        constexpr float MAX_HUE = 360.f;
+        constexpr float MIN_SATURATION = 0.45f; ///< Below this the colours wash out towards grey.
+        constexpr float MIN_VALUE = 0.55f;      ///< Below this the sprite's shading ramp disappears into black.
+
+        std::uniform_real_distribution<float> hue { 0.f, MAX_HUE };
+        std::uniform_real_distribution<float> saturation { MIN_SATURATION, 1.f };
+        std::uniform_real_distribution<float> value { MIN_VALUE, 1.f };
+
+        CharacterColors colors {};
+        const std::vector<PaletteSlot>& slots = GetSlots(character);
+        for (size_t i = 0; i < slots.size() && i < CharacterColors::MAX_SLOTS; ++i)
+            colors.slots[i] = ColorFromHSV(hue(generator), saturation(generator), value(generator));
+
+        return colors;
+    }
+
     PaletteSwap CharacterPalette::BuildPaletteSwap(const PlayerPickedCharacter character, const CharacterColors& colors)
     {
         PaletteSwap swap {};
