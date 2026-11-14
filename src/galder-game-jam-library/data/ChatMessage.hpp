@@ -14,7 +14,8 @@
 namespace ggj
 {
     /*!
-     * One chat line on the wire, in either direction. Kept out of ClientMessage / ServerMessage on
+     * One chat line on the wire, in either direction (type Chat), or the host's kick notice to a
+     * client (type Kicked, text = optional reason). Kept out of ClientMessage / ServerMessage on
      * purpose: those are sent every tick, and the text buffer would bloat every PlayerState. The
      * receivers tell the three apart by their (distinct) sizeof.
      *

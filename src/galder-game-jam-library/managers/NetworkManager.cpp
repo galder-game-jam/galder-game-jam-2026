@@ -150,6 +150,7 @@ namespace ggj
         m_nextPlayerId = HOST_PLAYER_ID + 1;
         m_hasSentJoinRequest = false;
         m_wasKicked = false;
+        m_kickReason.clear();
         m_currentStage = NO_STAGE;
         m_requestedStage.reset();
         m_chatMessages.clear();
@@ -516,10 +517,6 @@ namespace ggj
                 case NetMessageType::PlayerLeft:
                     m_remotePlayers.erase(message.playerId);
                     break;
-                case NetMessageType::Kicked:
-                    m_wasKicked = true;
-                    m_logger.information("Kicked by the host");
-                    break;
                 case NetMessageType::EnemyState:
                     if (message.flag) // alive: update position, facing and boss state
                         m_enemyStates[message.objectId] = EnemyNetworkState { message.position, message.facingLeft, message.lives, message.aiState, message.targetPlayerId };
@@ -560,6 +557,14 @@ namespace ggj
         // The host relays to everyone, including the sender; ours is already queued.
         for (const ChatMessage& chat : m_client->takeInboundChat())
         {
+            if (chat.type == NetMessageType::Kicked)
+            {
+                m_wasKicked = true;
+                m_kickReason = chat.text;
+                m_logger.information(m_kickReason.empty() ? "Kicked by the host" : fmt::format("Kicked by the host: {0}", m_kickReason));
+                continue;
+            }
+
             if (chat.playerId != m_localPlayerId)
                 queueChatMessage(chat);
         }
@@ -660,7 +665,7 @@ namespace ggj
         return result;
     }
 
-    bool NetworkManager::kickPlayer(uint32_t playerId)
+    bool NetworkManager::kickPlayer(uint32_t playerId, const std::string& reason)
     {
         if (m_role != NetworkRole::Server || !m_server || playerId == HOST_PLAYER_ID)
             return false;
@@ -669,9 +674,10 @@ namespace ggj
         if (it == m_connectionToPlayerId.end())
             return false;
 
-        ServerMessage notice {};
+        ChatMessage notice {};
         notice.type = NetMessageType::Kicked;
         notice.playerId = playerId;
+        ChatText::CopyUtf8Truncated(notice.text, std::min(sizeof(notice.text), MAX_KICK_REASON_BYTES + 1), reason);
         if (!m_server->kickClient(it->first, notice))
             return false;
 
@@ -683,7 +689,7 @@ namespace ggj
         left.type = NetMessageType::PlayerLeft;
         left.playerId = playerId;
         m_server->broadcast(left);
-        m_logger.information(fmt::format("Player id {0} was kicked", playerId));
+        m_logger.information(reason.empty() ? fmt::format("Player id {0} was kicked", playerId) : fmt::format("Player id {0} was kicked: {1}", playerId, reason));
         return true;
     }
 

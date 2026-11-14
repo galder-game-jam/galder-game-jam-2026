@@ -79,6 +79,8 @@ namespace ggj
             /*! Leaves the current game (ending any netplay session) and shows the main menu. */
             void returnToMainMenu();
             /*! Closes any in-game overlay and shows a blocking message that leads back to the main menu. */
+            /*! Captures / releases the keyboard for the host's kick-reason text box; only touches it when that box changed state. */
+            void setKickReasonKeyboardCapture(bool isCaptured);
             void showConnectionLostPopup(const std::string& message, const std::string& title = "Connection lost");
 
             const int32_t NO_MAP_ID = -1;
@@ -126,6 +128,7 @@ namespace ggj
             bool m_optionsReturnToInGame{false};
             bool m_isNetplay{false};
             MessagePopup m_connectionLostPopup {};
+            bool m_isKickReasonCapturingKeyboard { false };
             ServerInfoMenu m_serverInfoMenu {}; ///< Host's player list; a member so its kick confirmation survives between frames.
             PlayerPickedCharacter m_pickedCharacter { PlayerPickedCharacter::Rogue };
             CharacterColors m_pickedColors {};

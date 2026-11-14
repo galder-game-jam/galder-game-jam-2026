@@ -41,7 +41,7 @@ namespace ggj
         Chat, ///< Either direction: a chat line. Carried by ChatMessage, not the Client/ServerMessage envelopes.
 
         // --- Host moderation ---
-        Kicked ///< Server -> Client: the host removed you from the session; the connection closes right after.
+        Kicked ///< Server -> Client: the host removed you from the session (text = optional reason); the connection closes right after. Carried by ChatMessage.
     };
 } // namespace ggj
 

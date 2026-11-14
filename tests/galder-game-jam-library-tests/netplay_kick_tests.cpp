@@ -51,40 +51,64 @@ TEST_CASE("Host can kick a connected client", "[.network][netplay]")
 
     REQUIRE(pollUntil(host, client, [&host]() { return host.connectedPlayers().size() == 2; }));
 
+    uint32_t guestId = INetworkManager::NO_PLAYER_ID;
+    for (const ConnectedPlayer& player : host.connectedPlayers())
+    {
+        if (!player.isHost)
+            guestId = player.playerId;
+    }
+    REQUIRE(guestId != INetworkManager::NO_PLAYER_ID);
+
     SECTION("The host itself and unknown ids cannot be kicked")
     {
-        REQUIRE_FALSE(host.kickPlayer(INetworkManager::HOST_PLAYER_ID));
-        REQUIRE_FALSE(host.kickPlayer(4242));
+        REQUIRE_FALSE(host.kickPlayer(INetworkManager::HOST_PLAYER_ID, ""));
+        REQUIRE_FALSE(host.kickPlayer(4242, ""));
         REQUIRE(host.connectedPlayers().size() == 2);
     }
 
     SECTION("A client cannot kick anyone")
     {
-        REQUIRE_FALSE(client.kickPlayer(INetworkManager::HOST_PLAYER_ID + 1));
+        REQUIRE_FALSE(client.kickPlayer(INetworkManager::HOST_PLAYER_ID + 1, ""));
         REQUIRE_FALSE(client.wasKicked());
     }
 
     SECTION("A kicked client is told, and the host forgets them")
     {
-        uint32_t guestId = INetworkManager::NO_PLAYER_ID;
-        for (const ConnectedPlayer& player : host.connectedPlayers())
-        {
-            if (!player.isHost)
-                guestId = player.playerId;
-        }
-        REQUIRE(guestId != INetworkManager::NO_PLAYER_ID);
-
         REQUIRE_FALSE(client.wasKicked());
-        REQUIRE(host.kickPlayer(guestId));
+        REQUIRE(host.kickPlayer(guestId, ""));
         REQUIRE(host.connectedPlayers().size() == 1);
         REQUIRE(host.remotePlayers().empty());
-        REQUIRE_FALSE(host.kickPlayer(guestId)); // already gone
+        REQUIRE_FALSE(host.kickPlayer(guestId, "")); // already gone
 
         REQUIRE(pollUntil(host, client, [&client]() { return client.wasKicked(); }));
+        REQUIRE(client.kickReason().empty());
         REQUIRE(host.connectedPlayers().size() == 1);
 
         client.shutdown();
         REQUIRE_FALSE(client.wasKicked()); // cleared for the next session
+    }
+
+    SECTION("The kick reason reaches the kicked client")
+    {
+        REQUIRE(host.kickPlayer(guestId, "Please stop blocking the portal"));
+        REQUIRE(pollUntil(host, client, [&client]() { return client.wasKicked(); }));
+        REQUIRE(client.kickReason() == "Please stop blocking the portal");
+
+        client.shutdown();
+        REQUIRE(client.kickReason().empty()); // cleared for the next session
+    }
+
+    SECTION("An over-long reason is cut on a character boundary")
+    {
+        std::string reason;
+        while (reason.size() < INetworkManager::MAX_KICK_REASON_BYTES + 50)
+            reason += "\xC3\xB8"; // 'o with stroke', 2 bytes in UTF-8
+
+        REQUIRE(host.kickPlayer(guestId, reason));
+        REQUIRE(pollUntil(host, client, [&client]() { return client.wasKicked(); }));
+        REQUIRE(client.kickReason().size() <= INetworkManager::MAX_KICK_REASON_BYTES);
+        REQUIRE(client.kickReason().size() % 2 == 0); // no half character
+        REQUIRE(reason.compare(0, client.kickReason().size(), client.kickReason()) == 0);
     }
 
     client.shutdown();

@@ -41,6 +41,7 @@ namespace ggj
         public:
         static constexpr uint16_t DEFAULT_PORT = 13338;
         static constexpr uint32_t HOST_PLAYER_ID = 0;
+        static constexpr size_t MAX_KICK_REASON_BYTES = 200; ///< Longest kick reason (UTF-8 bytes) sent to a kicked player.
         static constexpr uint32_t NO_PLAYER_ID = std::numeric_limits<uint32_t>::max(); ///< No player / not assigned yet.
 
         virtual ~INetworkManager() = default;
@@ -83,6 +84,8 @@ namespace ggj
         [[nodiscard]] virtual bool hasLostConnection() const = 0;
         /*! Client: the host removed the local player from the session. Cleared by shutdown(). */
         [[nodiscard]] virtual bool wasKicked() const = 0;
+        /*! Client: the reason the host gave when kicking us; empty if none. Cleared by shutdown(). */
+        [[nodiscard]] virtual const std::string& kickReason() const = 0;
         /*! Client: the connection was established at some point (tells a dropped session from a failed connect). */
         [[nodiscard]] virtual bool hasEverConnected() const = 0;
 
@@ -231,9 +234,10 @@ namespace ggj
          * client from joining again.
          *
          * @param playerId Id of the client to remove
+         * @param reason   Optional free text shown to the kicked player (empty for none); cut short to MAX_KICK_REASON_BYTES
          * @return         false if we are not hosting, or no client has that id (the host cannot be kicked)
          */
-        virtual bool kickPlayer(uint32_t playerId) = 0;
+        virtual bool kickPlayer(uint32_t playerId, const std::string& reason) = 0;
 
         // --- Chat ---
 

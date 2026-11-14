@@ -79,15 +79,15 @@ namespace ggj
          * for it and broadcasts stop reaching it.
          *
          * @param connection Client to remove
-         * @param notice     Message sent to the client just before the close
+         * @param notice     Kicked message (reason in its text) sent to the client just before the close
          * @return           false if no such client is connected
          */
-        bool kickClient(HSteamNetConnection connection, const ServerMessage& notice)
+        bool kickClient(HSteamNetConnection connection, const ChatMessage& notice)
         {
             if (m_netInterface == nullptr || m_mapClients.erase(connection) == 0)
                 return false;
 
-            send(connection, notice);
+            sendChatTo(connection, notice);
             m_netInterface->CloseConnection(connection, 0, "Kicked by host", true);
             return true;
         }
