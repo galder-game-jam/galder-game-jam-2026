@@ -50,6 +50,16 @@ namespace ggj
          * @return The source -> target colour list for the palette swap shader
          */
         [[nodiscard]] static PaletteSwap BuildPaletteSwap(PlayerPickedCharacter character, const CharacterColors& colors);
+
+        /*!
+         * Resolves picked colours for the mask recolour shader (used by the painted HUD portraits).
+         * Slots left at their default are not recoloured, so the hand-painted colours stay exact.
+         *
+         * @param character Character whose slots to use
+         * @param colors Picked colour per slot
+         * @return Base and target colour per slot
+         */
+        [[nodiscard]] static MaskRecolor BuildMaskRecolor(PlayerPickedCharacter character, const CharacterColors& colors);
     };
 } // namespace ggj
 

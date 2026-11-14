@@ -4,6 +4,7 @@
 
 #include "Hud.h"
 #include "Minimap.h"
+#include "../graphics/CharacterPalette.h"
 
 namespace ggj
 {
@@ -22,6 +23,7 @@ namespace ggj
 
         m_hudTexture = m_textures.get(TextureName::HudRpgSubset);
         m_playerPortraitTexture = m_textures.get(TextureName::HudRpgRoguePortrait);
+        m_playerPortraitMaskTexture = m_textures.get(TextureName::HudRpgRoguePortraitMask);
     }
 
     void Hud::setFont(raylib::Font* font)
@@ -39,10 +41,12 @@ namespace ggj
         m_playerName = name;
     }
 
-    void Hud::setPickedCharacter(PlayerPickedCharacter character)
+    void Hud::setPickedCharacter(PlayerPickedCharacter character, const CharacterColors& colors)
     {
-        m_playerPortraitTexture = m_textures.get(
-            character == PlayerPickedCharacter::Wizard ? TextureName::HudRpgWizardPortrait : TextureName::HudRpgRoguePortrait);
+        const bool isWizard = character == PlayerPickedCharacter::Wizard;
+        m_playerPortraitTexture = m_textures.get(isWizard ? TextureName::HudRpgWizardPortrait : TextureName::HudRpgRoguePortrait);
+        m_playerPortraitMaskTexture = m_textures.get(isWizard ? TextureName::HudRpgWizardPortraitMask : TextureName::HudRpgRoguePortraitMask);
+        m_playerPortraitRecolor = CharacterPalette::BuildMaskRecolor(isWizard ? PlayerPickedCharacter::Wizard : PlayerPickedCharacter::Rogue, colors);
     }
 
     void Hud::setWorld(World* world)
@@ -200,7 +204,12 @@ namespace ggj
     void Hud::drawPlayerPortrait() const
     {
         const raylib::Color texTint = tinted(WHITE);
+        // Without a mask the portrait is still drawn, just in its painted colours.
+        if (m_playerPortraitMaskTexture != nullptr)
+            m_maskRecolor.begin(m_playerPortraitRecolor, *m_playerPortraitMaskTexture);
         m_playerPortraitTexture->Draw(m_playerPortraitOffset, texTint);
+        if (m_playerPortraitMaskTexture != nullptr)
+            m_maskRecolor.end();
         m_hudTexture->Draw(m_portraitRect, m_portraitOffset, texTint);
 
         DrawResourceBar(m_health, m_lifeRect, m_lifeEnd, 0);

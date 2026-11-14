@@ -265,7 +265,7 @@ namespace ggj
                 m_talentScreen.setPickedCharacter(m_pickedCharacter);
                 parseProject();
                 m_hud.initialize();
-                m_hud.setPickedCharacter(m_pickedCharacter);
+                m_hud.setPickedCharacter(m_pickedCharacter, m_pickedColors);
                 m_hud.setPlayer(m_worlds[m_currentStageIndex]->getPlayer());
                 m_hud.setWorld(m_worlds[m_currentStageIndex].get());
                 m_hud.setMinimap(m_worlds[m_currentStageIndex]->getMinimap());

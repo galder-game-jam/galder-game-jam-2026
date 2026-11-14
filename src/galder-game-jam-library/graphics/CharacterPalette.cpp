@@ -88,4 +88,20 @@ namespace ggj
 
         return swap;
     }
+
+    MaskRecolor CharacterPalette::BuildMaskRecolor(const PlayerPickedCharacter character, const CharacterColors& colors)
+    {
+        MaskRecolor recolor {};
+        const std::vector<PaletteSlot>& slots = GetSlots(character);
+        for (size_t i = 0; i < slots.size() && i < MaskRecolor::MAX_SLOTS; ++i)
+        {
+            const ::Color& picked = colors.slots[i];
+            const ::Color& base = slots[i].shades.front();
+            recolor.base[i] = base;
+            recolor.target[i] = picked;
+            recolor.isRecolored[i] = picked.r != base.r || picked.g != base.g || picked.b != base.b;
+        }
+
+        return recolor;
+    }
 } // namespace ggj

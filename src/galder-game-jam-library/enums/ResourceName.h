@@ -104,6 +104,8 @@ namespace ggj
         HudRpgSubset = 301,
         HudRpgRoguePortrait = 302,
         HudRpgWizardPortrait = 303,
+        HudRpgRoguePortraitMask = 304,
+        HudRpgWizardPortraitMask = 305,
 
         CharacterSelectRoguePortrait = 330,
         CharacterSelectWizardPortrait = 331,
@@ -124,6 +126,7 @@ namespace ggj
         ConfigOptions = 550,
 
         ShaderPaletteSwap = 560,
+        ShaderMaskRecolor = 561,
 
         SoundCoinPickup = 600,
         SoundEnemyDie = 601,

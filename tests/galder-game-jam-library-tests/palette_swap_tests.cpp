@@ -87,3 +87,37 @@ TEST_CASE("Palette swap - changing one slot leaves the others untouched", "[pale
     REQUIRE(isSameRgb(swap.to[clothIndex], swap.from[clothIndex]));
     REQUIRE(isSameRgb(swap.to[beardIndex], ::Color { 120, 60, 20, 255 }));
 }
+
+TEST_CASE("Mask recolor - default colours leave the portrait as painted", "[palette]")
+{
+    for (const PlayerPickedCharacter character : { PlayerPickedCharacter::Rogue, PlayerPickedCharacter::Wizard })
+    {
+        const MaskRecolor recolor = CharacterPalette::BuildMaskRecolor(character, CharacterPalette::GetDefaultColors(character));
+        for (const bool isRecolored : recolor.isRecolored)
+            REQUIRE_FALSE(isRecolored);
+    }
+}
+
+TEST_CASE("Mask recolor - only changed slots are recoloured, relative to the sprite's base shade", "[palette]")
+{
+    CharacterColors colors = CharacterPalette::GetDefaultColors(PlayerPickedCharacter::Wizard);
+    colors.slots[1] = ::Color { 120, 60, 20, 255 };
+
+    const MaskRecolor recolor = CharacterPalette::BuildMaskRecolor(PlayerPickedCharacter::Wizard, colors);
+    REQUIRE_FALSE(recolor.isRecolored[0]);
+    REQUIRE(recolor.isRecolored[1]);
+    REQUIRE(isSameRgb(recolor.base[1], ::Color { 0xfd, 0xfd, 0xfd, 255 }));
+    REQUIRE(isSameRgb(recolor.target[1], ::Color { 120, 60, 20, 255 }));
+    // The Wizard only has two slots; the rest must stay untouched even if the colours hold garbage.
+    REQUIRE_FALSE(recolor.isRecolored[2]);
+    REQUIRE_FALSE(recolor.isRecolored[3]);
+}
+
+TEST_CASE("Mask recolor - None has nothing to recolour", "[palette]")
+{
+    CharacterColors colors {};
+    colors.slots[0] = ::Color { 255, 0, 0, 255 };
+    const MaskRecolor recolor = CharacterPalette::BuildMaskRecolor(PlayerPickedCharacter::None, colors);
+    for (const bool isRecolored : recolor.isRecolored)
+        REQUIRE_FALSE(isRecolored);
+}
