@@ -57,7 +57,10 @@ namespace ggj
             if (layer.getType() == tson::LayerType::TileLayer)
             {
                 if (m_layers.count(layerIndex) == 0)
+                {
                     m_layers[layerIndex] = { layerIndex, true, layer.getName() }; //Tiles are only for drawing and will not be updated
+                    m_layers[layerIndex].setBloodEmitter(&m_blood);
+                }
 
                 for (auto& tileObject : layer.getTileObjects())
                 {
@@ -81,7 +84,10 @@ namespace ggj
             else if (layer.getType() == tson::LayerType::ObjectGroup)
             {
                 if (m_layers.count(layerIndex) == 0)
+                {
                     m_layers[layerIndex] = { layerIndex, false, layer.getName() }; //Objects will have their positions updated!
+                    m_layers[layerIndex].setBloodEmitter(&m_blood);
+                }
 
                 for (auto& obj : layer.getObjects())
                 {
@@ -266,6 +272,7 @@ namespace ggj
             layer.second.update(timeDelta);
         }
 
+        m_blood.update(timeDelta);
         m_hud.update(timeDelta);
         m_dialog.update(timeDelta);
         updateRemotePlayerSprites(timeDelta);
@@ -352,12 +359,22 @@ namespace ggj
     {
         m_window.ClearBackground(m_backgroundColor);
         m_camera.BeginMode();
+        // Stains lie on the ground: under the characters, over the floor tiles.
+        bool hasDrawnStains = false;
         for (auto& layer : m_layers)
         {
+            if (!hasDrawnStains && !layer.second.isTileLayer())
+            {
+                m_blood.drawStains();
+                hasDrawnStains = true;
+            }
             layer.second.draw();
         }
+        if (!hasDrawnStains)
+            m_blood.drawStains();
         drawRemotePlayers();
         drawRemoteProjectiles();
+        m_blood.drawDroplets();
 
         const Font& worldFont = (m_font != nullptr) ? static_cast<const Font&>(*m_font) : GetFontDefault();
         for (const FloatingTextEntry& e : m_floatingTexts)

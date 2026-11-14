@@ -25,6 +25,7 @@ namespace ggj
 #include "../game/Minimap.h"
 #include "../enums/KeyboardKey.h"
 #include "../graphics/PhysicsObject.h"
+#include "../graphics/BloodSplatter.h"
 #include "../GalderGameJamLibrary.h"
 #include "ObjectGeneratorData.hpp"
 #include "../data/PlayerStats.hpp"
@@ -430,6 +431,7 @@ namespace ggj
         std::map<int32_t, PlayerStats> m_playerStats;
 
         std::vector<FloatingTextEntry> m_floatingTexts;
+        BloodSplatter m_blood { m_optionsManager };
         raylib::Font* m_font { nullptr };
         std::vector<DialogSpot> m_dialogSpots;
 

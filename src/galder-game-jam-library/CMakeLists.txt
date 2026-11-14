@@ -101,6 +101,10 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         interfaces/graphics/ITintShader.h
         interfaces/graphics/IPaletteSwapShader.h
         graphics/MaskRecolorShader.cpp
+        graphics/BloodSplatter.cpp
+        graphics/BloodSplatter.h
+        data/GraphicsOptions.hpp
+        interfaces/graphics/IBloodEmitter.h
         graphics/MaskRecolorShader.h
         interfaces/graphics/IMaskRecolorShader.h)
 

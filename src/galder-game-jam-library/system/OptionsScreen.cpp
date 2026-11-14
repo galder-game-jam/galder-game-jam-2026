@@ -17,6 +17,7 @@ namespace ggj
         m_rebindingAction = -1;
         m_localOptions = m_options.getAudioOptions();
         m_localHudOptions = m_options.getHudOptions();
+        m_localGraphicsOptions = m_options.getGraphicsOptions();
         m_localKeybindingOptions = m_options.getKeybindingOptions();
     }
 
@@ -92,6 +93,13 @@ namespace ggj
         hudChanged |= ImGui::Checkbox("Show Inventory##hud", &m_localHudOptions.showInventory);
         if (hudChanged)
             m_options.setHudOptions(m_localHudOptions);
+
+        ImGui::Spacing();
+        ImGui::TextUnformatted("Graphics");
+        ImGui::Separator();
+        if (ImGui::SliderInt("Blood##graphics", &m_localGraphicsOptions.bloodAmount, GraphicsOptions::MIN_BLOOD_AMOUNT, GraphicsOptions::MAX_BLOOD_AMOUNT,
+                             m_localGraphicsOptions.bloodAmount == GraphicsOptions::MAX_BLOOD_AMOUNT ? "%d (gorefest)" : "%d"))
+            m_options.setGraphicsOptions(m_localGraphicsOptions);
 
         ImGui::Spacing();
         ImGui::TextUnformatted("Keybindings");

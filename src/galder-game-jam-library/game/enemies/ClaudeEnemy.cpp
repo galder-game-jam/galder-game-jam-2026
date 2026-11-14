@@ -284,7 +284,11 @@ namespace ggj
 
         // Someone (maybe another peer) hit the boss on the host: flash like a local hit would.
         if (state.lives < m_lives && m_invulTimer <= 0.f)
+        {
             startInvulnerability();
+            // The hit happened on the host (or another peer): all that is known here is that it bled.
+            emitBlood({ 0.f, 0.f }, state.lives <= 0 ? KILL_BLOOD_STRENGTH : 1.f);
+        }
         m_lives = state.lives;
         m_targetPlayerId = state.targetPlayerId;
 
@@ -321,6 +325,7 @@ namespace ggj
             return;
 
         m_lives -= damage;
+        emitBloodFromAttacker(attacker, fromLeft, m_lives <= 0 ? KILL_BLOOD_STRENGTH : 1.f);
 
         if (m_body != nullptr)
             m_body->ApplyLinearImpulseToCenter({fromLeft ? -50.f : 50.f, 0.f}, true);

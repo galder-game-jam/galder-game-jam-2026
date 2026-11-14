@@ -42,6 +42,16 @@ namespace ggj
                 m_hudOptions = options;
             }
 
+            [[nodiscard]] const GraphicsOptions& getGraphicsOptions() const override
+            {
+                return m_graphicsOptions;
+            }
+
+            void setGraphicsOptions(const GraphicsOptions& options) override
+            {
+                m_graphicsOptions = options;
+            }
+
             [[nodiscard]] const KeybindingOptions& getKeybindingOptions() const override
             {
                 return m_keybindingOptions;
@@ -58,6 +68,7 @@ namespace ggj
 
             AudioOptions      m_audioOptions {};
             HudOptions        m_hudOptions {};
+            GraphicsOptions   m_graphicsOptions {};
             KeybindingOptions m_keybindingOptions {};
     };
 } // namespace ggj

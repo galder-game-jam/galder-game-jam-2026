@@ -254,7 +254,10 @@ namespace ggj
         m_soundManager.playSound(SoundName::PlayerHurt);
         m_world->decrementPlayerLives(m_playerIndex);
 
-        if (m_world->getPlayerLives(m_playerIndex) <= 0)
+        const bool isKill = m_world->getPlayerLives(m_playerIndex) <= 0;
+        emitBlood({ 0.f, 0.f }, isKill ? KILL_BLOOD_STRENGTH : 1.f); // The player doesn't know what hit them, so the blood goes every way.
+
+        if (isKill)
         {
             m_soundManager.playSound(SoundName::PlayerDeath);
             m_isDead = true;
