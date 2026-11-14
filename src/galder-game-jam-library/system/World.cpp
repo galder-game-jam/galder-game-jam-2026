@@ -151,12 +151,16 @@ namespace ggj
                                 generatorData.isBoss = value.getValue<bool>();
                             else if (key == "boss_name")
                                 generatorData.bossName = value.getValue<std::string>();
+                            else if (key == "idle_time")
+                                generatorData.idleTime = value.getValue<float>();
                             else if (key == "bomb_min_time")
                                 generatorData.bombMinTime = value.getValue<float>();
                             else if (key == "bomb_max_time")
                                 generatorData.bombMaxTime = value.getValue<float>();
                             else if (key == "bomb_spawn_idle_state_time")
                                 generatorData.bombSpawnIdleStateTime = value.getValue<float>();
+                            else if (key == "bomb_spawn_count")
+                                generatorData.bombSpawnCount = value.getValue<int>();
                         }
 
                         ObjectType objectType = (ObjectType)userdataObjectType;
@@ -1296,8 +1300,8 @@ namespace ggj
             return;
 
         constexpr float MAX_SPREAD_DEGREES = 25.f; ///< Max angle between a bomb's path and the line to its player.
-        constexpr float MIN_REACH = 0.6f;          ///< Shortest throw, as a fraction of the distance to the player.
-        constexpr float MAX_REACH = 1.3f;          ///< Longest throw (overshoots the player).
+        constexpr float MIN_REACH = 0.8f;          ///< Shortest throw, as a fraction of the distance to the player.
+        constexpr float MAX_REACH = 2.f;           ///< Longest throw: well past the player, so they roll through them.
         const auto randomBetween = [](float min, float max)
         {
             constexpr int32_t STEPS = 10000;
@@ -1460,8 +1464,8 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::ClaudeEnemy>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, this, m_paletteSwap,
-                    ClaudeBombConfig { generatorData.bombMinTime, generatorData.bombMaxTime, generatorData.bombSpawnIdleStateTime });
+                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, generatorData.idleTime, this, m_paletteSwap,
+                    ClaudeBombConfig { generatorData.bombMinTime, generatorData.bombMaxTime, generatorData.bombSpawnIdleStateTime, generatorData.bombSpawnCount });
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {

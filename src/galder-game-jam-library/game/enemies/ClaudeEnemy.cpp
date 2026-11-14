@@ -201,7 +201,7 @@ namespace ggj
     void ClaudeEnemy::throwBombs()
     {
         if (m_world != nullptr && isAuthority())
-            m_world->spawnBombs(getPosition(), BOMBS_PER_PLAYER, m_bombConfig.minFuseTime, m_bombConfig.maxFuseTime);
+            m_world->spawnBombs(getPosition(), m_bombConfig.bombsPerPlayer, m_bombConfig.minFuseTime, m_bombConfig.maxFuseTime);
     }
 
     void ClaudeEnemy::setBossState(ClaudeState newState)
