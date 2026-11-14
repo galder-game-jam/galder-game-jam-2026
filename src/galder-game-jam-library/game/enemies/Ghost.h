@@ -25,6 +25,8 @@ namespace ggj
               m_soundManager {soundManager}, m_velocity{velocity}
             {
                 m_lives = lives;
+                // The map only gives a 16x16 box at the feet; cover the visible cloud-mate instead.
+                resizeHitboxKeepingBottom(raylib::Vector2(26.f, 43.f));
                 m_body->SetFixedRotation(true);
                 m_animation = m_animationManager.getAnimation(AnimationName::EnemyGhostFly);
                 m_body->SetLinearVelocity({m_velocity.x, m_velocity.y});

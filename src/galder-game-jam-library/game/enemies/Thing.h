@@ -21,6 +21,8 @@ namespace ggj
                       m_soundManager {soundManager}, m_velocity{velocity}
             {
                 m_lives = lives;
+                // The map only gives a 16x16 box at the feet; cover the visible grass-dude instead.
+                resizeHitboxKeepingBottom(raylib::Vector2(24.f, 38.f));
                 m_body->SetGravityScale(1.f);
                 m_body->SetFixedRotation(true);
                 m_animation = m_animationManager.getAnimation(AnimationName::EnemyThingWalk);
