@@ -44,6 +44,13 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         network/LanBeacon.cpp
         managers/NetworkManager.cpp
         managers/NetworkManager.h
+        data/ChatMessage.hpp
+        data/ChatEntry.hpp
+        system/ChatText.hpp
+        system/ChatLog.cpp
+        system/ChatLog.h
+        game/ChatBox.cpp
+        game/ChatBox.h
         managers/ServerInfoMenu.hpp
         managers/MessagePopup.hpp
         game/projectiles/MageBall.hpp

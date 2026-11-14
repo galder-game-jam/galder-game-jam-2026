@@ -38,6 +38,14 @@ namespace ggj
             bool keysUpCode(const std::vector<int16_t> &keys) override;
 
             std::vector<int16_t> getScanCodeOfKeysPressed() override;
+
+            void setKeyboardCaptured(bool isCaptured) override;
+            [[nodiscard]] bool isKeyboardCaptured() const override;
+            bool textKeyPressed(KeyboardKey key) override;
+            std::vector<int32_t> takeCharsPressed() override;
+
+        private:
+            bool m_isKeyboardCaptured { false };
     };
 
 } // dev

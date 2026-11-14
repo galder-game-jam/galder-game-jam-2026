@@ -52,6 +52,7 @@ namespace ggj
         [[nodiscard]] ConnectionStatus status() const override;
         [[nodiscard]] uint32_t localPlayerId() const override { return m_localPlayerId; }
         [[nodiscard]] const std::string& localPlayerName() const override { return m_localName; }
+        [[nodiscard]] const raylib::Color& localPlayerNameColor() const override { return m_localNameColor; }
         [[nodiscard]] const std::string& serverName() const override { return m_serverName; }
         [[nodiscard]] std::string localIpAddress() const override { return m_cachedLocalIp; }
         [[nodiscard]] std::string publicIpAddress() const override { return m_cachedPublicIp; }
@@ -90,6 +91,9 @@ namespace ggj
 
         [[nodiscard]] std::vector<ConnectedPlayer> connectedPlayers() const override;
 
+        void sendChatMessage(const std::string& text) override;
+        [[nodiscard]] std::vector<ChatEntry> takeChatMessages() override;
+
         void startDiscovery() override { m_beacon.startListening(); }
         void stopDiscovery() override { m_beacon.stop(); }
         void pollDiscovery(float timeDelta) override { m_beacon.poll(timeDelta); }
@@ -110,6 +114,8 @@ namespace ggj
         /*! Clears per-world synced state; object ids restart on every map. */
         void clearWorldState();
         void sendProjectileEvent(NetMessageType type, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity);
+        /*! Queues a chat line for takeChatMessages(), dropping the oldest when nobody drains. */
+        void queueChatMessage(const ChatMessage& message);
         void queueProjectileEvent(NetMessageType type, uint32_t ownerId, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity);
 
         ILogger& m_logger;
@@ -146,6 +152,8 @@ namespace ggj
         std::vector<BombSpawnEvent> m_bombSpawns;             ///< Client: host bomb throws awaiting the World.
         std::vector<RootSpawnEvent> m_rootSpawns;             ///< Client: host root throws awaiting the World.
         static constexpr size_t MAX_QUEUED_WORLD_EVENTS = 256; ///< Guards against growth while no World drains.
+        std::vector<ChatEntry> m_chatMessages;                 ///< Chat lines awaiting the chat box.
+        static constexpr size_t MAX_QUEUED_CHAT_MESSAGES = 64; ///< Guards against growth while no chat box drains.
 
         // Shared progression
         static constexpr int32_t NO_STAGE = -1;

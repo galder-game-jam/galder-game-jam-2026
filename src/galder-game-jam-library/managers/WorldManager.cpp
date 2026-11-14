@@ -81,6 +81,11 @@ namespace ggj
             m_characterSelectScreen.initialize();
             m_characterSelectScreen.setFont(&m_font);
             m_talentScreen.setFont(&m_font);
+
+            m_regularFont.Load(m_resources.getResource(ResourceName::FontDroidSans), 64, nullptr, 250);
+            m_regularFont.GetTexture().GenMipmaps();
+            m_regularFont.GetTexture().SetFilter(TEXTURE_FILTER_BILINEAR);
+            m_chatBox.setFonts(&m_font, &m_regularFont);
         }
 
         return projectExists;
@@ -350,6 +355,10 @@ namespace ggj
             const bool isPlayerInDialog = m_worlds.count(m_currentStageIndex) > 0 && m_worlds[m_currentStageIndex]->getPlayer() != nullptr
                 && m_worlds[m_currentStageIndex]->getPlayer()->isInDialog();
 
+            // Before anything else reads the keyboard: while open, the chat captures it.
+            if (m_isNetplay)
+                m_chatBox.handleInput();
+
             if (m_input.keyPressed(KeyboardKey::Escape) && !isPlayerInDialog)
             {
                 m_inGameMenuActive = true;
@@ -476,6 +485,7 @@ namespace ggj
             m_network.setLocalPlayerAnimation(localPlayer->getPlayerState(), localPlayer->isFacingLeft());
         }
         m_network.poll(timeDelta);
+        m_chatBox.update(timeDelta);
 
         if (m_network.hasLostConnection())
         {
@@ -546,6 +556,7 @@ namespace ggj
             m_network.shutdown();
             m_isNetplay = false;
         }
+        m_chatBox.reset();
 
         m_connectionLostPopup.close();
         m_inGameMenuActive = false;
@@ -567,6 +578,7 @@ namespace ggj
     {
         m_logger.information(message);
         m_network.shutdown();
+        m_chatBox.close(); // Give the keyboard back, or the popup can't be dismissed.
         m_inGameMenuActive = false;
         m_talentScreenActive = false;
         m_optionsScreenActive = false;
@@ -608,6 +620,10 @@ namespace ggj
             {
                 m_worlds[m_currentStageIndex]->draw();
             }
+
+            // Under the menus, so they still cover it.
+            if (m_isNetplay)
+                m_chatBox.draw();
 
             if (m_inGameMenuActive)
             {

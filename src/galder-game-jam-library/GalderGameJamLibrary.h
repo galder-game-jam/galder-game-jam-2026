@@ -84,6 +84,11 @@
 #include "network/GalderServer.hpp"
 #include "interfaces/manager/INetworkManager.h"
 #include "managers/NetworkManager.h"
+#include "data/ChatMessage.hpp"
+#include "data/ChatEntry.hpp"
+#include "system/ChatText.hpp"
+#include "system/ChatLog.h"
+#include "game/ChatBox.h"
 
 //System
 #include "system/World.h"

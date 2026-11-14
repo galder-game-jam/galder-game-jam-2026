@@ -29,6 +29,8 @@ namespace ggj
 
     bool InputManager::keyPressedCode(int16_t key)
     {
+        if (m_isKeyboardCaptured)
+            return false;
         return IsKeyPressed(key);
     }
 
@@ -69,6 +71,8 @@ namespace ggj
 
     bool InputManager::keyReleasedCode(int16_t key)
     {
+        if (m_isKeyboardCaptured)
+            return false;
         return IsKeyReleased(key);
     }
 
@@ -110,6 +114,8 @@ namespace ggj
 
     bool InputManager::keyDownCode(int16_t key)
     {
+        if (m_isKeyboardCaptured)
+            return false;
         return IsKeyDown(key);
     }
 
@@ -150,6 +156,8 @@ namespace ggj
 
     bool InputManager::keyUpCode(int16_t key)
     {
+        if (m_isKeyboardCaptured)
+            return true;
         return IsKeyUp(key);
     }
 
@@ -175,7 +183,34 @@ namespace ggj
         {
             keys.push_back(key);
         }
+        // Still drained above, so presses typed into a text field don't surface once it lets go.
+        if (m_isKeyboardCaptured)
+            return {};
         return keys;
+    }
+
+    void InputManager::setKeyboardCaptured(bool isCaptured)
+    {
+        m_isKeyboardCaptured = isCaptured;
+    }
+
+    bool InputManager::isKeyboardCaptured() const
+    {
+        return m_isKeyboardCaptured;
+    }
+
+    bool InputManager::textKeyPressed(KeyboardKey key)
+    {
+        const int32_t code = static_cast<int32_t>(key);
+        return IsKeyPressed(code) || IsKeyPressedRepeat(code);
+    }
+
+    std::vector<int32_t> InputManager::takeCharsPressed()
+    {
+        std::vector<int32_t> codepoints;
+        while (const int32_t codepoint = GetCharPressed())
+            codepoints.push_back(codepoint);
+        return codepoints;
     }
 
 } // dev
