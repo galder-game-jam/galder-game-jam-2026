@@ -63,6 +63,7 @@ namespace ggj
         [[nodiscard]] bool isInDialog() const override { return m_inDialog; }
         std::string getDialogId() override { return m_currentDialogId; }
         void setHasFinishedDialog() override;
+        [[nodiscard]] const DialogSpot* getNearbyDialogSpot() const override { return m_nearbyDialogSpot; }
         [[nodiscard]] PlayerState getPlayerState() const override { return m_playerState; }
         [[nodiscard]] bool isFacingLeft() const override { return m_flip; }
 
@@ -103,6 +104,7 @@ namespace ggj
         std::vector<std::unique_ptr<Projectile>> m_projectiles {};
 
         bool m_inDialog {};
+        const DialogSpot* m_nearbyDialogSpot {};
         std::string m_currentDialogId;
 
         int m_previousKillCount { 0 };

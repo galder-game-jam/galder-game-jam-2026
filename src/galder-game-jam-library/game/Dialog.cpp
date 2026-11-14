@@ -6,6 +6,7 @@
 #include "../GalderGameJamLibrary.h"
 #include "../managers/DialogLoader.h"
 #include <algorithm>
+#include <cmath>
 #include <array>
 #include <cstdlib>
 
@@ -98,6 +99,8 @@ void ggj::Dialog::update(float timeDelta)
 
     if (m_currentPlayer->isInDialog())
     {
+        // The Space press that started the dialog must not also select a choice / close it on its first frame.
+        const bool wasOpen = m_draw;
         if (!m_draw)
         {
             m_dialogId = m_currentPlayer->getDialogId();
@@ -123,8 +126,33 @@ void ggj::Dialog::update(float timeDelta)
             }
         }
 
-        handleInputs(timeDelta);
+        if (wasOpen)
+            handleInputs(timeDelta);
     }
+}
+
+void ggj::Dialog::drawPrompt() const
+{
+    if (m_currentPlayer == nullptr || m_dialogTexture == nullptr || m_draw || m_currentPlayer->isInDialog())
+        return;
+
+    const DialogSpot* spot = m_currentPlayer->getNearbyDialogSpot();
+    if (spot == nullptr)
+        return;
+
+    constexpr float PULSE_SPEED = 6.0f;
+    constexpr float PULSE_SCALE_AMOUNT = 0.12f;
+    constexpr float HOVER_GAP = 6.0f; // Pixels between the NPC's head and the prompt
+
+    const float pulse = 0.5f + 0.5f * std::sin(static_cast<float>(GetTime()) * PULSE_SPEED); // 0..1
+    const float scale = 1.0f + PULSE_SCALE_AMOUNT * pulse;
+    const float width = m_dialogSpaceButtonRect.width * scale;
+    const float height = m_dialogSpaceButtonRect.height * scale;
+    const uint8_t alpha = static_cast<uint8_t>(190.0f + 65.0f * pulse);
+
+    // Anchor on the bottom-centre so the sprite grows upward/outward from a fixed spot above the NPC.
+    const raylib::Rectangle destination { spot->position.x - width / 2.0f, spot->position.y - spot->halfHeight - HOVER_GAP - height, width, height };
+    m_dialogTexture->Draw(m_dialogSpaceButtonRect, destination, raylib::Vector2 { 0.0f, 0.0f }, 0.0f, raylib::Color(255, 255, 255, alpha));
 }
 
 void ggj::Dialog::draw()

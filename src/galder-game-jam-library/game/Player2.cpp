@@ -55,6 +55,7 @@ namespace ggj
             m_previousKillCount = currentKills;
         }
 
+        m_nearbyDialogSpot = (!m_isDead && !m_inDialog) ? m_world->findDialogSpotNear(getPosition()) : nullptr;
         handleInputs(timeDelta);
         m_body->SetLinearVelocity({ m_velocity.x, m_velocity.y });
 
@@ -87,6 +88,16 @@ namespace ggj
         }
         if (m_inDialog)
         {
+            m_velocity = raylib::Vector2 { 0, 0 };
+            return;
+        }
+
+        // Space talks to a nearby NPC. Checked before attacking so the same press doesn't also swing/shoot.
+        if (m_nearbyDialogSpot != nullptr && m_inputManager.keyPressed(KeyboardKey::Space))
+        {
+            m_inDialog = true;
+            m_currentDialogId = m_nearbyDialogSpot->dialogId;
+            m_nearbyDialogSpot = nullptr;
             m_velocity = raylib::Vector2 { 0, 0 };
             return;
         }
@@ -234,11 +245,6 @@ namespace ggj
             m_world->addPlayerScore(m_playerIndex, 1);
             m_world->addPlayerXp(m_playerIndex, m_world->getXpConfig(m_playerIndex).xpPerCoin);
             m_world->spawnCoinFloatingText(getPosition());
-        }
-        if (b->getUserData()->getObjectType() == ObjectType::Dialog)
-        {
-            m_inDialog = true;
-            m_currentDialogId = b->getUserData()->getDialogId();
         }
     }
 
