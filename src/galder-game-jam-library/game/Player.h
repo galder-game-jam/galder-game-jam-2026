@@ -61,6 +61,8 @@ namespace ggj
         [[nodiscard]] int getTotalXp() const override;
         [[nodiscard]] int getXpToNextLevel() const override;
         [[nodiscard]] int getEnemiesKilled() const override;
+        [[nodiscard]] float getEnergy() const override { return m_energy; }
+        [[nodiscard]] float getMaxEnergy() const override { return MAX_ENERGY; }
         void restoreState(const PlayerPersistentState& state) override;
         Hitbox* getHitbox() override;
         [[nodiscard]] bool isInDialog() const override;
@@ -106,6 +108,11 @@ namespace ggj
         bool m_isAttacking { false };
         uint16_t m_attackFrames { 28 }; ///< How many frames an attack takes
         uint16_t m_attackCounter { 0 }; ///< Counts attack duration
+
+        static constexpr float MAX_ENERGY = 100.f;               ///< Energy cap (the HUD shows 10 energy per bar)
+        static constexpr float ENERGY_REGEN_PER_SECOND = 10.f;   ///< Energy regained every second
+        static constexpr float ATTACK_ENERGY_COST = 30.f;        ///< Energy spent per sword swing
+        float m_energy { MAX_ENERGY };
 
         bool m_inDialog {};
         const DialogSpot* m_nearbyDialogSpot {};

@@ -29,6 +29,8 @@ namespace ggj
         if (m_damageCooldown > 0.f)
             m_damageCooldown = std::max(0.f, m_damageCooldown - timeDelta);
 
+        m_energy = std::min(MAX_ENERGY, m_energy + ENERGY_REGEN_PER_SECOND * timeDelta);
+
         if (m_isDead)
         {
             setPlayerState(PlayerState::Dead);
@@ -87,6 +89,7 @@ namespace ggj
                 m_isDead = false;
                 m_world->resetPlayerLives(m_playerIndex);
                 m_damageCooldown = 0.f;
+                m_energy = MAX_ENERGY;
                 m_hitbox.setIsActive(true);
                 m_body->SetEnabled(true);
                 m_soundManager.playSound(SoundName::PlayerRespawn);
@@ -158,8 +161,9 @@ namespace ggj
             m_velocity = raylib::Vector2 { m_velocity.x, 0.f };
         }
 
-        if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking)
+        if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking && m_energy >= ATTACK_ENERGY_COST)
         {
+            m_energy -= ATTACK_ENERGY_COST;
             setPlayerState(PlayerState::AttackGrounded);
             m_isAttacking = true;
             m_attackCounter = 0;

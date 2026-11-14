@@ -53,6 +53,8 @@ namespace ggj
         [[nodiscard]] int getTotalXp() const override;
         [[nodiscard]] int getXpToNextLevel() const override;
         [[nodiscard]] int getEnemiesKilled() const override;
+        [[nodiscard]] float getEnergy() const override { return 0.f; }    ///< The Wizard uses cooldowns, not energy
+        [[nodiscard]] float getMaxEnergy() const override { return 0.f; }
         void restoreState(const PlayerPersistentState& state) override;
         /*!
          * The Wizard has no melee hitbox (balancing) — damage comes only from mage balls.
