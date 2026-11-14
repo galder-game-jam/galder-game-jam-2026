@@ -4,6 +4,8 @@
 
 #include "catch.hpp"
 #include "../../src/galder-game-jam-library/graphics/CharacterPalette.h"
+#include <algorithm>
+#include <random>
 
 using namespace ggj;
 
@@ -120,4 +122,40 @@ TEST_CASE("Mask recolor - None has nothing to recolour", "[palette]")
     const MaskRecolor recolor = CharacterPalette::BuildMaskRecolor(PlayerPickedCharacter::None, colors);
     for (const bool isRecolored : recolor.isRecolored)
         REQUIRE_FALSE(isRecolored);
+}
+
+TEST_CASE("Random colours - every slot is filled with a vivid, opaque colour", "[palette]")
+{
+    std::mt19937 generator { 1234 };
+    for (const PlayerPickedCharacter character : { PlayerPickedCharacter::Rogue, PlayerPickedCharacter::Wizard })
+    {
+        const size_t slotCount = CharacterPalette::GetSlots(character).size();
+        for (int32_t attempt = 0; attempt < 50; ++attempt)
+        {
+            const CharacterColors colors = CharacterPalette::GetRandomColors(character, generator);
+            for (size_t i = 0; i < slotCount; ++i)
+            {
+                const ::Color& color = colors.slots[i];
+                const unsigned char brightest = std::max({ color.r, color.g, color.b });
+                const unsigned char darkest = std::min({ color.r, color.g, color.b });
+                REQUIRE(color.a == 255);
+                REQUIRE(brightest >= 140); // value >= 0.55
+                REQUIRE(brightest - darkest >= 60); // saturation >= 0.45
+            }
+        }
+    }
+}
+
+TEST_CASE("Random colours - the same seed rolls the same colours and different seeds differ", "[palette]")
+{
+    std::mt19937 first { 7 };
+    std::mt19937 second { 7 };
+    std::mt19937 other { 8 };
+
+    const CharacterColors a = CharacterPalette::GetRandomColors(PlayerPickedCharacter::Rogue, first);
+    const CharacterColors b = CharacterPalette::GetRandomColors(PlayerPickedCharacter::Rogue, second);
+    const CharacterColors c = CharacterPalette::GetRandomColors(PlayerPickedCharacter::Rogue, other);
+
+    REQUIRE(isSameRgb(a.slots[0], b.slots[0]));
+    REQUIRE_FALSE(isSameRgb(a.slots[0], c.slots[0]));
 }
