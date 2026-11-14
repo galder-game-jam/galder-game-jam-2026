@@ -15,6 +15,7 @@
 #include "../../data/ClaudlingSpawnEvent.hpp"
 #include "../../data/EnemyDamageEvent.hpp"
 #include "../../data/BombSpawnEvent.hpp"
+#include "../../data/ChatEntry.hpp"
 #include "../../data/DiscoveredServer.hpp"
 #include "../../../gamedev-base/enums/ConnectionStatus.hpp"
 #include "raylib-cpp.hpp"
@@ -71,6 +72,7 @@ namespace ggj
         [[nodiscard]] virtual ConnectionStatus status() const = 0;
         [[nodiscard]] virtual uint32_t localPlayerId() const = 0;
         [[nodiscard]] virtual const std::string& localPlayerName() const = 0;
+        [[nodiscard]] virtual const raylib::Color& localPlayerNameColor() const = 0;
         [[nodiscard]] virtual const std::string& serverName() const = 0;
         [[nodiscard]] virtual std::string localIpAddress() const = 0;
         [[nodiscard]] virtual std::string publicIpAddress() const = 0;
@@ -206,6 +208,23 @@ namespace ggj
 
         /*! Host's view of all connected players (host + clients) for the ServerInfo window. Empty off-server. */
         [[nodiscard]] virtual std::vector<ConnectedPlayer> connectedPlayers() const = 0;
+
+        // --- Chat ---
+
+        /*!
+         * Sends a chat line from the local player to everyone in the session. The line is also
+         * queued for takeChatMessages(), so the sender sees their own message in the same place.
+         * Dropped while a client is not (yet) joined.
+         *
+         * @param text UTF-8 text; cut short to ChatMessage::MAX_TEXT_BYTES on a character boundary
+         */
+        virtual void sendChatMessage(const std::string& text) = 0;
+        /*!
+         * Drains the chat lines (own and remote) received since the last call.
+         *
+         * @return Lines in arrival order
+         */
+        [[nodiscard]] virtual std::vector<ChatEntry> takeChatMessages() = 0;
 
         // --- LAN discovery (Phase 3) ---
 

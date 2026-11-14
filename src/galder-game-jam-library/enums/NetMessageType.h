@@ -36,7 +36,10 @@ namespace ggj
         // --- Host-authoritative bosses ---
         ClaudlingSpawned, ///< Server -> Client: the boss spawned a Claudling (objectId, playerId = target).
         EnemyDamaged,     ///< Client -> Server: the client hit a boss (objectId, damage); the host applies it.
-        BombSpawned       ///< Server -> Client: the boss threw a bomb (position, velocity, fuseTime).
+        BombSpawned,      ///< Server -> Client: the boss threw a bomb (position, velocity, fuseTime).
+
+        // --- Social ---
+        Chat ///< Either direction: a chat line. Carried by ChatMessage, not the Client/ServerMessage envelopes.
     };
 } // namespace ggj
 

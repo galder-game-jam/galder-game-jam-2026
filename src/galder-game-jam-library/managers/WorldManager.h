@@ -18,6 +18,7 @@
 #include "../interfaces/manager/IOptionsManager.h"
 #include "ClientInfoMenu.hpp"
 #include "MessagePopup.hpp"
+#include "../game/ChatBox.h"
 
 namespace ggj
 {
@@ -38,7 +39,7 @@ namespace ggj
                          CharacterSelectScreen &characterSelectScreen, MainMenuScreen &mainMenuScreen,
                          NetplayScreen &netplayScreen, OptionsScreen &optionsScreen,
                          InGameMenuScreen &inGameMenuScreen, TalentScreen &talentScreen,
-                         IOptionsManager &optionsManager)
+                         IOptionsManager &optionsManager, ChatBox &chatBox)
                     : m_managers {managers}, m_logger{logger},  m_resources {managers.resources}, m_mapper{mapper},
                       m_textures{managers.textures}, m_window{window}, m_input{managers.input}, m_collisionManager {managers.collision},
                       m_debugManager{managers.debug}, m_animationManager{managers.animation}, m_userDataManager{managers.userData},
@@ -46,7 +47,7 @@ namespace ggj
                       m_hud {hud}, m_dialog {dialog}, m_characterSelectScreen {characterSelectScreen},
                       m_mainMenuScreen {mainMenuScreen}, m_netplayScreen {netplayScreen}, m_optionsScreen {optionsScreen},
                       m_inGameMenuScreen {inGameMenuScreen}, m_talentScreen {talentScreen}, m_network {managers.network},
-                      m_optionsManager {optionsManager}
+                      m_optionsManager {optionsManager}, m_chatBox {chatBox}
             {
 
             }
@@ -107,6 +108,7 @@ namespace ggj
             TalentScreen     &m_talentScreen;
             INetworkManager  &m_network;
             IOptionsManager  &m_optionsManager;
+            ChatBox          &m_chatBox;
 
             std::unique_ptr<tson::Project> m_project{nullptr};
 
@@ -125,7 +127,8 @@ namespace ggj
             MessagePopup m_connectionLostPopup {};
             PlayerPickedCharacter m_pickedCharacter { PlayerPickedCharacter::Rogue };
             CharacterColors m_pickedColors {};
-            raylib::Font m_font;
+            raylib::Font m_font;        ///< Bold; shared by the HUD and every screen.
+            raylib::Font m_regularFont; ///< Regular weight, for chat message text.
             //std::vector<std::unique_ptr<tson::Map>> m_maps;
 
     };
