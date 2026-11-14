@@ -117,9 +117,13 @@ namespace ggj
         add(ggj::ResourceName::HudRpgSubset, "graphics/hud/hudRpg_subset.png");
         add(ggj::ResourceName::HudRpgRoguePortrait, "graphics/portraits/rogue_hud.png");
         add(ggj::ResourceName::HudRpgWizardPortrait, "graphics/portraits/wizard_hud.png");
+        add(ggj::ResourceName::HudRpgRoguePortraitMask, "graphics/portraits/rogue_hud_mask.png");
+        add(ggj::ResourceName::HudRpgWizardPortraitMask, "graphics/portraits/wizard_hud_mask.png");
 
         add(ggj::ResourceName::CharacterSelectRoguePortrait, "graphics/portraits/character_select_rogue.png");
         add(ggj::ResourceName::CharacterSelectWizardPortrait, "graphics/portraits/character_select_wizard.png");
+        add(ggj::ResourceName::CharacterSelectRoguePortraitMask, "graphics/portraits/character_select_rogue_mask.png");
+        add(ggj::ResourceName::CharacterSelectWizardPortraitMask, "graphics/portraits/character_select_wizard_mask.png");
 
         add(ggj::ResourceName::GraphicsMainMenuBackground, "graphics/backgrounds/ggj-main-menu.png");
 
@@ -133,6 +137,7 @@ namespace ggj
 
         add(ggj::ResourceName::ShaderPaletteSwap, "shaders/palette_swap.fs");
         add(ggj::ResourceName::ShaderTint, "shaders/tint.fs");
+        add(ggj::ResourceName::ShaderMaskRecolor, "shaders/mask_recolor.fs");
 
         add(ggj::ResourceName::SoundCoinPickup, "audio/sfx/coin_pickup.wav");
         add(ggj::ResourceName::SoundEnemyDie, "audio/sfx/enemy_die.wav");

@@ -11,6 +11,7 @@
 #include "../enums/PlayerPickedCharacter.h"
 #include "../interfaces/game/IPlayer.h"
 #include "../interfaces/graphics/IPaletteSwapShader.h"
+#include "../interfaces/graphics/IMaskRecolorShader.h"
 #include "../data/CharacterColors.hpp"
 #include "../graphics/Animation.h"
 #include "../enums/AnimationName.h"
@@ -24,9 +25,9 @@ namespace ggj
         public:
             CharacterSelectScreen(IMapper &mapper, ggj::ITextureManager<TextureName, raylib::Texture> &textures,
                 IInputManager<KeyboardKey> &inputManager, IAnimationManager<Animation, AnimationName> &animations,
-                IPaletteSwapShader &paletteSwap)
+                IPaletteSwapShader &paletteSwap, IMaskRecolorShader &maskRecolor)
                 : m_mapper {mapper}, m_textures {textures}, m_inputManager {inputManager}, m_animations {animations},
-                  m_paletteSwap {paletteSwap}
+                  m_paletteSwap {paletteSwap}, m_maskRecolor {maskRecolor}
             {
                 m_isVisible = true;
             }
@@ -60,6 +61,8 @@ namespace ggj
         private:
             [[nodiscard]] CharacterColors& pickedColors();
             void renderPreview();
+            /*! Draws the big portrait of the selected character in the colours picked for it. */
+            void drawPortrait(const raylib::Vector2& position) const;
             void drawDialogBox(raylib::Vector2 offset, int width, int height, const raylib::Color &backgroundColor = raylib::Color(143, 86, 59, 255)) const;
 
             IMapper &m_mapper;
@@ -67,11 +70,14 @@ namespace ggj
             IInputManager<KeyboardKey> &m_inputManager;
             IAnimationManager<Animation, AnimationName> &m_animations;
             IPaletteSwapShader &m_paletteSwap;
+            IMaskRecolorShader &m_maskRecolor;
 
             raylib::Texture *m_hudTexture {nullptr};
             raylib::Texture *m_roguePortraitTexture {nullptr};
             raylib::Texture *m_wizardPortraitTexture {nullptr};
             raylib::Texture *m_currentPortraitTexture {nullptr};
+            raylib::Texture *m_roguePortraitMaskTexture {nullptr}; ///< Marks the recolourable parts of the portrait.
+            raylib::Texture *m_wizardPortraitMaskTexture {nullptr}; ///< Marks the recolourable parts of the portrait.
             raylib::Texture *m_rogueSpriteTexture {nullptr};
             raylib::Texture *m_wizardSpriteTexture {nullptr};
 

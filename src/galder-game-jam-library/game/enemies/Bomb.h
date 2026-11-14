@@ -6,6 +6,7 @@
 #define GGJ_BOMB_H
 
 #include "../../graphics/PhysicsSprite.h"
+#include "../../data/BombSpawnEvent.hpp"
 #include <cstdint>
 
 namespace ggj
@@ -15,7 +16,8 @@ namespace ggj
     /*!
      * A bomb King Claude throws in his enraged phase. It slides to a stop, ticks down its fuse
      * (frame and red tint advance with the timer) and then explodes, hurting any player within
-     * BLAST_RADIUS. Not an enemy: it cannot be hit and touching it is harmless.
+     * BLAST_RADIUS. Not an enemy: it cannot be hit and touching it is harmless. It bounces off
+     * walls but passes through players, enemies and other bombs.
      */
     class Bomb : public PhysicsSprite
     {
@@ -27,6 +29,21 @@ namespace ggj
         static constexpr float EXPLOSION_FRAME_DURATION = 0.04f;
         static constexpr float BLAST_RADIUS = 32.f;  ///< Pixels from the bomb centre (64px blast, matching the explosion frame).
         static constexpr float LINEAR_DAMPING = 3.f; ///< How quickly a thrown bomb slows down.
+        static constexpr float BODY_RADIUS = 12.f;   ///< Pixels; the part of the bomb that hits walls.
+        static constexpr float RESTITUTION = 0.8f;   ///< Share of its speed a bomb keeps when bouncing off a wall.
+
+        /*!
+         * Creates the physics body for a thrown bomb: a solid circle that only collides with
+         * terrain (see CollisionCategory), launched with the spawn velocity.
+         *
+         * Every peer builds its own bomb from the same BombSpawnEvent against the same static
+         * walls, so the bounce needs no extra network traffic.
+         *
+         * @param world Physics world to create the body in
+         * @param spawn Spawn position (pixels) and launch velocity (metres/s)
+         * @return The new body, owned by @p world
+         */
+        [[nodiscard]] static b2Body* CreateBody(b2World& world, const BombSpawnEvent& spawn);
 
         /*!
              * @param body Sensor body, already launched with its initial velocity

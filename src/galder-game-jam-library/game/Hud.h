@@ -11,6 +11,8 @@
 #include "../interfaces/game/IPlayer.h"
 #include "../enums/PlayerPickedCharacter.h"
 #include "../interfaces/manager/IOptionsManager.h"
+#include "../interfaces/graphics/IMaskRecolorShader.h"
+#include "../data/CharacterColors.hpp"
 
 namespace ggj
 {
@@ -20,8 +22,8 @@ namespace ggj
     {
         public:
             Hud(IMapper &mapper, ggj::ITextureManager<TextureName, raylib::Texture> &textures,
-                IInputManager<KeyboardKey> &inputManager, IOptionsManager &options)
-                : m_mapper {mapper}, m_textures {textures}, m_inputManager {inputManager}, m_options {options}
+                IInputManager<KeyboardKey> &inputManager, IOptionsManager &options, IMaskRecolorShader &maskRecolor)
+                : m_mapper {mapper}, m_textures {textures}, m_inputManager {inputManager}, m_options {options}, m_maskRecolor {maskRecolor}
             {
                 m_isVisible = true;
             }
@@ -32,7 +34,13 @@ namespace ggj
             void setPlayerNameColor(const raylib::Color& color) { m_playerNameColor = color; }
             void setWorld(World *world);
             void setMinimap(Minimap *minimap);
-            void setPickedCharacter(PlayerPickedCharacter character);
+            /*!
+             * Picks the portrait to show and recolours it to match the player's sprite.
+             *
+             * @param character The character the player picked
+             * @param colors The colours the player picked for that character
+             */
+            void setPickedCharacter(PlayerPickedCharacter character, const CharacterColors& colors);
             void rotate(float degrees) override;
             void scale(float scale) override;
             void move(const raylib::Vector2 &toMove) override;
@@ -56,9 +64,12 @@ namespace ggj
             ITextureManager<TextureName, raylib::Texture> &m_textures;
             IInputManager<KeyboardKey> &m_inputManager;
             IOptionsManager &m_options;
+            IMaskRecolorShader &m_maskRecolor;
 
             raylib::Texture *m_hudTexture {nullptr};
             raylib::Texture *m_playerPortraitTexture {nullptr};
+            raylib::Texture *m_playerPortraitMaskTexture {nullptr}; ///< Marks the recolourable parts of the portrait.
+            MaskRecolor m_playerPortraitRecolor {}; ///< Resolved from the picked colours; nothing recoloured by default.
 
             raylib::Font *m_font = nullptr;
 

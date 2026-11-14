@@ -26,6 +26,7 @@ auto buildInjector(ggj::ILogger& logger, raylib::Window& window)
         boost::di::bind<ggj::IIpAddressResolver>().to<ggj::IpAddressResolver>(), boost::di::bind<ggj::INetworkManager>().to<ggj::NetworkManager>().in(boost::di::singleton),
         boost::di::bind<ggj::PlayerPersistentState>().in(boost::di::singleton), boost::di::bind<ggj::IPaletteSwapShader>().to<ggj::PaletteSwapShader>().in(boost::di::singleton),
         boost::di::bind<ggj::ITintShader>().to<ggj::TintShader>().in(boost::di::singleton),
+        boost::di::bind<ggj::IMaskRecolorShader>().to<ggj::MaskRecolorShader>().in(boost::di::singleton),
 #ifdef GAME_DEV_DEBUG
         boost::di::bind<ggj::DebugState>().in(boost::di::singleton),
 #endif
@@ -45,6 +46,7 @@ struct App
     ggj::ISoundManager& sounds;
     ggj::IPaletteSwapShader& paletteSwapShader;
     ggj::ITintShader& tintShader;
+    ggj::IMaskRecolorShader& maskRecolorShader;
     raylib::Window& window;
 
     bool initialize()
@@ -53,9 +55,10 @@ struct App
         options.initialize();
         animations.initialize();
         sounds.initialize();
-        // Not fatal: without the shader the players are just drawn in their default colours.
+        // Not fatal: without the shaders the players and portraits are just drawn in their default colours.
         paletteSwapShader.initialize();
         tintShader.initialize();
+        maskRecolorShader.initialize();
 
         if (!game.initialize())
             return false;
