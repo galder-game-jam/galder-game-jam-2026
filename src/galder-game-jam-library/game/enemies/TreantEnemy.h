@@ -4,6 +4,7 @@
 #define GGJ_TREANTENEMY_H
 
 #include "../../graphics/PhysicsSprite.h"
+#include <optional>
 #include <vector>
 #include "../../managers/AnimationManager.h"
 #include "../../interfaces/system/IMapper.h"
@@ -59,6 +60,8 @@ namespace ggj
         void draw() override;
         void beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) override;
         void onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker, int32_t damage) override;
+        [[nodiscard]] EnemyNetworkState getNetworkState() const override;
+        void applyNetworkState(const EnemyNetworkState& state) override;
 
         private:
         void takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage);
@@ -122,11 +125,28 @@ namespace ggj
         [[nodiscard]] TreantPose computePose() const;
 
         /*!
-             * Unit vector from the treant towards the player.
-             *
-             * @return The direction, or a zero vector when there is no player or they are on top of the treant
-             */
-        [[nodiscard]] raylib::Vector2 directionToPlayer() const;
+         * Picks a random player to chase and charge. Avoids the previous target when someone else is
+         * around, so consecutive charges go for different players. Only the host decides; clients
+         * receive the choice through applyNetworkState().
+         */
+        void pickTarget();
+
+        /*! Whether this peer decides the treant's targets: offline or hosting. */
+        [[nodiscard]] bool isAuthority() const;
+
+        /*!
+         * Where the current target is.
+         *
+         * @return The target's position, or nothing when they have left (or there is no world to ask)
+         */
+        [[nodiscard]] std::optional<raylib::Vector2> targetPosition() const;
+
+        /*!
+         * Unit vector from the treant towards its current target.
+         *
+         * @return The direction, or a zero vector when there is no target or they are on top of the treant
+         */
+        [[nodiscard]] raylib::Vector2 directionToTarget() const;
         [[nodiscard]] bool isEnraged() const { return m_lives * 2 <= m_maxLives; }
 
         ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& m_animationManager;
@@ -143,7 +163,8 @@ namespace ggj
         World* m_world { nullptr };
         ITintShader& m_tintShader;
         TreantRootConfig m_rootConfig;
-        PhysicsObject* m_killer { nullptr }; ///< Whoever landed the killing blow; credited once the death throes end.
+        std::optional<uint32_t> m_targetPlayerId {}; ///< Network player id being chased and charged; empty until picked.
+        PhysicsObject* m_killer { nullptr };         ///< Whoever landed the killing blow; credited once the death throes end.
 
         TreantState m_state { TreantState::Idle };
         float m_stateTimer { IDLE_DURATION };

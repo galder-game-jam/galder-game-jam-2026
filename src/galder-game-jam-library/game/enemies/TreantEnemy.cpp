@@ -97,21 +97,72 @@ namespace ggj
 
     void TreantEnemy::move(const raylib::Vector2& toMove) {}
 
-    raylib::Vector2 TreantEnemy::directionToPlayer() const
+    bool TreantEnemy::isAuthority() const
     {
-        if (m_player == nullptr)
+        return m_world == nullptr || m_world->isEnemyAuthority();
+    }
+
+    void TreantEnemy::pickTarget()
+    {
+        std::vector<uint32_t> playerIds;
+        if (m_world != nullptr)
+            playerIds = m_world->getActivePlayerIds();
+        if (playerIds.empty())
+        {
+            m_targetPlayerId.reset();
+            return;
+        }
+
+        // Rotate to someone new: drop the previous target from the pool unless they are the only one left.
+        if (m_targetPlayerId.has_value() && playerIds.size() > 1)
+            std::erase(playerIds, *m_targetPlayerId);
+
+        m_targetPlayerId = playerIds[static_cast<size_t>(GetRandomValue(0, static_cast<int>(playerIds.size()) - 1))];
+    }
+
+    std::optional<raylib::Vector2> TreantEnemy::targetPosition() const
+    {
+        if (m_world != nullptr && m_targetPlayerId.has_value())
+        {
+            if (const std::optional<raylib::Vector2> position = m_world->getPlayerPosition(*m_targetPlayerId); position.has_value())
+                return position;
+        }
+
+        // No (valid) target picked: fall back to the local player so the treant never stands idle.
+        if (m_player != nullptr)
+            return m_player->getPosition();
+        return std::nullopt;
+    }
+
+    raylib::Vector2 TreantEnemy::directionToTarget() const
+    {
+        const std::optional<raylib::Vector2> target = targetPosition();
+        if (!target.has_value())
             return { 0.f, 0.f };
 
         const raylib::Vector2 myPos = getPosition();
-        const raylib::Vector2 target = m_player->getPosition();
-        const float dx = target.x - myPos.x;
-        const float dy = target.y - myPos.y;
+        const float dx = target->x - myPos.x;
+        const float dy = target->y - myPos.y;
         const float dist = std::sqrt(dx * dx + dy * dy);
 
         if (dist < 1.f)
             return { 0.f, 0.f };
 
         return { dx / dist, dy / dist };
+    }
+
+    EnemyNetworkState TreantEnemy::getNetworkState() const
+    {
+        EnemyNetworkState state = PhysicsSprite::getNetworkState();
+        state.targetPlayerId = m_targetPlayerId.value_or(0);
+        return state;
+    }
+
+    void TreantEnemy::applyNetworkState(const EnemyNetworkState& state)
+    {
+        PhysicsSprite::applyNetworkState(state);
+        // The client runs its own AI timing, but must wind up and charge at whoever the host chose.
+        m_targetPlayerId = state.targetPlayerId;
     }
 
     void TreantEnemy::faceTowards(const raylib::Vector2& direction)
@@ -199,7 +250,14 @@ namespace ggj
 
     void TreantEnemy::setState(TreantState newState)
     {
+        const TreantState previousState = m_state;
         m_state = newState;
+
+        // A fresh cycle picks who to chase (and so charge); a chained charge picks again for a different victim.
+        const bool isStartingCycle = newState == TreantState::Walk;
+        const bool isChainingCharge = newState == TreantState::Windup && previousState == TreantState::Charge;
+        if (isAuthority() && (isStartingCycle || isChainingCharge || !m_targetPlayerId.has_value()))
+            pickTarget();
 
         switch (newState)
         {
@@ -221,7 +279,7 @@ namespace ggj
                 m_stateTimer = CHARGE_DURATION;
                 m_tint = RED;
                 // Lock the direction now so a player who keeps moving can sidestep the charge.
-                m_chargeDirection = directionToPlayer();
+                m_chargeDirection = directionToTarget();
                 faceTowards(m_chargeDirection);
                 --m_chargesLeft;
                 break;
@@ -285,7 +343,7 @@ namespace ggj
 
             case TreantState::Walk:
             {
-                const raylib::Vector2 direction = steerAroundObstacles(directionToPlayer());
+                const raylib::Vector2 direction = steerAroundObstacles(directionToTarget());
                 faceTowards(direction);
                 velocity = { direction.x * m_followSpeed * speedMultiplier, direction.y * m_followSpeed * speedMultiplier };
                 if (m_stateTimer <= 0.f)
@@ -295,7 +353,7 @@ namespace ggj
 
             case TreantState::Windup:
                 // Keep tracking the player while rooted so the telegraph points at them.
-                faceTowards(directionToPlayer());
+                faceTowards(directionToTarget());
                 if (m_stateTimer <= 0.f)
                     setState(TreantState::Charge);
                 break;
@@ -326,7 +384,7 @@ namespace ggj
                 break;
 
             case TreantState::RootThrow:
-                faceTowards(directionToPlayer());
+                faceTowards(directionToTarget());
                 if (m_stateTimer <= 0.f)
                 {
                     throwRoots();
