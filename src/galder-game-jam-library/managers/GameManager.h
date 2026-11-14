@@ -47,7 +47,29 @@ namespace ggj
         void draw() override;
 
         private:
-        void render();
+        /*!
+         * Calculates where the frame goes in the window: the virtual screen scaled up as far as it
+         * fits while keeping its aspect ratio, centered, in whole pixels.
+         *
+         * @return The letterboxed area of the window, in window pixels
+         */
+        [[nodiscard]] raylib::Rectangle calculateViewport() const;
+
+        /*!
+         * (Re)creates the render texture when the window size has changed, so the frame is always
+         * rendered at the window's real resolution rather than stretched from the virtual one.
+         *
+         * @param width Wanted texture width in pixels
+         * @param height Wanted texture height in pixels
+         */
+        void ensureRenderTextureSize(int width, int height);
+
+        /*!
+         * Copies the finished frame onto the screen, then draws the debug overlay and ImGui on top.
+         *
+         * @param viewport Area of the window the frame is drawn to
+         */
+        void render(const raylib::Rectangle& viewport);
 
         raylib::Window& m_window;
         ILogger& m_logger;
@@ -59,7 +81,7 @@ namespace ggj
         PlayerPersistentState& m_persistentState;
         IOptionsManager& m_options;
         ISoundManager& m_sound;
-        raylib::Vector2 m_originalWindowSize;
+        raylib::Vector2 m_virtualSize; ///< Fixed screen size the game is laid out in, regardless of the window size.
         raylib::RenderTexture2D m_renderTexture;
 
         float m_lastTimeDelta {};

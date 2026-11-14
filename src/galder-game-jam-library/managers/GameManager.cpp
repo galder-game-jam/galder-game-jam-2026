@@ -4,8 +4,12 @@
 
 #include "GameManager.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include "rlImGui.h"
 #include "imgui.h"
+#include "rlgl.h"
 
 namespace
 {
@@ -53,8 +57,7 @@ bool ggj::GameManager::initialize()
         return false;
     }
 
-    m_originalWindowSize = raylib::Vector2((float)m_window.GetWidth(), (float)m_window.GetHeight());
-    m_renderTexture = raylib::RenderTexture((int)m_originalWindowSize.x, (int)m_originalWindowSize.y);
+    m_virtualSize = raylib::Vector2((float)m_window.GetWidth(), (float)m_window.GetHeight());
 
     rlImGuiSetup(true);
 
@@ -92,27 +95,58 @@ void ggj::GameManager::update(float timeDelta)
 
 void ggj::GameManager::draw()
 {
+    const raylib::Rectangle viewport = calculateViewport();
+    ensureRenderTextureSize(static_cast<int>(viewport.width), static_cast<int>(viewport.height));
+
     m_renderTexture.BeginMode();
+    // BeginTextureMode() sets up a projection matching the texture's pixel size. Replace it with one
+    // spanning the virtual screen, so everything keeps drawing in virtual coordinates while being
+    // rasterised at the window's real resolution. That keeps text crisp instead of being drawn at
+    // the virtual resolution and stretched afterwards. BeginMode2D()/EndMode2D() only touch the
+    // modelview matrix, so this holds for the whole frame.
+    rlMatrixMode(RL_PROJECTION);
+    rlLoadIdentity();
+    rlOrtho(0.0, static_cast<double>(m_virtualSize.x), static_cast<double>(m_virtualSize.y), 0.0, 0.0, 1.0);
+    rlMatrixMode(RL_MODELVIEW);
+    rlLoadIdentity();
+
     //drawTestStuff();
     m_worlds.draw();
     m_renderTexture.EndMode();
 
-    render();
+    render(viewport);
+}
+
+raylib::Rectangle ggj::GameManager::calculateViewport() const
+{
+    const float windowWidth = static_cast<float>(m_window.GetWidth());
+    const float windowHeight = static_cast<float>(m_window.GetHeight());
+    const float scale = std::min(windowWidth / m_virtualSize.x, windowHeight / m_virtualSize.y);
+
+    // Whole pixels, so the render texture maps 1:1 onto the screen without any resampling.
+    const float width = std::max(1.0f, std::round(m_virtualSize.x * scale));
+    const float height = std::max(1.0f, std::round(m_virtualSize.y * scale));
+    return raylib::Rectangle { std::floor((windowWidth - width) * 0.5f), std::floor((windowHeight - height) * 0.5f), width, height };
+}
+
+void ggj::GameManager::ensureRenderTextureSize(const int width, const int height)
+{
+    if (m_renderTexture.texture.id != 0 && m_renderTexture.texture.width == width && m_renderTexture.texture.height == height)
+        return;
+
+    m_renderTexture.Load(width, height);
 }
 
 /*!
- *  Makes anything drawn to the m_renderTexture get rendered on the screen and scaled with the screen size.
+ *  Copies the frame from m_renderTexture onto the screen, letterboxed into the window.
  */
-void ggj::GameManager::render()
+void ggj::GameManager::render(const raylib::Rectangle& viewport)
 {
-    float scale = std::min((float)m_window.GetWidth() / m_originalWindowSize.x, (float)m_window.GetHeight() / m_originalWindowSize.y);
     BeginDrawing();
     m_window.ClearBackground(BLACK);
-    DrawTexturePro(m_renderTexture.texture, raylib::Rectangle(0.0f, 0.0f, (float)m_renderTexture.texture.width, (float)-m_renderTexture.texture.height),
-                   raylib::Rectangle(((float)m_window.GetWidth() - ((float)m_originalWindowSize.x * scale)) * 0.5f,
-                                     ((float)m_window.GetHeight() - ((float)m_originalWindowSize.y * scale)) * 0.5f, (float)m_originalWindowSize.x * scale,
-                                     (float)m_originalWindowSize.y * scale),
-                   { 0, 0 }, 0.0f, WHITE);
+    // Render textures are stored upside down, hence the negative source height.
+    DrawTexturePro(m_renderTexture.texture, raylib::Rectangle(0.0f, 0.0f, (float)m_renderTexture.texture.width, (float)-m_renderTexture.texture.height), viewport, { 0, 0 }, 0.0f,
+                   WHITE);
     m_debugManager.draw();
 
     // Apply scale before rlImGuiBegin so the font scale is set before NewFrame() computes
