@@ -753,6 +753,18 @@ namespace ggj
         return markers;
     }
 
+    std::vector<MinimapMarker> World::getEnemyMarkers() const
+    {
+        std::vector<MinimapMarker> markers;
+        for (const auto& [id, obj] : m_networkObjects)
+        {
+            if (obj->getUserData()->getObjectType() != ObjectType::Enemy || obj->shouldBeDestroyed() || obj->getBody() == nullptr)
+                continue;
+            markers.push_back(MinimapMarker { PhysicsObject::ConvertToVector2(obj->getBody()->GetPosition()), raylib::Color { 255, 40, 40 }, false, true });
+        }
+        return markers;
+    }
+
     void World::notifyLocalPortalEntered()
     {
         if (m_network != nullptr && m_network->isActive())

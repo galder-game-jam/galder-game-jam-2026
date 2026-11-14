@@ -135,6 +135,11 @@ namespace ggj
         if (m_minimap != nullptr && m_options.getHudOptions().showMinimap)
         {
             std::vector<MinimapMarker> markers = m_currentWorld != nullptr ? m_currentWorld->getRemotePlayerMarkers() : std::vector<MinimapMarker> {};
+            if (m_currentWorld != nullptr)
+            {
+                const std::vector<MinimapMarker> enemyMarkers = m_currentWorld->getEnemyMarkers();
+                markers.insert(markers.end(), enemyMarkers.begin(), enemyMarkers.end());
+            }
             markers.push_back(MinimapMarker { m_playerPosition, m_playerNameColor, true });
             m_minimap->draw(markers, m_options.getHudOptions().hudAlpha);
 
