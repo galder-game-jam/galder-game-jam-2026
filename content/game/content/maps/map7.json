@@ -308,6 +308,16 @@
                          "value":10
                         }, 
                         {
+                         "name":"root_max_spike_delay",
+                         "type":"float",
+                         "value":0.2
+                        }, 
+                        {
+                         "name":"root_min_spike_delay",
+                         "type":"float",
+                         "value":0.4
+                        }, 
+                        {
                          "name":"sprite",
                          "type":"string",
                          "value":"treant.png"

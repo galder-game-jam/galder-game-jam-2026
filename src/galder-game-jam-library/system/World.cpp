@@ -169,6 +169,10 @@ namespace ggj
                                 generatorData.enragedRootCount = value.getValue<int>();
                             else if (key == "death_root_count")
                                 generatorData.deathRootCount = value.getValue<int>();
+                            else if (key == "root_min_spike_delay")
+                                generatorData.rootMinSpikeDelay = value.getValue<float>();
+                            else if (key == "root_max_spike_delay")
+                                generatorData.rootMaxSpikeDelay = value.getValue<float>();
                         }
 
                         ObjectType objectType = (ObjectType)userdataObjectType;
@@ -1527,7 +1531,7 @@ namespace ggj
         b2Body* body = m_world.CreateBody(&bodyDef);
 
         b2CircleShape circle;
-        circle.m_radius = TreantRoot::ROOT_RADIUS / PhysicsObject::PPM;
+        circle.m_radius = TreantRoot::HIT_RADIUS / PhysicsObject::PPM; // Matches the damage check, so "show hitboxes" is honest.
         b2FixtureDef fd;
         fd.shape = &circle;
         fd.density = 1.0f;
@@ -1681,7 +1685,8 @@ namespace ggj
                     raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
                     spriteSize, r, tex, generatorData.userData, generatorData.lives,
                     generatorData.followSpeed, generatorData.knockback, m_player, this, m_tintShader,
-                    TreantRootConfig { generatorData.rootCount, generatorData.enragedRootCount, generatorData.deathRootCount });
+                    TreantRootConfig { generatorData.rootCount, generatorData.enragedRootCount, generatorData.deathRootCount,
+                                       SpikeDelayRange { generatorData.rootMinSpikeDelay, generatorData.rootMaxSpikeDelay } });
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {

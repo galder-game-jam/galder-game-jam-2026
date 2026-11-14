@@ -165,7 +165,7 @@ namespace ggj
                         continue;
 
                     landings.push_back(landing);
-                    m_world->spawnTreantRoot(getPosition(), landing, ROOT_FLIGHT_DURATION, randomRange(ROOT_MIN_SPIKE_DELAY, ROOT_MAX_SPIKE_DELAY));
+                    m_world->spawnTreantRoot(getPosition(), landing, ROOT_FLIGHT_DURATION, randomRange(m_rootConfig.spikeDelay.min, m_rootConfig.spikeDelay.max));
                     break;
                 }
             }
@@ -186,8 +186,8 @@ namespace ggj
     void TreantEnemy::die()
     {
         if (m_world != nullptr)
-            m_world->spawnTreantRootsAcrossMap(getPosition(), m_rootConfig.deathRootCount, DEATH_ROOT_MIN_FLIGHT, DEATH_ROOT_MAX_FLIGHT, ROOT_MIN_SPIKE_DELAY,
-                                               ROOT_MAX_SPIKE_DELAY);
+            m_world->spawnTreantRootsAcrossMap(getPosition(), m_rootConfig.deathRootCount, DEATH_ROOT_MIN_FLIGHT, DEATH_ROOT_MAX_FLIGHT, m_rootConfig.spikeDelay.min,
+                                               m_rootConfig.spikeDelay.max);
 
         m_soundManager.playSound(SoundName::EnemyDie);
         destroy();

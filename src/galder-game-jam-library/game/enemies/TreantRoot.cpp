@@ -19,7 +19,7 @@ namespace ggj
     } // namespace
 
     TreantRoot::TreantRoot(b2Body* body, const UserData& userData, const raylib::Vector2& target, float flightTime, float spikeDelay, World* world)
-        : PhysicsObject(body, { ROOT_RADIUS, ROOT_RADIUS }, PhysicsShape::Circle, userData), m_target { target }, m_world { world }, m_flightTime { std::max(flightTime, 0.01f) },
+        : PhysicsObject(body, { HIT_RADIUS, HIT_RADIUS }, PhysicsShape::Circle, userData), m_target { target }, m_world { world }, m_flightTime { std::max(flightTime, 0.01f) },
           m_spikeDelay { std::max(spikeDelay, 0.f) }
     {
         m_body->SetFixedRotation(true);
@@ -89,7 +89,7 @@ namespace ggj
 
         // Every peer runs its own copy and only hurts its own player, like bombs do.
         if (m_world != nullptr)
-            m_world->damageLocalPlayerWithin(m_target, ROOT_RADIUS);
+            m_world->damageLocalPlayerWithin(m_target, HIT_RADIUS);
     }
 
     void TreantRoot::draw()
@@ -157,7 +157,7 @@ namespace ggj
             const float progress = m_spikeDelay > 0.f ? std::clamp(m_elapsed / m_spikeDelay, 0.f, 1.f) : 1.f;
             const float pulse = 0.5f + 0.5f * std::sin(m_elapsed * (6.f + 18.f * progress));
             const float alpha = 0.25f + 0.45f * progress + 0.3f * pulse * progress;
-            DrawEllipseLines(static_cast<int>(x), static_cast<int>(y), ROOT_RADIUS, ROOT_RADIUS * 0.6f, Fade(WARNING_COLOR, std::min(alpha, 1.f)));
+            DrawEllipseLines(static_cast<int>(x), static_cast<int>(y), HIT_RADIUS, HIT_RADIUS * 0.6f, Fade(WARNING_COLOR, std::min(alpha, 1.f)));
         }
     }
 

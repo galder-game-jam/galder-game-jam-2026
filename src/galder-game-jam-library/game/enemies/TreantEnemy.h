@@ -168,9 +168,9 @@ namespace ggj
         static constexpr float WALK_MIN_DURATION = 2.f;
         static constexpr float WALK_MAX_DURATION = 4.f;
         static constexpr float CHARGE_CHANCE = 0.4f; ///< Odds a chase ends in a charge; the rest is split between roots and a pause.
-        static constexpr float ROOT_CHANCE = 0.35f;
-        static constexpr float ENRAGED_CHARGE_CHANCE = 0.5f;
-        static constexpr float ENRAGED_ROOT_CHANCE = 0.4f;
+        static constexpr float ROOT_CHANCE = 0.4f;
+        static constexpr float ENRAGED_CHARGE_CHANCE = 0.45f;
+        static constexpr float ENRAGED_ROOT_CHANCE = 0.45f;
 
         static constexpr float ROOT_WINDUP_DURATION = 0.8f;
         static constexpr float ENRAGED_ROOT_WINDUP_DURATION = 0.55f;
@@ -178,8 +178,6 @@ namespace ggj
         static constexpr float DEATH_ROOT_MIN_FLIGHT = 0.6f; ///< Death roots fly for different times so they rain down in a spread.
         static constexpr float DEATH_ROOT_MAX_FLIGHT = 1.4f;
         static constexpr float ROOT_FLIGHT_DURATION = 0.5f;
-        static constexpr float ROOT_MIN_SPIKE_DELAY = 1.f; ///< Seconds between a root landing and spiking.
-        static constexpr float ROOT_MAX_SPIKE_DELAY = 2.f;
         static constexpr float ROOT_MIN_SCATTER = 70.f; ///< Pixels from a player the extra roots land at.
         static constexpr float ROOT_MAX_SCATTER = 220.f;
         static constexpr float ROOT_MIN_SPACING = 64.f; ///< Pixels between roots; a bit more than a root's diameter.

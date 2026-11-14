@@ -42,6 +42,8 @@ namespace ggj
         int rootCount { 3 };
         int enragedRootCount { 5 };
         int deathRootCount { 60 };
+        float rootMinSpikeDelay { 1.f };
+        float rootMaxSpikeDelay { 2.f };
 
         int layerIndex{};
         tson::Object obj{};

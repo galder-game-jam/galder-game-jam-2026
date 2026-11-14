@@ -16,7 +16,8 @@ namespace ggj
     class TreantRoot : public PhysicsObject
     {
         public:
-        static constexpr float ROOT_RADIUS = 28.f; ///< Pixels; the area a player must stand in to be spiked.
+        static constexpr float ROOT_RADIUS = 28.f; ///< Pixels; how big the root looks lying on the ground.
+        static constexpr float HIT_RADIUS = 20.f;  ///< Pixels; the area a player must stand in to be spiked. A bit smaller than the root looks, to be forgiving.
         static constexpr float ARC_HEIGHT = 70.f;  ///< Pixels the thrown root rises above the ground at the top of its arc.
         static constexpr float LANDING_SQUASH_DURATION = 0.2f;
         static constexpr float SPIKE_RISE_DURATION = 0.12f; ///< Spikes shoot up fast...
