@@ -641,16 +641,41 @@ namespace ggj
                 continue;
 
             PhysicsObject* enemy = found->second;
-            enemy->onNetworkDamage(hit.damage);
-            if (!enemy->shouldBeDestroyed())
-                continue;
+            enemy->onNetworkDamage(hit.damage, hit.attackerPlayerId);
+            // Enemies that die on the spot; the boss dies later and credits the kill itself.
+            if (enemy->shouldBeDestroyed())
+                creditRemoteKill(*enemy, hit.attackerPlayerId);
+        }
+    }
 
-            // The client landed the killing blow: credit them rather than the host. Drop the
-            // object from the registry now, since it is freed before the next prune pass.
-            m_reportedDestroyed.insert(hit.objectId);
-            m_network->notifyEnemyKilledByRemote(hit.objectId, hit.attackerPlayerId);
-            m_networkObjects.erase(found);
-            ++m_networkRemovedEnemyCount;
+    void World::creditRemoteKill(const PhysicsObject& enemy, uint32_t killerPlayerId)
+    {
+        const uint32_t id = enemy.getNetworkId();
+        if (m_network == nullptr || !m_network->isActive() || id == 0 || m_reportedDestroyed.count(id) > 0)
+            return;
+
+        // Drop the object from the registry now, since it is freed before the next prune pass.
+        m_reportedDestroyed.insert(id);
+        m_network->notifyEnemyKilledByRemote(id, killerPlayerId);
+        m_networkObjects.erase(id);
+        ++m_networkRemovedEnemyCount;
+    }
+
+    void World::spawnBombRing(raylib::Vector2 center, int32_t count, float ringRadius, float slideDistance, float minFuseTime, float maxFuseTime)
+    {
+        if (!isEnemyAuthority() || count <= 0)
+            return;
+
+        // With linear damping d a body launched at speed v slides about v / d before stopping.
+        const float speed = Bomb::LINEAR_DAMPING * slideDistance / PhysicsObject::PPM;
+        for (int32_t i = 0; i < count; ++i)
+        {
+            const float angle = 2.f * std::numbers::pi_v<float> * static_cast<float>(i) / static_cast<float>(count);
+            const float dirX = std::cos(angle);
+            const float dirY = std::sin(angle);
+            const raylib::Vector2 position { center.x + dirX * ringRadius, center.y + dirY * ringRadius };
+            const float fuse = minFuseTime + (maxFuseTime - minFuseTime) * static_cast<float>(GetRandomValue(0, 10000)) / 10000.f;
+            m_pendingBombSpawns.push_back(BombSpawnEvent { position, raylib::Vector2 { dirX * speed, dirY * speed }, fuse });
         }
     }
 

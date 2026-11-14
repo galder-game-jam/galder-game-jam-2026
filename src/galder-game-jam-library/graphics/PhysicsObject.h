@@ -103,8 +103,9 @@ namespace ggj
          * (bosses) report hits, so the default ignores them.
          *
          * @param damage Lives to remove
+         * @param attackerPlayerId Network player id of the client that hit it (for kill credit)
          */
-        virtual void onNetworkDamage(int32_t damage) {}
+        virtual void onNetworkDamage(int32_t damage, uint32_t attackerPlayerId) {}
 
         //Static helpers
         static constexpr float PPM = 30.f;

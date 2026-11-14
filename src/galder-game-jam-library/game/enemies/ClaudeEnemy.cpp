@@ -39,15 +39,20 @@ namespace ggj
             m_transformElapsed = std::min(m_transformElapsed + timeDelta, TRANSFORM_DURATION);
 
         // Boss AI. Only the host rolls states; clients get theirs through applyNetworkState().
+        // A dying boss always finishes dying, even with the AI switched off for testing.
+        if (isAuthority() && (!m_isSittingDuck || m_bossState == ClaudeState::Dying))
+        {
+            m_stateTimer -= timeDelta;
+            if (m_stateTimer <= 0.f)
+            {
+                finishState();
+                if (shouldBeDestroyed())
+                    return;
+            }
+        }
+
         if (!m_isSittingDuck)
         {
-            if (isAuthority())
-            {
-                m_stateTimer -= timeDelta;
-                if (m_stateTimer <= 0.f)
-                    finishState();
-            }
-
             const std::optional<raylib::Vector2> target = (m_bossState == ClaudeState::Walk && m_world != nullptr) ? m_world->getPlayerPosition(m_targetPlayerId) : std::nullopt;
             // The chased player left mid-walk: go after someone else.
             if (m_bossState == ClaudeState::Walk && !target.has_value() && isAuthority())
@@ -157,10 +162,28 @@ namespace ggj
             case ClaudeState::BombLaunch:
                 throwBombs();
                 break;
+            case ClaudeState::Dying:
+                die();
+                return;
             default:
                 break;
         }
         rollNextState();
+    }
+
+    void ClaudeEnemy::die()
+    {
+        m_soundManager.playSound(SoundName::EnemyDie);
+        if (m_world != nullptr)
+            m_world->spawnBombRing(getPosition(), DEATH_BOMB_COUNT, DEATH_BOMB_RING_RADIUS, DEATH_BOMB_SLIDE, m_bombConfig.minFuseTime, m_bombConfig.maxFuseTime);
+
+        destroy();
+        if (m_killer != nullptr)
+            ++m_killer->getUserData()->enemiesKilled;
+        else if (m_remoteKillerId.has_value() && m_world != nullptr)
+            m_world->creditRemoteKill(*this, *m_remoteKillerId);
+        if (m_world != nullptr)
+            m_world->clearBoss();
     }
 
     void ClaudeEnemy::rollNextState()
@@ -206,6 +229,10 @@ namespace ggj
             case ClaudeState::BombLaunch:
                 m_animation = m_attackAnimation;
                 m_stateTimer = m_bombConfig.launchWindupTime;
+                break;
+            case ClaudeState::Dying:
+                m_animation = m_idleAnimation;
+                m_stateTimer = DEATH_DURATION;
                 break;
             case ClaudeState::Walk:
                 m_animation = m_walkAnimation;
@@ -269,17 +296,17 @@ namespace ggj
         }
     }
 
-    void ClaudeEnemy::onNetworkDamage(int32_t damage)
+    void ClaudeEnemy::onNetworkDamage(int32_t damage, uint32_t attackerPlayerId)
     {
         // The attacker lives on a client, which gets the kill credit through the network instead.
-        takeDamage(&m_soundManager, nullptr, false, damage);
+        takeDamage(&m_soundManager, nullptr, false, damage, attackerPlayerId);
     }
 
-    void ClaudeEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage)
+    void ClaudeEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage, std::optional<uint32_t> remoteAttackerId)
     {
-        // Already dead (waiting for removal): don't count the boss kill a second time.
+        // Already dead or dying: don't count the boss kill a second time.
         // Invulnerable while transforming, on every peer.
-        if (shouldBeDestroyed() || m_bossState == ClaudeState::Transform)
+        if (shouldBeDestroyed() || m_bossState == ClaudeState::Transform || m_bossState == ClaudeState::Dying)
             return;
 
         // The host owns the boss's health. Send the hit there; the lives it syncs back drive the
@@ -300,13 +327,12 @@ namespace ggj
 
         if (m_lives <= 0)
         {
-            if (soundManager != nullptr)
-                soundManager->playSound(SoundName::EnemyDie);
-            destroy();
-            if (attacker != nullptr)
-                attacker->getUserData()->enemiesKilled++;
-            if (m_world != nullptr)
-                m_world->clearBoss();
+            // Hold the death for a dramatic shake; die() credits whoever landed this blow.
+            m_lives = 0;
+            m_killer = attacker;
+            m_remoteKillerId = remoteAttackerId;
+            startInvulnerability();
+            setBossState(ClaudeState::Dying);
         }
         else
         {

@@ -10,6 +10,7 @@
 #include "../../enums/SoundName.h"
 #include "../../interfaces/graphics/IPaletteSwapShader.h"
 #include "../../data/ClaudeBombConfig.hpp"
+#include <optional>
 
 namespace ggj
 {
@@ -22,9 +23,10 @@ namespace ggj
         Walk,
         Attack,
         Transform, ///< One-off enrage at half health: invulnerable, shaking, recolouring; ends with a bomb throw.
-        BombLaunch ///< Enraged only: shakes for a while, then throws bombs at every player.
+        BombLaunch, ///< Enraged only: shakes for a while, then throws bombs at every player.
+        Dying       ///< Out of lives: invulnerable and shaking, then dies in a ring of bombs.
     };
-    constexpr uint8_t CLAUDE_STATE_COUNT = 5;
+    constexpr uint8_t CLAUDE_STATE_COUNT = 6;
 
     /*!
      * The "King Claude" boss. On the host (or offline) it rolls a new state every few seconds:
@@ -61,7 +63,7 @@ namespace ggj
 
             [[nodiscard]] EnemyNetworkState getNetworkState() const override;
             void applyNetworkState(const EnemyNetworkState& state) override;
-            void onNetworkDamage(int32_t damage) override;
+            void onNetworkDamage(int32_t damage, uint32_t attackerPlayerId) override;
 
             /*!
              * Colour swap for the enrage: the orange body fades to near-black and the black eyes to red.
@@ -77,7 +79,15 @@ namespace ggj
             static constexpr ::Color ENRAGED_EYE_COLOR { 220, 30, 30, 255 };
 
         private:
-            void takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage);
+            /*!
+             * Applies a hit (host/offline) or forwards it to the host (client).
+             *
+             * @param attacker Local player that hit, for kill credit; nullptr for a remote hit
+             * @param remoteAttackerId Network player id of a client's hit, for kill credit
+             */
+            void takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage, std::optional<uint32_t> remoteAttackerId = std::nullopt);
+            /*! Host: the death shake is over. Throws the bomb ring and removes the boss. */
+            void die();
             void setBossState(ClaudeState newState);
             /*! Host: the current state's timer ran out. Throws bombs if due, then moves on. */
             void finishState();
@@ -86,7 +96,7 @@ namespace ggj
             void throwBombs();
             /*! How far the enrage recolour has come: 0 before, rising during Transform, 1 after. */
             [[nodiscard]] float getEnrageProgress() const;
-            [[nodiscard]] bool isShaking() const { return m_bossState == ClaudeState::Transform || m_bossState == ClaudeState::BombLaunch; }
+            [[nodiscard]] bool isShaking() const { return m_bossState == ClaudeState::Transform || m_bossState == ClaudeState::BombLaunch || m_bossState == ClaudeState::Dying; }
             /*! Picks a random player in the session to chase. Host/offline only. */
             void pickTarget();
             /*! Starts the post-hit invulnerability window and its sprite flashing. */
@@ -104,17 +114,17 @@ namespace ggj
             Animation m_animation;
 
             float m_followSpeed { 0.f };
-            float m_knockback   { 0.f };
+            float m_knockback { 0.f };
 
-            World*   m_world  { nullptr };
+            World* m_world { nullptr };
             uint32_t m_targetPlayerId { 0 }; ///< Network player id chased in ClaudeState::Walk.
             ClaudeBombConfig m_bombConfig {};
             int32_t m_maxLives { 1 };
 
             // Boss state machine
-            bool       m_isSittingDuck  { false };  ///< Force Idle for testing; set to true to disable AI.
-            ClaudeState m_bossState     { ClaudeState::Idle };
-            float m_stateTimer          { 2.5f };
+            bool m_isSittingDuck { false }; ///< Force Idle for testing; set to true to disable AI.
+            ClaudeState m_bossState { ClaudeState::Idle };
+            float m_stateTimer { 2.5f };
             float m_stateInterval { 2.5f }; ///< Seconds between state rolls; shortened once enraged.
 
             // Enrage (half health) + bombs
@@ -125,6 +135,14 @@ namespace ggj
             static constexpr int32_t BOMBS_PER_PLAYER = 3;
             static constexpr float ENRAGED_INTERVAL_FACTOR = 0.75f; ///< Enraged state rolls come 25% sooner.
             static constexpr float SHAKE_AMPLITUDE = 3.f;           ///< Pixels.
+
+            // Death
+            PhysicsObject* m_killer { nullptr };         ///< Local player that landed the killing blow.
+            std::optional<uint32_t> m_remoteKillerId {}; ///< Client that landed it, when it was remote.
+            static constexpr float DEATH_DURATION = 3.f; ///< Shaking between the killing blow and the death.
+            static constexpr int32_t DEATH_BOMB_COUNT = 8;
+            static constexpr float DEATH_BOMB_RING_RADIUS = 40.f; ///< Pixels from the boss centre.
+            static constexpr float DEATH_BOMB_SLIDE = 40.f;       ///< Pixels each bomb slides outwards.
 
             // Invulnerability + flash
             float m_invulTimer { 0.f };

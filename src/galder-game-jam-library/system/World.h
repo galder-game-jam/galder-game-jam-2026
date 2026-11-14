@@ -99,6 +99,28 @@ namespace ggj
          */
         void reportEnemyDamage(const PhysicsObject& enemy, int32_t damage);
 
+        /*!
+         * Host: a networked enemy died from a client's hit. Removes it everywhere and credits the
+         * kill to that client instead of the host. Call right after destroying the enemy.
+         *
+         * @param enemy The enemy that just died
+         * @param killerPlayerId Network player id of the client that landed the killing blow
+         */
+        void creditRemoteKill(const PhysicsObject& enemy, uint32_t killerPlayerId);
+
+        /*!
+         * Queues @p count bombs evenly spaced on a circle around @p center, each pushed gently
+         * outwards. Host/offline only, like spawnBombs().
+         *
+         * @param center Circle centre (pixels)
+         * @param count Number of bombs
+         * @param ringRadius Distance from @p center each bomb starts at (pixels)
+         * @param slideDistance How far each bomb slides outwards before stopping (pixels)
+         * @param minFuseTime Shortest fuse in seconds
+         * @param maxFuseTime Longest fuse in seconds
+         */
+        void spawnBombRing(raylib::Vector2 center, int32_t count, float ringRadius, float slideDistance, float minFuseTime, float maxFuseTime);
+
         /*! Called by the Portal when the local player walks in, so netplay peers follow through it. */
         void notifyLocalPortalEntered();
         [[nodiscard]] int getEnemies() const;
