@@ -28,6 +28,9 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         data/DiscoveredServer.hpp
         data/EnemyNetworkState.hpp
         data/ProjectileEvent.hpp
+        data/ClaudlingSpawnEvent.hpp
+        data/EnemyDamageEvent.hpp
+        interfaces/game/IPlayerLocator.h
         enums/NetMessageType.h
         enums/NetworkRole.h
         interfaces/manager/INetworkManager.h

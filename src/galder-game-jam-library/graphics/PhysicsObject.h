@@ -10,6 +10,7 @@
 #include "../enums/PhysicsShape.h"
 #include "../../gamedev-base/GameDevBase.h"
 #include "../system/UserData.hpp"
+#include "../data/EnemyNetworkState.hpp"
 
 namespace ggj
 {
@@ -77,6 +78,33 @@ namespace ggj
         [[nodiscard]] virtual bool isFlipped() const { return false; }
         /*! Overrides the sprite mirroring, e.g. with the host's authoritative facing. */
         virtual void setFlipped(bool isFlipped) {}
+
+        /*!
+         * The state the host publishes for this object. Override to sync more than position and
+         * facing, e.g. a boss's lives and AI state.
+         *
+         * @return Authoritative state to send to clients
+         */
+        [[nodiscard]] virtual EnemyNetworkState getNetworkState() const { return EnemyNetworkState { getPosition(), isFlipped(), m_lives }; }
+
+        /*!
+         * Client: overwrites this object's locally simulated state with the host's.
+         *
+         * @param state Latest state published by the host
+         */
+        virtual void applyNetworkState(const EnemyNetworkState& state)
+        {
+            setNetworkPosition(state.position);
+            setFlipped(state.isFlipped);
+        }
+
+        /*!
+         * Host: applies a hit a client reported on this object. Only host-authoritative enemies
+         * (bosses) report hits, so the default ignores them.
+         *
+         * @param damage Lives to remove
+         */
+        virtual void onNetworkDamage(int32_t damage) {}
 
         //Static helpers
         static constexpr float PPM = 30.f;

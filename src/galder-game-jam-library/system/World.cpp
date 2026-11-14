@@ -561,16 +561,100 @@ namespace ggj
             registerNetworkObject(m_userDataManager.getUserData(body));
     }
 
-    void World::registerNetworkObject(PhysicsObject* obj)
+    uint32_t World::registerNetworkObject(PhysicsObject* obj, uint32_t networkId)
     {
         if (obj == nullptr)
-            return;
+            return 0;
 
-        const uint32_t id = m_nextNetworkId++;
+        const uint32_t id = networkId != 0 ? networkId : m_nextNetworkId;
+        m_nextNetworkId = std::max(m_nextNetworkId, id + 1);
         obj->setNetworkId(id);
         m_networkObjects[id] = obj;
         if (obj->getBody() != nullptr)
             m_networkObjectSpawns[id] = PhysicsObject::ConvertToVector2(obj->getBody()->GetPosition());
+        return id;
+    }
+
+    std::vector<uint32_t> World::getActivePlayerIds() const
+    {
+        std::vector<uint32_t> ids { getLocalPlayerId() };
+        if (m_network != nullptr && m_network->isActive())
+        {
+            for (const auto& [playerId, remote] : m_network->remotePlayers())
+                ids.push_back(playerId);
+        }
+        std::sort(ids.begin(), ids.end());
+        return ids;
+    }
+
+    uint32_t World::getLocalPlayerId() const
+    {
+        if (m_network != nullptr && m_network->isActive())
+            return m_network->localPlayerId();
+        return INetworkManager::HOST_PLAYER_ID;
+    }
+
+    std::optional<raylib::Vector2> World::getPlayerPosition(uint32_t playerId) const
+    {
+        if (playerId == getLocalPlayerId())
+        {
+            if (m_player == nullptr)
+                return std::nullopt;
+            return m_player->getPosition();
+        }
+
+        if (m_network == nullptr || !m_network->isActive())
+            return std::nullopt;
+
+        const std::map<uint32_t, RemotePlayer>& remotes = m_network->remotePlayers();
+        const auto found = remotes.find(playerId);
+        if (found == remotes.end())
+            return std::nullopt;
+        return found->second.position;
+    }
+
+    bool World::isEnemyAuthority() const
+    {
+        return m_network == nullptr || !m_network->isActive() || m_network->role() == NetworkRole::Server;
+    }
+
+    void World::reportEnemyDamage(const PhysicsObject& enemy, int32_t damage)
+    {
+        if (m_network != nullptr && m_network->isActive() && enemy.getNetworkId() != 0)
+            m_network->notifyLocalEnemyDamaged(enemy.getNetworkId(), damage);
+    }
+
+    void World::applyRemoteEnemyDamage()
+    {
+        for (const EnemyDamageEvent& hit : m_network->takeEnemyDamageEvents())
+        {
+            const auto found = m_networkObjects.find(hit.objectId);
+            if (found == m_networkObjects.end() || found->second->shouldBeDestroyed())
+                continue;
+
+            PhysicsObject* enemy = found->second;
+            enemy->onNetworkDamage(hit.damage);
+            if (!enemy->shouldBeDestroyed())
+                continue;
+
+            // The client landed the killing blow: credit them rather than the host. Drop the
+            // object from the registry now, since it is freed before the next prune pass.
+            m_reportedDestroyed.insert(hit.objectId);
+            m_network->notifyEnemyKilledByRemote(hit.objectId, hit.attackerPlayerId);
+            m_networkObjects.erase(found);
+            ++m_networkRemovedEnemyCount;
+        }
+    }
+
+    void World::spawnHostClaudlings()
+    {
+        for (const ClaudlingSpawnEvent& spawn : m_network->takeClaudlingSpawns())
+        {
+            // Never create the same Claudling twice (e.g. a replay overlapping a live spawn).
+            if (m_networkObjects.count(spawn.objectId) > 0 || m_reportedDestroyed.count(spawn.objectId) > 0)
+                continue;
+            doSpawnClaudling(PendingClaudlingSpawn { spawn.position, spawn.followSpeed, spawn.knockback, spawn.targetPlayerId, spawn.objectId });
+        }
     }
 
     std::vector<MinimapMarker> World::getRemotePlayerMarkers() const
@@ -641,39 +725,47 @@ namespace ggj
             if (found != m_networkObjects.end())
             {
                 const bool isEnemy = found->second->getUserData()->getObjectType() == ObjectType::Enemy;
+                // In netplay the host kills the boss for everyone, so this is where each peer sees it die.
+                if (found->second == m_boss)
+                    m_soundManager.playSound(SoundName::EnemyDie);
                 found->second->destroy();
                 m_reportedDestroyed.insert(id);
                 m_networkObjects.erase(found);
                 if (isEnemy)
-                    ++m_networkRemovedEnemyCount;
-            }
-        }
-
-        // 2. Client: snap enemies to the host's authoritative position and facing. The client still
-        //    runs each enemy's own AI, whose turn decisions drift from the host's, so the facing
-        //    has to be overwritten too or sprites end up looking the wrong way.
-        if (m_network->role() == NetworkRole::Client)
-        {
-            for (const auto& [id, state] : m_network->enemyStates())
-            {
-                auto found = m_networkObjects.find(id);
-                if (found != m_networkObjects.end())
                 {
-                    found->second->setNetworkPosition(state.position);
-                    found->second->setFlipped(state.isFlipped);
+                    // The host destroys bosses itself; if our hit killed it, the kill is still ours.
+                    if (m_network->isKillCreditedToLocalPlayer(id) && m_player != nullptr)
+                        ++m_player->getUserData()->enemiesKilled;
+                    else
+                        ++m_networkRemovedEnemyCount;
                 }
             }
         }
 
-        // 3. Server: broadcast enemy positions (throttled to ~20 Hz).
+        // 2. Client: create the host's Claudlings, then snap enemies to the host's authoritative
+        //    state. The client still runs each enemy's own AI, whose decisions drift from the
+        //    host's, so facing (and a boss's state, target and lives) is overwritten too.
+        if (m_network->role() == NetworkRole::Client)
+        {
+            spawnHostClaudlings();
+            for (const auto& [id, state] : m_network->enemyStates())
+            {
+                auto found = m_networkObjects.find(id);
+                if (found != m_networkObjects.end())
+                    found->second->applyNetworkState(state);
+            }
+        }
+
+        // 3. Server: apply clients' boss hits, then broadcast enemy states (throttled to ~20 Hz).
         if (m_network->role() == NetworkRole::Server)
         {
+            applyRemoteEnemyDamage();
             if (m_enemyStateThrottle == 0)
             {
                 for (const auto& [id, obj] : m_networkObjects)
                 {
                     if (obj->getUserData()->getObjectType() == ObjectType::Enemy)
-                        m_network->publishEnemyState(id, obj->getPosition(), obj->isFlipped());
+                        m_network->publishEnemyState(id, obj->getNetworkState());
                 }
             }
             m_enemyStateThrottle = (m_enemyStateThrottle + 1) % ENEMY_STATE_THROTTLE_FRAMES;
@@ -1041,6 +1133,11 @@ namespace ggj
 
     void World::destroyMarkedObjects()
     {
+        // However the boss died (local hit, host removal, debug kill), never keep a pointer to it
+        // past this point: the HUD reads its lives every frame.
+        if (m_boss != nullptr && m_boss->shouldBeDestroyed())
+            m_boss = nullptr;
+
         for (auto& layer : m_layers)
         {
             layer.second.destroyMarkedObjects();
@@ -1142,20 +1239,37 @@ namespace ggj
         }
     }
 
-    void World::spawnClaudling(raylib::Vector2 position, float followSpeed, float knockback)
+    void World::spawnClaudlings(raylib::Vector2 position, float followSpeed, float knockback)
     {
-        m_pendingClaudlingSpawns.push_back({ position, followSpeed, knockback });
+        if (!isEnemyAuthority())
+            return;
+
+        // Fan them out side by side so they don't start as one overlapping blob.
+        constexpr float SPAWN_SPACING = 36.f;
+        const std::vector<uint32_t> playerIds = getActivePlayerIds();
+        const float firstOffset = -SPAWN_SPACING * static_cast<float>(playerIds.size() - 1) / 2.f;
+        for (size_t i = 0; i < playerIds.size(); ++i)
+        {
+            const raylib::Vector2 spawnPosition { position.x + firstOffset + SPAWN_SPACING * static_cast<float>(i), position.y };
+            m_pendingClaudlingSpawns.push_back(PendingClaudlingSpawn { spawnPosition, followSpeed, knockback, playerIds[i] });
+        }
     }
 
     void World::flushPendingSpawns()
     {
+        const bool isHosting = m_network != nullptr && m_network->isActive() && m_network->role() == NetworkRole::Server;
         for (const PendingClaudlingSpawn& spawn : m_pendingClaudlingSpawns)
-            doSpawnClaudling(spawn.position, spawn.followSpeed, spawn.knockback);
+        {
+            const uint32_t networkId = doSpawnClaudling(spawn);
+            if (isHosting && networkId != 0)
+                m_network->publishClaudlingSpawned(ClaudlingSpawnEvent { networkId, spawn.targetPlayerId, spawn.position, spawn.followSpeed, spawn.knockback });
+        }
         m_pendingClaudlingSpawns.clear();
     }
 
-    void World::doSpawnClaudling(raylib::Vector2 position, float followSpeed, float knockback)
+    uint32_t World::doSpawnClaudling(const PendingClaudlingSpawn& spawn)
     {
+        const raylib::Vector2& position = spawn.position;
         const raylib::Vector2 SIZE { 32.f, 32.f };
 
         b2BodyDef bodyDef;
@@ -1178,21 +1292,23 @@ namespace ggj
 
         raylib::Texture* tex = m_textures.get(TextureName::EnemyClaudling);
         if (tex == nullptr)
-            return;
+        {
+            m_world.DestroyBody(body);
+            return 0;
+        }
 
         const raylib::Rectangle drawingRect { 0.f, 0.f, SIZE.x, SIZE.y };
         const UserData userData { ObjectType::Enemy, { 0.f, 0.f }, "", "", "claudling" };
 
-        PhysicsObject* physicsObject = createObject<Claudling>(
-            m_animationManager, m_mapper, m_soundManager, body,
-            SIZE, SIZE, drawingRect, tex, userData, followSpeed, knockback, m_player);
+        PhysicsObject* physicsObject = createObject<Claudling>(m_animationManager, m_mapper, m_soundManager, body, SIZE, SIZE, drawingRect, tex, userData, spawn.followSpeed,
+                                                               spawn.knockback, this, spawn.targetPlayerId);
 
-        if (physicsObject != nullptr)
-        {
-            m_userDataManager.addUserData(body, physicsObject);
-            ++m_numberOfEnemies;
-            registerNetworkObject(m_userDataManager.getUserData(body));
-        }
+        if (physicsObject == nullptr)
+            return 0;
+
+        m_userDataManager.addUserData(body, physicsObject);
+        ++m_numberOfEnemies;
+        return registerNetworkObject(m_userDataManager.getUserData(body), spawn.networkId);
     }
 
     void World::generateClaude(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
@@ -1215,10 +1331,8 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::ClaudeEnemy>(
-                    m_animationManager, m_mapper, m_soundManager, body,
-                    raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
-                    spriteSize, r, tex, generatorData.userData, generatorData.lives,
-                    generatorData.followSpeed, generatorData.knockback, m_player, this);
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
+                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, this);
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {
@@ -1309,9 +1423,8 @@ namespace ggj
                 raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Claudling>(
-                    m_animationManager, m_mapper, m_soundManager, body,
-                    raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
-                    spriteSize, r, tex, generatorData.userData, generatorData.followSpeed, generatorData.knockback, m_player);
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
+                    generatorData.userData, generatorData.followSpeed, generatorData.knockback, this, std::nullopt);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }

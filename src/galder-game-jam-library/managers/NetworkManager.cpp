@@ -24,10 +24,11 @@ namespace ggj
             destination[sizeof(destination) - 1] = '\0';
         }
 
-        ServerMessage makeObjectRemovedMessage(uint32_t objectId, bool isCoin)
+        ServerMessage makeObjectRemovedMessage(uint32_t objectId, bool isCoin, uint32_t killerPlayerId)
         {
             ServerMessage state {};
             state.objectId = objectId;
+            state.killerPlayerId = killerPlayerId;
             if (isCoin)
             {
                 state.type = NetMessageType::CoinState;
@@ -39,6 +40,18 @@ namespace ggj
                 state.flag = false; // dead
             }
             return state;
+        }
+
+        ServerMessage makeClaudlingSpawnedMessage(const ClaudlingSpawnEvent& spawn)
+        {
+            ServerMessage message {};
+            message.type = NetMessageType::ClaudlingSpawned;
+            message.objectId = spawn.objectId;
+            message.targetPlayerId = spawn.targetPlayerId;
+            message.position = spawn.position;
+            message.followSpeed = spawn.followSpeed;
+            message.knockback = spawn.knockback;
+            return message;
         }
     } // namespace
 
@@ -145,6 +158,10 @@ namespace ggj
         m_enemyStates.clear();
         m_removedObjectIds.clear();
         m_removedCoinIds.clear();
+        m_locallyCreditedKills.clear();
+        m_enemyDamageEvents.clear();
+        m_claudlingSpawns.clear();
+        m_spawnedClaudlings.clear();
         m_projectileEvents.clear();
         m_isPortalEntered = false;
         m_hasPendingRemotePortalEntry = false;
@@ -321,6 +338,16 @@ namespace ggj
                     recordObjectRemoved(message.objectId, message.eventKind == 1);
                     break;
                 }
+                case NetMessageType::EnemyDamaged:
+                {
+                    // A client hit a boss: the host owns its health, so queue the hit for the World.
+                    auto it = m_connectionToPlayerId.find(connection);
+                    if (it == m_connectionToPlayerId.end() || message.stageIndex != m_currentStage || message.damage <= 0)
+                        break;
+                    if (m_enemyDamageEvents.size() < MAX_QUEUED_WORLD_EVENTS)
+                        m_enemyDamageEvents.push_back(EnemyDamageEvent { message.objectId, it->second, message.damage });
+                    break;
+                }
                 case NetMessageType::PortalEntered:
                 {
                     auto it = m_connectionToPlayerId.find(connection);
@@ -467,13 +494,19 @@ namespace ggj
                     m_remotePlayers.erase(message.playerId);
                     break;
                 case NetMessageType::EnemyState:
-                    if (message.flag) // alive: update position + facing
-                        m_enemyStates[message.objectId] = EnemyNetworkState { message.position, message.facingLeft };
+                    if (message.flag) // alive: update position, facing and boss state
+                        m_enemyStates[message.objectId] = EnemyNetworkState { message.position, message.facingLeft, message.lives, message.aiState, message.targetPlayerId };
                     else // dead: remove
                     {
                         m_enemyStates.erase(message.objectId);
                         m_removedObjectIds.insert(message.objectId);
+                        if (message.killerPlayerId != NO_PLAYER_ID && message.killerPlayerId == m_localPlayerId)
+                            m_locallyCreditedKills.insert(message.objectId);
                     }
+                    break;
+                case NetMessageType::ClaudlingSpawned:
+                    if (m_claudlingSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
+                        m_claudlingSpawns.push_back(ClaudlingSpawnEvent { message.objectId, message.targetPlayerId, message.position, message.followSpeed, message.knockback });
                     break;
                 case NetMessageType::CoinState:
                     m_removedObjectIds.insert(message.objectId);
@@ -585,44 +618,98 @@ namespace ggj
         return result;
     }
 
-    void NetworkManager::publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool isFlipped)
+    void NetworkManager::publishEnemyState(uint32_t objectId, const EnemyNetworkState& state)
     {
         if (m_role != NetworkRole::Server || !m_server)
             return;
 
-        ServerMessage state {};
-        state.type = NetMessageType::EnemyState;
-        state.objectId = objectId;
-        state.position = position;
-        state.facingLeft = isFlipped;
-        state.flag = true; // alive
-        m_server->broadcast(state);
+        ServerMessage message {};
+        message.type = NetMessageType::EnemyState;
+        message.objectId = objectId;
+        message.position = state.position;
+        message.facingLeft = state.isFlipped;
+        message.lives = state.lives;
+        message.aiState = state.aiState;
+        message.targetPlayerId = state.targetPlayerId;
+        message.flag = true; // alive
+        m_server->broadcast(message);
     }
 
-    void NetworkManager::broadcastObjectRemoved(uint32_t objectId, bool isCoin)
+    void NetworkManager::broadcastObjectRemoved(uint32_t objectId, bool isCoin, uint32_t killerPlayerId)
     {
         if (!m_server)
             return;
 
-        m_server->broadcast(makeObjectRemovedMessage(objectId, isCoin));
+        m_server->broadcast(makeObjectRemovedMessage(objectId, isCoin, killerPlayerId));
     }
 
-    void NetworkManager::recordObjectRemoved(uint32_t objectId, bool isCoin)
+    void NetworkManager::recordObjectRemoved(uint32_t objectId, bool isCoin, uint32_t killerPlayerId)
     {
         if (!m_removedObjectIds.insert(objectId).second)
             return;
 
         if (isCoin)
             m_removedCoinIds.insert(objectId);
-        broadcastObjectRemoved(objectId, isCoin);
+        broadcastObjectRemoved(objectId, isCoin, killerPlayerId);
+    }
+
+    void NetworkManager::notifyEnemyKilledByRemote(uint32_t objectId, uint32_t killerPlayerId)
+    {
+        if (m_role == NetworkRole::Server)
+            recordObjectRemoved(objectId, false, killerPlayerId);
+    }
+
+    void NetworkManager::notifyLocalEnemyDamaged(uint32_t objectId, int32_t damage)
+    {
+        if (m_role != NetworkRole::Client || !m_client || m_client->status() != ConnectionStatus::Connected)
+            return;
+
+        ClientMessage event {};
+        event.type = NetMessageType::EnemyDamaged;
+        event.playerId = m_localPlayerId;
+        event.objectId = objectId;
+        event.damage = damage;
+        event.stageIndex = m_currentStage;
+        m_client->sendToServer(event);
+    }
+
+    std::vector<EnemyDamageEvent> NetworkManager::takeEnemyDamageEvents()
+    {
+        std::vector<EnemyDamageEvent> events;
+        events.swap(m_enemyDamageEvents);
+        return events;
+    }
+
+    void NetworkManager::publishClaudlingSpawned(const ClaudlingSpawnEvent& spawn)
+    {
+        if (m_role != NetworkRole::Server || !m_server)
+            return;
+
+        m_spawnedClaudlings[spawn.objectId] = spawn;
+        m_server->broadcast(makeClaudlingSpawnedMessage(spawn));
+    }
+
+    std::vector<ClaudlingSpawnEvent> NetworkManager::takeClaudlingSpawns()
+    {
+        std::vector<ClaudlingSpawnEvent> spawns;
+        spawns.swap(m_claudlingSpawns);
+        return spawns;
     }
 
     void NetworkManager::sendWorldStateTo(HSteamNetConnection connection)
     {
+        // Claudlings the boss already spawned: the late joiner's map never had them, so without
+        // this their ids would be unknown there and they would be invisible yet still deadly.
+        for (const auto& [objectId, spawn] : m_spawnedClaudlings)
+        {
+            if (m_removedObjectIds.count(objectId) == 0)
+                m_server->sendTo(connection, makeClaudlingSpawnedMessage(spawn));
+        }
+
         // Without this a late joiner sees coins/enemies others already took, and its enemy count
         // (and so its portal) never reaches zero.
         for (const uint32_t objectId : m_removedObjectIds)
-            m_server->sendTo(connection, makeObjectRemovedMessage(objectId, m_removedCoinIds.count(objectId) > 0));
+            m_server->sendTo(connection, makeObjectRemovedMessage(objectId, m_removedCoinIds.count(objectId) > 0, NO_PLAYER_ID));
 
         if (m_isPortalEntered)
         {

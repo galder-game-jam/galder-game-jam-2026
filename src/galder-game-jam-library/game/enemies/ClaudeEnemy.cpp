@@ -2,6 +2,8 @@
 #include "../projectiles/Projectile.h"
 #include "../../system/World.h"
 #include <cmath>
+#include <optional>
+#include <vector>
 
 namespace ggj
 {
@@ -31,24 +33,34 @@ namespace ggj
             }
         }
 
-        // Boss AI
+        // Boss AI. Only the host rolls states; clients get theirs through applyNetworkState().
         if (!m_isSittingDuck)
         {
-            m_stateTimer -= timeDelta;
-            if (m_stateTimer <= 0.f)
+            if (isAuthority())
             {
-                ClaudeState newState;
-                do { newState = static_cast<ClaudeState>(GetRandomValue(0, 2)); } while (newState == m_bossState);
-                setBossState(newState);
-                m_stateTimer = m_stateInterval;
+                m_stateTimer -= timeDelta;
+                if (m_stateTimer <= 0.f)
+                {
+                    ClaudeState newState;
+                    do
+                    {
+                        newState = static_cast<ClaudeState>(GetRandomValue(0, CLAUDE_STATE_COUNT - 1));
+                    } while (newState == m_bossState);
+                    setBossState(newState);
+                    m_stateTimer = m_stateInterval;
+                }
             }
 
-            if (m_bossState == ClaudeState::Walk && m_player != nullptr)
+            const std::optional<raylib::Vector2> target = (m_bossState == ClaudeState::Walk && m_world != nullptr) ? m_world->getPlayerPosition(m_targetPlayerId) : std::nullopt;
+            // The chased player left mid-walk: go after someone else.
+            if (m_bossState == ClaudeState::Walk && !target.has_value() && isAuthority())
+                pickTarget();
+
+            if (target.has_value())
             {
-                const raylib::Vector2 myPos  = getPosition();
-                const raylib::Vector2 target = m_player->getPosition();
-                const float dx   = target.x - myPos.x;
-                const float dy   = target.y - myPos.y;
+                const raylib::Vector2 myPos = getPosition();
+                const float dx = target->x - myPos.x;
+                const float dy = target->y - myPos.y;
                 const float dist = std::sqrt(dx * dx + dy * dy);
 
                 if (dist > 1.f)
@@ -90,19 +102,87 @@ namespace ggj
                 break;
             case ClaudeState::Walk:
                 m_animation = m_walkAnimation;
+                if (isAuthority())
+                    pickTarget();
                 break;
             case ClaudeState::Attack:
                 m_animation = m_attackAnimation;
-                if (m_world != nullptr)
-                    m_world->spawnClaudling(getPosition(), m_followSpeed / 2.f, m_knockback / 2.f);
+                // Clients receive the host's Claudlings over the network instead.
+                if (m_world != nullptr && isAuthority())
+                    m_world->spawnClaudlings(getPosition(), m_followSpeed / 2.f, m_knockback / 2.f);
                 break;
         }
+    }
+
+    void ClaudeEnemy::pickTarget()
+    {
+        if (m_world == nullptr)
+            return;
+
+        const std::vector<uint32_t> playerIds = m_world->getActivePlayerIds();
+        if (playerIds.empty())
+            return;
+        m_targetPlayerId = playerIds[static_cast<size_t>(GetRandomValue(0, static_cast<int>(playerIds.size()) - 1))];
+    }
+
+    bool ClaudeEnemy::isAuthority() const
+    {
+        return m_world == nullptr || m_world->isEnemyAuthority();
+    }
+
+    void ClaudeEnemy::startInvulnerability()
+    {
+        m_invulTimer = INVUL_DURATION;
+        m_flashTimer = 0.f;
+    }
+
+    EnemyNetworkState ClaudeEnemy::getNetworkState() const
+    {
+        EnemyNetworkState state = PhysicsSprite::getNetworkState();
+        state.aiState = static_cast<uint8_t>(m_bossState);
+        state.targetPlayerId = m_targetPlayerId;
+        return state;
+    }
+
+    void ClaudeEnemy::applyNetworkState(const EnemyNetworkState& state)
+    {
+        PhysicsSprite::applyNetworkState(state);
+
+        // Someone (maybe another peer) hit the boss on the host: flash like a local hit would.
+        if (state.lives < m_lives && m_invulTimer <= 0.f)
+            startInvulnerability();
+        m_lives = state.lives;
+        m_targetPlayerId = state.targetPlayerId;
+
+        if (state.aiState < CLAUDE_STATE_COUNT)
+        {
+            const ClaudeState hostState = static_cast<ClaudeState>(state.aiState);
+            if (hostState != m_bossState)
+                setBossState(hostState);
+        }
+    }
+
+    void ClaudeEnemy::onNetworkDamage(int32_t damage)
+    {
+        // The attacker lives on a client, which gets the kill credit through the network instead.
+        takeDamage(&m_soundManager, nullptr, false, damage);
     }
 
     void ClaudeEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage)
     {
         // Already dead (waiting for removal): don't count the boss kill a second time.
-        if (shouldBeDestroyed() || m_invulTimer > 0.f)
+        if (shouldBeDestroyed())
+            return;
+
+        // The host owns the boss's health. Send the hit there; the lives it syncs back drive the
+        // HP bar and the hit flash, and it removes the boss everywhere when it dies.
+        if (!isAuthority())
+        {
+            m_world->reportEnemyDamage(*this, damage);
+            return;
+        }
+
+        if (m_invulTimer > 0.f)
             return;
 
         m_lives -= damage;
@@ -122,8 +202,7 @@ namespace ggj
         }
         else
         {
-            m_invulTimer = INVUL_DURATION;
-            m_flashTimer = 0.f;
+            startInvulnerability();
         }
     }
 

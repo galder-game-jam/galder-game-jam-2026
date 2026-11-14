@@ -12,11 +12,14 @@
 #include "../../data/ConnectedPlayer.hpp"
 #include "../../data/EnemyNetworkState.hpp"
 #include "../../data/ProjectileEvent.hpp"
+#include "../../data/ClaudlingSpawnEvent.hpp"
+#include "../../data/EnemyDamageEvent.hpp"
 #include "../../data/DiscoveredServer.hpp"
 #include "../../../gamedev-base/enums/ConnectionStatus.hpp"
 #include "raylib-cpp.hpp"
 
 #include <cstdint>
+#include <limits>
 #include <map>
 #include <optional>
 #include <set>
@@ -35,6 +38,7 @@ namespace ggj
         public:
         static constexpr uint16_t DEFAULT_PORT = 13338;
         static constexpr uint32_t HOST_PLAYER_ID = 0;
+        static constexpr uint32_t NO_PLAYER_ID = std::numeric_limits<uint32_t>::max(); ///< No player / not assigned yet.
 
         virtual ~INetworkManager() = default;
 
@@ -81,10 +85,58 @@ namespace ggj
 
         // --- World-state sync (Phase 2) ---
 
-        /*! Server: broadcast an enemy's authoritative position and sprite flip. No-op when not hosting. */
-        virtual void publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool isFlipped) = 0;
+        /*!
+         * Server: broadcasts an enemy's authoritative state. No-op when not hosting.
+         *
+         * @param objectId Networked object id of the enemy
+         * @param state Position, facing, and for bosses lives / AI state / target
+         */
+        virtual void publishEnemyState(uint32_t objectId, const EnemyNetworkState& state) = 0;
         /*! Reports a networked object destroyed locally (coin picked up / enemy killed) so the server can reconcile. */
         virtual void notifyLocalObjectDestroyed(uint32_t objectId, bool isCoin) = 0;
+        /*!
+         * Server: an enemy died on the host from a client's hit (see takeEnemyDamageEvents()).
+         * Removes it everywhere and credits the kill to that client.
+         *
+         * @param objectId Networked object id of the enemy
+         * @param killerPlayerId Network player id of the client that landed the killing blow
+         */
+        virtual void notifyEnemyKilledByRemote(uint32_t objectId, uint32_t killerPlayerId) = 0;
+        /*!
+         * Whether the host credited the local player with killing an enemy it removed. Lets a
+         * client count a boss kill even though the host is the one that destroyed it.
+         *
+         * @param objectId Id from removedObjectIds()
+         * @return True if the local player landed the killing blow
+         */
+        [[nodiscard]] virtual bool isKillCreditedToLocalPlayer(uint32_t objectId) const = 0;
+
+        /*!
+         * Client: reports a hit on a host-authoritative enemy (a boss) for the host to apply.
+         *
+         * @param objectId Networked object id of the enemy
+         * @param damage Lives to remove
+         */
+        virtual void notifyLocalEnemyDamaged(uint32_t objectId, int32_t damage) = 0;
+        /*!
+         * Server: drains the boss hits clients reported since the last call.
+         *
+         * @return Damage events in arrival order
+         */
+        [[nodiscard]] virtual std::vector<EnemyDamageEvent> takeEnemyDamageEvents() = 0;
+
+        /*!
+         * Server: tells every client that a Claudling was spawned. No-op when not hosting.
+         *
+         * @param spawn Claudling id, target and spawn parameters
+         */
+        virtual void publishClaudlingSpawned(const ClaudlingSpawnEvent& spawn) = 0;
+        /*!
+         * Client: drains the Claudlings the host spawned since the last call.
+         *
+         * @return Spawn events in arrival order
+         */
+        [[nodiscard]] virtual std::vector<ClaudlingSpawnEvent> takeClaudlingSpawns() = 0;
         /*! Feeds the local player's authoritative stats (lives/score/kills) for outbound sync. */
         virtual void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) = 0;
         /*!
@@ -111,7 +163,7 @@ namespace ggj
          */
         [[nodiscard]] virtual bool takeRemotePortalEntry() = 0;
 
-        /*! Client: latest authoritative enemy positions keyed by object id. */
+        /*! Client: latest authoritative enemy states keyed by object id. */
         [[nodiscard]] virtual const std::map<uint32_t, EnemyNetworkState>& enemyStates() const = 0;
 
         /*!

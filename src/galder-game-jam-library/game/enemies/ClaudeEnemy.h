@@ -6,7 +6,6 @@
 #include "../../graphics/PhysicsSprite.h"
 #include "../../managers/AnimationManager.h"
 #include "../../interfaces/system/IMapper.h"
-#include "../../interfaces/game/IPlayer.h"
 #include "../../../gamedev-base/interfaces/managers/ISoundManager.h"
 #include "../../enums/SoundName.h"
 
@@ -14,20 +13,30 @@ namespace ggj
 {
     class World;
 
-    enum class ClaudeState { Idle, Walk, Attack };
+    /*! Boss AI state. Synced to clients as a uint8_t, so keep CLAUDE_STATE_COUNT in step. */
+    enum class ClaudeState : uint8_t
+    {
+        Idle,
+        Walk,
+        Attack
+    };
+    constexpr uint8_t CLAUDE_STATE_COUNT = 3;
 
+    /*!
+     * The "King Claude" boss. On the host (or offline) it rolls a new state every few seconds:
+     * idle, chase a randomly picked player, or spawn one Claudling per player. Clients never roll
+     * their own: they mirror the host's state, target and lives, and send their hits to the host,
+     * so every peer fights the same boss with the same health bar.
+     */
     class ClaudeEnemy : public PhysicsSprite
     {
         public:
             ClaudeEnemy() = default;
             ClaudeEnemy(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper, ggj::ISoundManager& soundManager, b2Body* body,
-                const raylib::Vector2& physicsSize,
-                const raylib::Vector2& spriteSize,
-                const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
-                int lives, float followSpeed, float knockback, IPlayer* player, World* world, bool isVisible = true)
-                : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible),
-                  m_animationManager { animationManager }, m_mapper { mapper }, m_soundManager { soundManager },
-                  m_followSpeed { followSpeed }, m_knockback { knockback }, m_player { player }, m_world { world }
+                        const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture,
+                        const UserData& userData, int lives, float followSpeed, float knockback, World* world, bool isVisible = true)
+                : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager { animationManager }, m_mapper { mapper },
+                  m_soundManager { soundManager }, m_followSpeed { followSpeed }, m_knockback { knockback }, m_world { world }
             {
                 m_lives = lives;
                 m_body->SetFixedRotation(true);
@@ -42,9 +51,18 @@ namespace ggj
             void beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) override;
             void onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker, int32_t damage) override;
 
+            [[nodiscard]] EnemyNetworkState getNetworkState() const override;
+            void applyNetworkState(const EnemyNetworkState& state) override;
+            void onNetworkDamage(int32_t damage) override;
+
         private:
             void takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage);
             void setBossState(ClaudeState newState);
+            /*! Picks a random player in the session to chase. Host/offline only. */
+            void pickTarget();
+            /*! Starts the post-hit invulnerability window and its sprite flashing. */
+            void startInvulnerability();
+            [[nodiscard]] bool isAuthority() const;
 
             ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& m_animationManager;
             IMapper& m_mapper;
@@ -58,8 +76,8 @@ namespace ggj
             float m_followSpeed { 0.f };
             float m_knockback   { 0.f };
 
-            IPlayer* m_player { nullptr };
             World*   m_world  { nullptr };
+            uint32_t m_targetPlayerId { 0 }; ///< Network player id chased in ClaudeState::Walk.
 
             // Boss state machine
             bool       m_isSittingDuck  { false };  ///< Force Idle for testing; set to true to disable AI.

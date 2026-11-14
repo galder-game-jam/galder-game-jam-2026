@@ -27,7 +27,7 @@ namespace ggj
     class NetworkManager : public INetworkManager
     {
         public:
-        static constexpr uint32_t INVALID_PLAYER_ID = std::numeric_limits<uint32_t>::max();
+        static constexpr uint32_t INVALID_PLAYER_ID = NO_PLAYER_ID;
 
         NetworkManager(ILogger& logger, IIpAddressResolver& ipAddressResolver) : m_logger { logger }, m_resolver { ipAddressResolver } {}
         /*! Closes any open session gracefully so peers drop us right away when the game quits. */
@@ -60,8 +60,14 @@ namespace ggj
         [[nodiscard]] bool hasEverConnected() const override { return m_hasSentJoinRequest; }
         [[nodiscard]] const std::map<uint32_t, RemotePlayer>& remotePlayers() const override { return m_remotePlayers; }
 
-        void publishEnemyState(uint32_t objectId, const raylib::Vector2& position, bool isFlipped) override;
+        void publishEnemyState(uint32_t objectId, const EnemyNetworkState& state) override;
         void notifyLocalObjectDestroyed(uint32_t objectId, bool isCoin) override;
+        void notifyEnemyKilledByRemote(uint32_t objectId, uint32_t killerPlayerId) override;
+        [[nodiscard]] bool isKillCreditedToLocalPlayer(uint32_t objectId) const override { return m_locallyCreditedKills.count(objectId) > 0; }
+        void notifyLocalEnemyDamaged(uint32_t objectId, int32_t damage) override;
+        [[nodiscard]] std::vector<EnemyDamageEvent> takeEnemyDamageEvents() override;
+        void publishClaudlingSpawned(const ClaudlingSpawnEvent& spawn) override;
+        [[nodiscard]] std::vector<ClaudlingSpawnEvent> takeClaudlingSpawns() override;
         void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) override
         {
             m_localLives = lives;
@@ -91,8 +97,8 @@ namespace ggj
         void applyPlayerSnapshot(const ServerMessage& message);
         void applyPlayerSnapshot(uint32_t playerId, const ClientMessage& message);
         void interpolateRemotePlayers(float timeDelta);
-        void broadcastObjectRemoved(uint32_t objectId, bool isCoin);
-        void recordObjectRemoved(uint32_t objectId, bool isCoin);
+        void broadcastObjectRemoved(uint32_t objectId, bool isCoin, uint32_t killerPlayerId);
+        void recordObjectRemoved(uint32_t objectId, bool isCoin, uint32_t killerPlayerId = NO_PLAYER_ID);
         /*! Server: brings a just-joined client up to date with the stage it is dropped into. */
         void sendWorldStateTo(HSteamNetConnection connection);
         /*! Client: follows the host to the given stage (on join or when the host moves on). */
@@ -130,6 +136,10 @@ namespace ggj
         std::vector<ProjectileEvent> m_projectileEvents;       ///< Remote projectile events awaiting the World.
         static constexpr size_t MAX_QUEUED_PROJECTILE_EVENTS = 256; ///< Guards against growth while no World drains.
         std::set<uint32_t> m_removedObjectIds;                ///< Authoritative removed object ids.
+        std::set<uint32_t> m_locallyCreditedKills;            ///< Client: removed enemies the host credited to us.
+        std::vector<EnemyDamageEvent> m_enemyDamageEvents;    ///< Server: client boss hits awaiting the World.
+        std::vector<ClaudlingSpawnEvent> m_claudlingSpawns;   ///< Client: host Claudling spawns awaiting the World.
+        static constexpr size_t MAX_QUEUED_WORLD_EVENTS = 256; ///< Guards against growth while no World drains.
 
         // Shared progression
         static constexpr int32_t NO_STAGE = -1;
@@ -142,6 +152,7 @@ namespace ggj
         std::map<HSteamNetConnection, uint32_t> m_connectionToPlayerId;
         uint32_t m_nextPlayerId { HOST_PLAYER_ID + 1 };
         std::set<uint32_t> m_removedCoinIds; ///< Subset of m_removedObjectIds that are coins, for late joiners.
+        std::map<uint32_t, ClaudlingSpawnEvent> m_spawnedClaudlings; ///< Every Claudling spawned this stage, replayed to late joiners.
 
         // Client-only bookkeeping
         bool m_hasSentJoinRequest { false };

@@ -19,6 +19,7 @@ namespace ggj
 #include "tileson.hpp"
 #include "../interfaces/system/IMapper.h"
 #include "../interfaces/game/IPlayer.h"
+#include "../interfaces/game/IPlayerLocator.h"
 #include "raylib-cpp.hpp"
 #include "WorldLayer.h"
 #include "../game/Minimap.h"
@@ -32,6 +33,7 @@ namespace ggj
 #include "../interfaces/manager/IOptionsManager.h"
 #include "../interfaces/graphics/IPaletteSwapShader.h"
 #include "../data/CharacterColors.hpp"
+#include <optional>
 #include <set>
 #include <vector>
 
@@ -40,7 +42,7 @@ namespace ggj
     class Hud; // Forward declaration
     class Projectile;
 
-    class World : public ggj::IWorld<int32_t>
+    class World : public ggj::IWorld<int32_t>, public IPlayerLocator
     {
         public:
         World(ggj::ILogger& logger, ggj::IResourceManager<ResourceName>& resources, IMapper& mapper, ggj::ITextureManager<TextureName, raylib::Texture>& textures,
@@ -79,6 +81,24 @@ namespace ggj
         void setNetworkManager(INetworkManager* network) { m_network = network; }
         /*! Minimap dots for every remote netplay peer (visual centre + name colour). Empty offline. */
         [[nodiscard]] std::vector<MinimapMarker> getRemotePlayerMarkers() const;
+        [[nodiscard]] std::vector<uint32_t> getActivePlayerIds() const override;
+        [[nodiscard]] uint32_t getLocalPlayerId() const override;
+        [[nodiscard]] std::optional<raylib::Vector2> getPlayerPosition(uint32_t playerId) const override;
+
+        /*!
+         * Whether this peer runs the enemies' decisions: offline or hosting. Clients only mirror
+         * the host's boss (state, target, health) and must not roll their own.
+         */
+        [[nodiscard]] bool isEnemyAuthority() const;
+
+        /*!
+         * Client: sends a hit on a host-authoritative enemy (a boss) to the host, which applies it.
+         *
+         * @param enemy The networked enemy that was hit
+         * @param damage Lives to remove
+         */
+        void reportEnemyDamage(const PhysicsObject& enemy, int32_t damage);
+
         /*! Called by the Portal when the local player walks in, so netplay peers follow through it. */
         void notifyLocalPortalEntered();
         [[nodiscard]] int getEnemies() const;
@@ -137,11 +157,16 @@ namespace ggj
         void registerLocalProjectile(Projectile* projectile);
 
         /*!
-         * Queues a Claudling to be spawned at @p position after the current update loop finishes.
-         * Must be queued (not spawned immediately) because calling createGameObject during layer
-         * iteration would invalidate the vector iterator.
+         * Queues one Claudling per active player, each chasing its own player, to be spawned
+         * around @p position after the current update loop finishes. Must be queued (not spawned
+         * immediately) because calling createGameObject during layer iteration would invalidate
+         * the vector iterator. Host/offline only: clients spawn the host's Claudlings when told to.
+         *
+         * @param position Where the boss stands (pixels)
+         * @param followSpeed Chase speed of each Claudling
+         * @param knockback Knockback each Claudling applies to players on contact
          */
-        void spawnClaudling(raylib::Vector2 position, float followSpeed, float knockback);
+        void spawnClaudlings(raylib::Vector2 position, float followSpeed, float knockback);
 
         void clearBoss() { m_boss = nullptr; }
 
@@ -192,7 +217,16 @@ namespace ggj
         void generateTreant(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateClaudling(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
-        void doSpawnClaudling(raylib::Vector2 position, float followSpeed, float knockback);
+        struct PendingClaudlingSpawn
+        {
+            raylib::Vector2 position;
+            float followSpeed;
+            float knockback;
+            uint32_t targetPlayerId;
+            uint32_t networkId { 0 }; ///< 0 = assign the next free id (host); else the host's id (client).
+        };
+        /*! Creates the Claudling. @return Its network id, or 0 if it could not be created. */
+        uint32_t doSpawnClaudling(const PendingClaudlingSpawn& spawn);
         void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
@@ -204,8 +238,18 @@ namespace ggj
         void updateRemoteProjectiles(float timeDelta);
         void drawRemoteProjectiles();
 
-        /*! Assigns a deterministic network id to a syncable object (enemy/coin) and registers it. */
-        void registerNetworkObject(PhysicsObject* obj);
+        /*!
+         * Assigns a deterministic network id to a syncable object (enemy/coin) and registers it.
+         *
+         * @param obj Object to register
+         * @param networkId Id to use, e.g. the host's id for a Claudling it spawned; 0 = next free id
+         * @return The id the object was registered under, or 0 if @p obj is null
+         */
+        uint32_t registerNetworkObject(PhysicsObject* obj, uint32_t networkId = 0);
+        /*! Host: applies the boss hits clients reported, crediting any kill to the client. */
+        void applyRemoteEnemyDamage();
+        /*! Client: creates the Claudlings the host spawned. */
+        void spawnHostClaudlings();
         /*! Reconciles networked objects with the network manager (report local kills, apply removals, correct positions). */
         void syncNetworkObjects();
 
@@ -259,7 +303,6 @@ namespace ggj
 
         std::vector<FloatingTextEntry> m_floatingTexts;
 
-        struct PendingClaudlingSpawn { raylib::Vector2 position; float followSpeed; float knockback; };
         std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;
 
         PhysicsObject* m_boss        { nullptr };

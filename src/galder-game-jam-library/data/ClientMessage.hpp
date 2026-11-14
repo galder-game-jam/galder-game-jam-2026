@@ -47,6 +47,7 @@ namespace ggj
         // Local world event report (GameEvent): something this peer destroyed locally.
         uint32_t objectId { 0 };
         uint8_t eventKind { 0 }; ///< 0 = none, 1 = coin collected, 2 = enemy killed.
+        int32_t damage { 0 };    ///< EnemyDamaged: lives the client's hit removes from objectId.
 
         /*!
          * Stage the sender was on. Object ids restart on every map, so the server drops world
