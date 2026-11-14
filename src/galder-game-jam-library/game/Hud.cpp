@@ -296,7 +296,7 @@ namespace ggj
         if (maxLives <= 0)
             return;
 
-        // All HUD drawing happens inside a fixed-size render texture (800×600).
+        // All HUD drawing happens in the fixed 800×600 virtual screen space set up by GameManager.
         // GetScreenWidth() returns the actual window size and must not be used here.
         const int RENDER_W  = 800;
         const int BAR_W     = 400;

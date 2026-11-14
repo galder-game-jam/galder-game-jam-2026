@@ -73,6 +73,13 @@ namespace ggj
          * @param colors Picked colour per palette slot
          */
         void setPlayerColors(const CharacterColors& colors);
+        /*!
+         * Sets the font used for text drawn in the world (floating texts, remote player names).
+         * Falls back to raylib's built-in bitmap font while none is set.
+         *
+         * @param font Font to draw with; must outlive the world
+         */
+        void setFont(raylib::Font* font) { m_font = font; }
         /*! Starts recolouring draws with the local player's picked colours. Pair with endPlayerPalette(). */
         void beginPlayerPalette();
         void endPlayerPalette();
@@ -292,6 +299,7 @@ namespace ggj
             static constexpr float DURATION    = 1.2f;  ///< Total lifetime in seconds.
             static constexpr float RISE_SPEED  = 22.f;  ///< Pixels per second upward drift.
         };
+        static constexpr float FLOATING_TEXT_FONT_SIZE = 12.f;
 
         template <typename T, typename... Args> T* createObject(Args&&... args);
         //Generator logic
@@ -400,6 +408,7 @@ namespace ggj
         std::map<int32_t, PlayerStats> m_playerStats;
 
         std::vector<FloatingTextEntry> m_floatingTexts;
+        raylib::Font* m_font { nullptr };
         std::vector<DialogSpot> m_dialogSpots;
 
         std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;

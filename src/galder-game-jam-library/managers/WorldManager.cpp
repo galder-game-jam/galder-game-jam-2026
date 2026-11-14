@@ -68,7 +68,8 @@ namespace ggj
             std::string fontPath = m_resources.getResource(ResourceName::FontDroidSansBold);
             m_font.Load(fontPath, 64, nullptr, 250);
             m_font.GetTexture().GenMipmaps();
-            m_font.GetTexture().SetFilter(TEXTURE_FILTER_BILINEAR);
+            // Trilinear blends between mip levels, so the 64 px glyphs stay smooth at every size they are drawn at.
+            m_font.GetTexture().SetFilter(TEXTURE_FILTER_TRILINEAR);
             m_debugManager.setFont(&m_font);
             m_hud.setFont(&m_font);
             m_dialog.setFont(&m_font);
@@ -84,7 +85,7 @@ namespace ggj
 
             m_regularFont.Load(m_resources.getResource(ResourceName::FontDroidSans), 64, nullptr, 250);
             m_regularFont.GetTexture().GenMipmaps();
-            m_regularFont.GetTexture().SetFilter(TEXTURE_FILTER_BILINEAR);
+            m_regularFont.GetTexture().SetFilter(TEXTURE_FILTER_TRILINEAR);
             m_chatBox.setFonts(&m_font, &m_regularFont);
         }
 
@@ -132,6 +133,7 @@ namespace ggj
                                                     m_userDataManager, m_soundManager, std::move(map), m_hud, m_dialog, m_optionsManager, m_managers.paletteSwap, m_managers.tint);
                         m_worlds[stage]->setPickedCharacter(m_pickedCharacter);
                         m_worlds[stage]->setPlayerColors(m_pickedColors);
+                        m_worlds[stage]->setFont(&m_font);
                         m_worlds[stage]->initialize();
 #ifdef GAME_DEV_DEBUG
                         m_worlds[stage]->setDebugState(&m_managers.debugState);

@@ -359,13 +359,14 @@ namespace ggj
         drawRemotePlayers();
         drawRemoteProjectiles();
 
+        const Font& worldFont = (m_font != nullptr) ? static_cast<const Font&>(*m_font) : GetFontDefault();
         for (const FloatingTextEntry& e : m_floatingTexts)
         {
             const float progress = e.elapsed / FloatingTextEntry::DURATION;
             const uint8_t alpha = static_cast<uint8_t>(255 * (1.f - progress));
             Color color = e.color;
             color.a = alpha;
-            DrawTextEx(GetFontDefault(), e.text.c_str(), { e.position.x, e.position.y }, 12, 1.f, color);
+            DrawTextEx(worldFont, e.text.c_str(), { e.position.x, e.position.y }, FLOATING_TEXT_FONT_SIZE, 0.f, color);
         }
 
 #ifdef GAME_DEV_DEBUG
@@ -520,8 +521,9 @@ namespace ggj
         if (m_network == nullptr || !m_network->isActive())
             return;
 
-        constexpr int FONT_SIZE = 10;
+        constexpr float FONT_SIZE = 11.0f;
         constexpr float NAME_OFFSET_Y = 6.0f; ///< Label sits this far below the top edge of the 64px frame.
+        const Font& font = (m_font != nullptr) ? static_cast<const Font&>(*m_font) : GetFontDefault();
 
         for (const auto& [playerId, remote] : m_network->remotePlayers())
         {
@@ -539,9 +541,9 @@ namespace ggj
 
             if (!remote.name.empty())
             {
-                const int textWidth = MeasureText(remote.name.c_str(), FONT_SIZE);
+                const float textWidth = MeasureTextEx(font, remote.name.c_str(), FONT_SIZE, 0.0f).x;
                 const float top = remote.position.y - m_playerSpriteOrigin.y + NAME_OFFSET_Y;
-                ::DrawText(remote.name.c_str(), static_cast<int>(remote.position.x) - textWidth / 2, static_cast<int>(top), FONT_SIZE, remote.nameColor);
+                DrawTextEx(font, remote.name.c_str(), { remote.position.x - textWidth * 0.5f, top }, FONT_SIZE, 0.0f, remote.nameColor);
             }
         }
     }
