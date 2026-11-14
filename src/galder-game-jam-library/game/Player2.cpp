@@ -29,6 +29,13 @@ namespace ggj
         if (m_damageCooldown > 0.f)
             m_damageCooldown = std::max(0.f, m_damageCooldown - timeDelta);
 
+        // The cap grows with level, so clamp every frame (and refill gradually, never instantly, on level-up).
+        const float maxMana = getMaxMana();
+        m_secondsSinceCast += timeDelta;
+        if (m_secondsSinceCast >= MANA_REGEN_DELAY_SECONDS)
+            m_mana += MANA_REGEN_PER_SECOND * timeDelta;
+        m_mana = std::min(m_mana, maxMana);
+
         if (m_isDead)
         {
             setPlayerState(PlayerState::Dead);
@@ -80,6 +87,7 @@ namespace ggj
                 m_isDead = false;
                 m_world->resetPlayerLives(m_playerIndex);
                 m_damageCooldown = 0.f;
+                m_mana = getMaxMana();
                 m_body->SetEnabled(true);
                 m_soundManager.playSound(SoundName::PlayerRespawn);
             }
@@ -152,8 +160,10 @@ namespace ggj
                 m_lastMoveDirection = m_velocity;
         }
 
-        if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking)
+        if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking && m_mana >= FIREBALL_MANA_COST)
         {
+            m_mana -= FIREBALL_MANA_COST;
+            m_secondsSinceCast = 0.f;
             setPlayerState(PlayerState::AttackGrounded);
 
             m_isAttacking = true;
@@ -282,6 +292,11 @@ namespace ggj
     int Player2::getXpToNextLevel() const
     {
         return m_world->getPlayerXpToNextLevel(m_playerIndex);
+    }
+
+    float Player2::getMaxMana() const
+    {
+        return BASE_MAX_MANA + MAX_MANA_PER_LEVEL * static_cast<float>(std::max(0, getLevel() - 1));
     }
 
     int Player2::getEnemiesKilled() const

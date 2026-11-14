@@ -91,7 +91,9 @@ namespace ggj
             const int FONT_SIZE = 15;
 
             float m_health{};
-            float m_mana{};
+            float m_mana{};                      ///< Mana in bars (fractional while regenerating)
+            bool m_hasManaBar{};                 ///< False for characters without mana (the Rogue)
+            static constexpr float MANA_PER_BAR = 20.0f; ///< Level 1 cap of 200 mana fills 10 bars; later levels add partial bars
             float m_energy{};                    ///< Energy in bars (fractional while regenerating)
             bool m_hasEnergyBar{};               ///< False for characters without energy (the Wizard)
             static constexpr float ENERGY_PER_BAR = 10.0f;

@@ -55,6 +55,8 @@ namespace ggj
         [[nodiscard]] int getEnemiesKilled() const override;
         [[nodiscard]] float getEnergy() const override { return 0.f; }    ///< The Wizard uses cooldowns, not energy
         [[nodiscard]] float getMaxEnergy() const override { return 0.f; }
+        [[nodiscard]] float getMana() const override { return m_mana; }
+        [[nodiscard]] float getMaxMana() const override;
         void restoreState(const PlayerPersistentState& state) override;
         /*!
          * The Wizard has no melee hitbox (balancing) — damage comes only from mage balls.
@@ -104,6 +106,14 @@ namespace ggj
         uint16_t m_attackCounter { 0 }; ///< Counts attack duration
 
         std::vector<std::unique_ptr<Projectile>> m_projectiles {};
+
+        static constexpr float BASE_MAX_MANA = 200.f;            ///< Mana cap at level 1
+        static constexpr float MAX_MANA_PER_LEVEL = 10.f;        ///< Mana cap increase for every level after the first
+        static constexpr float MANA_REGEN_PER_SECOND = 10.f;     ///< Mana regained every second once regeneration kicks in
+        static constexpr float MANA_REGEN_DELAY_SECONDS = 2.f;   ///< Seconds without casting before mana starts regenerating
+        static constexpr float FIREBALL_MANA_COST = 25.f;        ///< Mana spent per fireball
+        float m_mana { BASE_MAX_MANA };
+        float m_secondsSinceCast { MANA_REGEN_DELAY_SECONDS };   ///< Idle time since the last cast; regen runs once it reaches the delay
 
         bool m_inDialog {};
         const DialogSpot* m_nearbyDialogSpot {};
