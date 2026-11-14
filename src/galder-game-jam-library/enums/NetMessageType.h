@@ -31,7 +31,12 @@ namespace ggj
 
         // --- Shared progression ---
         PortalEntered, ///< Either direction: a player walked into the portal of stageIndex; everyone follows.
-        StageChanged   ///< Server -> Client: the host moved on to stageIndex; clients switch to it.
+        StageChanged,  ///< Server -> Client: the host moved on to stageIndex; clients switch to it.
+
+        // --- Host-authoritative bosses ---
+        ClaudlingSpawned, ///< Server -> Client: the boss spawned a Claudling (objectId, playerId = target).
+        EnemyDamaged,     ///< Client -> Server: the client hit a boss (objectId, damage); the host applies it.
+        BombSpawned       ///< Server -> Client: the boss threw a bomb (position, velocity, fuseTime).
     };
 } // namespace ggj
 

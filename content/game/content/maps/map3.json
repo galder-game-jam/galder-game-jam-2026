@@ -421,76 +421,6 @@
                  "y":388.163633146267
                 }, 
                 {
-                 "ellipse":true,
-                 "height":24,
-                 "id":672,
-                 "name":"claudling",
-                 "opacity":1,
-                 "properties":[
-                        {
-                         "name":"follow_speed",
-                         "type":"float",
-                         "value":4
-                        }, 
-                        {
-                         "name":"is_static",
-                         "type":"bool",
-                         "value":false
-                        }, 
-                        {
-                         "name":"is_trigger",
-                         "type":"bool",
-                         "value":true
-                        }, 
-                        {
-                         "name":"knockback",
-                         "type":"float",
-                         "value":4
-                        }, 
-                        {
-                         "name":"sprite",
-                         "type":"string",
-                         "value":"claudling.png"
-                        }, 
-                        {
-                         "name":"sprite_size_x",
-                         "type":"int",
-                         "value":32
-                        }, 
-                        {
-                         "name":"sprite_size_y",
-                         "type":"int",
-                         "value":32
-                        }, 
-                        {
-                         "name":"userdata_command",
-                         "type":"string",
-                         "value":""
-                        }, 
-                        {
-                         "name":"userdata_objecttype",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"userdata_objecttype_enum",
-                         "propertytype":"ObjectType",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"velocity_x",
-                         "type":"float",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"PhysicsObject",
-                 "visible":true,
-                 "width":24,
-                 "x":188.666666666667,
-                 "y":294
-                }, 
-                {
                  "height":958.887,
                  "id":675,
                  "name":"",
@@ -534,6 +464,21 @@
                  "opacity":1,
                  "properties":[
                         {
+                         "name":"bomb_max_time",
+                         "type":"float",
+                         "value":4
+                        }, 
+                        {
+                         "name":"bomb_min_time",
+                         "type":"float",
+                         "value":1.5
+                        }, 
+                        {
+                         "name":"bomb_spawn_idle_state_time",
+                         "type":"float",
+                         "value":3
+                        }, 
+                        {
                          "name":"boss_name",
                          "type":"string",
                          "value":"King Claude"
@@ -566,7 +511,7 @@
                         {
                          "name":"lives",
                          "type":"int",
-                         "value":5
+                         "value":15
                         }, 
                         {
                          "name":"sprite",

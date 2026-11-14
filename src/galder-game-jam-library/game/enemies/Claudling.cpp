@@ -13,13 +13,13 @@ namespace ggj
         if (m_body == nullptr)
             return;
 
-        if (m_player != nullptr)
+        const std::optional<raylib::Vector2> target = m_players != nullptr ? m_players->getPlayerPosition(m_targetPlayerId.value_or(m_players->getLocalPlayerId())) : std::nullopt;
+        if (target.has_value())
         {
-            const raylib::Vector2 myPos  = getPosition();
-            const raylib::Vector2 target = m_player->getPosition();
+            const raylib::Vector2 myPos = getPosition();
 
-            const float dx = target.x - myPos.x;
-            const float dy = target.y - myPos.y;
+            const float dx = target->x - myPos.x;
+            const float dy = target->y - myPos.y;
             const float dist = std::sqrt(dx * dx + dy * dy);
 
             if (dist > 1.f)
@@ -44,6 +44,11 @@ namespace ggj
                     m_isWalking = false;
                 }
             }
+        }
+        else
+        {
+            // Its player left the session: stand still rather than drift on the last velocity.
+            m_body->SetLinearVelocity({ 0.f, 0.f });
         }
 
         PhysicsObject::update(timeDelta);

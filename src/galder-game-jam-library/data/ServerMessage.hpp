@@ -19,6 +19,7 @@ namespace ggj
      * For JoinAccept, playerId holds the id the server assigned to this client, name holds the
      * server name and stageIndex the stage the host is currently on.
      * For PlayerState / PlayerLeft, playerId identifies which player the snapshot describes.
+     * For EnemyState, lives carries the enemy's remaining lives (used by bosses).
      *
      * @note No std::string / containers allowed here - it must stay trivially copyable.
      */
@@ -49,6 +50,16 @@ namespace ggj
         // World object sync (EnemyState / CoinState).
         uint32_t objectId { 0 }; ///< Networked object id this message refers to.
         bool flag { false };     ///< EnemyState: isAlive. CoinState: collected.
+        uint8_t aiState { 0 };   ///< EnemyState: enemy-specific AI state (e.g. ClaudeState).
+        uint32_t targetPlayerId { 0 }; ///< EnemyState / ClaudlingSpawned: player id the enemy chases.
+        /*!
+         * EnemyState with flag == false: player id credited with the kill, or
+         * INetworkManager::NO_PLAYER_ID when the killer's own peer already counted it.
+         */
+        uint32_t killerPlayerId { 0 };
+        float followSpeed { 0.f }; ///< ClaudlingSpawned: chase speed.
+        float knockback { 0.f };   ///< ClaudlingSpawned: knockback applied to players on contact.
+        float fuseTime { 0.f };    ///< BombSpawned: seconds until the bomb explodes.
 
         int32_t stageIndex { 0 }; ///< JoinAccept / StageChanged: the host's stage. PortalEntered: stage of that portal.
     };

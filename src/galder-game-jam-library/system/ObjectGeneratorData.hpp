@@ -31,6 +31,11 @@ namespace ggj
         bool        isBoss   { false };
         std::string bossName {};
 
+        // King Claude's bomb phase (see ClaudeBombConfig).
+        float bombMinTime { 3.f };
+        float bombMaxTime { 5.f };
+        float bombSpawnIdleStateTime { 3.f };
+
         int layerIndex{};
         tson::Object obj{};
         tson::Vector2i pos{};

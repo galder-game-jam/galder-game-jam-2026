@@ -198,26 +198,32 @@ namespace ggj
         m_animation = m_animationManager.getAnimation(m_mapper.getAnimationNameByPlayerState(playerState));
     }
 
+    void Player2::takeHit()
+    {
+        if (m_damageCooldown > 0.f || m_isDead)
+            return;
+
+        m_damageCooldown = DAMAGE_COOLDOWN_SECONDS;
+        if (m_world->getPlayerScore(m_playerIndex) != 0)
+            m_world->addPlayerScore(m_playerIndex, -1);
+
+        m_soundManager.playSound(SoundName::PlayerHurt);
+        m_world->decrementPlayerLives(m_playerIndex);
+
+        if (m_world->getPlayerLives(m_playerIndex) <= 0)
+        {
+            m_soundManager.playSound(SoundName::PlayerDeath);
+            m_isDead = true;
+        }
+    }
+
     void Player2::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact)
     {
         b2WorldManifold worldManifold;
         contact->GetWorldManifold(&worldManifold); //Required to calculate manifold when circle hits circle
 
-        if (b->getUserData()->getObjectType() == ObjectType::Enemy && m_damageCooldown <= 0.f && !m_isDead)
-        {
-            m_damageCooldown = DAMAGE_COOLDOWN_SECONDS;
-            if (m_world->getPlayerScore(m_playerIndex) != 0)
-                m_world->addPlayerScore(m_playerIndex, -1);
-
-            m_soundManager.playSound(SoundName::PlayerHurt);
-            m_world->decrementPlayerLives(m_playerIndex);
-
-            if (m_world->getPlayerLives(m_playerIndex) <= 0)
-            {
-                m_soundManager.playSound(SoundName::PlayerDeath);
-                m_isDead = true;
-            }
-        }
+        if (b->getUserData()->getObjectType() == ObjectType::Enemy)
+            takeHit();
         if (b->getUserData()->getCommand() == "clear_level")
         {
             m_hasClearedLevel = true;

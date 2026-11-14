@@ -67,6 +67,7 @@ namespace ggj
         [[nodiscard]] bool isFacingLeft() const override { return m_flip; }
 
         void beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) override;
+        void takeHit() override;
         void update(float timeDelta) override;
         void draw() override;
 
