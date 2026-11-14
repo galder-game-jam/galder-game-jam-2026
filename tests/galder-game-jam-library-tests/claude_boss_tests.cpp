@@ -5,6 +5,7 @@
 #include "catch.hpp"
 #include "../../src/galder-game-jam-library/game/enemies/Bomb.h"
 #include "../../src/galder-game-jam-library/game/enemies/ClaudeEnemy.h"
+#include "../../src/galder-game-jam-library/system/CollisionCategory.hpp"
 
 using namespace ggj;
 
@@ -97,4 +98,60 @@ TEST_CASE("Claude enrage - body turns black and eyes turn red", "[claude]")
     REQUIRE(half.to[body].r > ClaudeEnemy::ENRAGED_BODY_COLOR.r);
     REQUIRE(half.to[eyes].r > ClaudeEnemy::EYE_COLOR.r);
     REQUIRE(half.to[eyes].r < ClaudeEnemy::ENRAGED_EYE_COLOR.r);
+}
+
+namespace
+{
+    constexpr float STEP = 1.f / 60.f;
+
+    /*! A box body like the map loader creates (static = wall, dynamic = player-like). */
+    b2Body* createBox(b2World& world, const b2BodyType type, const b2Vec2 center, const b2Vec2 halfSize)
+    {
+        b2BodyDef bodyDef;
+        bodyDef.type = type;
+        bodyDef.position = center;
+        b2Body* body = world.CreateBody(&bodyDef);
+        b2PolygonShape box;
+        box.SetAsBox(halfSize.x, halfSize.y);
+        b2FixtureDef fd;
+        fd.shape = &box;
+        fd.density = 1.f;
+        fd.friction = 0.3f;
+        body->CreateFixture(&fd);
+        return body;
+    }
+
+    void stepFor(b2World& world, const float seconds)
+    {
+        for (float t = 0.f; t < seconds; t += STEP)
+            world.Step(STEP, 8, 3);
+    }
+} // namespace
+
+TEST_CASE("Bomb - bounces off a terrain wall", "[bomb]")
+{
+    b2World world { { 0.f, 0.f } };
+    // Wall 3 m to the right of the bomb, tagged as terrain like solid static map objects are.
+    b2Body* wall = createBox(world, b2_staticBody, { 3.f, 0.f }, { 0.5f, 5.f });
+    CollisionCategory::MarkAsTerrain(*wall);
+
+    b2Body* bomb = Bomb::CreateBody(world, BombSpawnEvent { { 0.f, 0.f }, { 20.f, 0.f }, 3.f });
+    stepFor(world, 1.f);
+
+    REQUIRE(bomb->GetPosition().x < 2.5f);       // Never got through the wall.
+    REQUIRE(bomb->GetLinearVelocity().x <= 0.f); // Heading back (or stopped), not into the wall.
+}
+
+TEST_CASE("Bomb - passes through players and other bombs", "[bomb]")
+{
+    b2World world { { 0.f, 0.f } };
+    // A dynamic body on the bomb's path, like a player, with the default collision filter.
+    b2Body* player = createBox(world, b2_dynamicBody, { 3.f, 0.f }, { 0.5f, 0.5f });
+    b2Body* bomb = Bomb::CreateBody(world, BombSpawnEvent { { 0.f, 0.f }, { 20.f, 0.f }, 3.f });
+    b2Body* otherBomb = Bomb::CreateBody(world, BombSpawnEvent { { PhysicsObject::PPM, 0.f }, { 0.f, 0.f }, 3.f });
+    stepFor(world, 1.f);
+
+    REQUIRE(bomb->GetPosition().x > 4.f);               // Slid on past the player.
+    REQUIRE(player->GetPosition().x == Approx(3.f));    // Was not pushed.
+    REQUIRE(otherBomb->GetPosition().x == Approx(1.f)); // Bombs ignore each other (spawned 1 m in).
 }

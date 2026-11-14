@@ -3,6 +3,7 @@
 //
 
 #include "Bomb.h"
+#include "../../system/CollisionCategory.hpp"
 #include "../../system/World.h"
 #include <algorithm>
 #include <cmath>
@@ -18,6 +19,30 @@ namespace ggj
         m_origin = raylib::Vector2 { FRAME_SIZE / 2.f, FRAME_SIZE / 2.f };
         // Spawned after this frame's update pass, so it is drawn once before update() syncs this.
         m_position = ConvertToVector2(m_body->GetPosition());
+    }
+
+    b2Body* Bomb::CreateBody(b2World& world, const BombSpawnEvent& spawn)
+    {
+        b2BodyDef bodyDef;
+        bodyDef.type = b2_dynamicBody;
+        bodyDef.position = PhysicsObject::ConvertToB2Vec2(spawn.position);
+        bodyDef.linearDamping = LINEAR_DAMPING;
+        bodyDef.fixedRotation = true;
+        b2Body* body = world.CreateBody(&bodyDef);
+
+        b2CircleShape circle;
+        circle.m_radius = BODY_RADIUS / PhysicsObject::PPM;
+        b2FixtureDef fd;
+        fd.shape = &circle;
+        fd.density = 1.0f;
+        fd.friction = 0.f; // Glance off walls instead of being slowed down along them.
+        fd.restitution = RESTITUTION;
+        // Solid, but only towards terrain: players, enemies and other bombs pass straight through.
+        fd.filter.categoryBits = CollisionCategory::BOMB;
+        fd.filter.maskBits = CollisionCategory::TERRAIN;
+        body->CreateFixture(&fd);
+        body->SetLinearVelocity({ spawn.velocity.x, spawn.velocity.y });
+        return body;
     }
 
     int32_t Bomb::FuseFrameIndex(float elapsed, float fuseTime)

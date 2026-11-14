@@ -11,6 +11,7 @@
 #include "../game/enemies/TreantEnemy.h"
 #include "../game/enemies/Claudling.h"
 #include "../game/enemies/Bomb.h"
+#include "CollisionCategory.hpp"
 #include <numbers>
 #include "../game/projectiles/MageBall.hpp"
 #include "../graphics/CharacterPalette.h"
@@ -221,6 +222,9 @@ namespace ggj
                         {
                             f->SetSensor(generatorData.isTrigger);
                         }
+                        // Solid static objects are the walls bombs bounce off.
+                        if (bodyType == b2_staticBody && !generatorData.isTrigger)
+                            CollisionCategory::MarkAsTerrain(*body);
 
                         UserData userData { objectType, { userDataForceX, userDataForceY }, userdataCommand, userdataDialogId, name };
                         generatorData.userData = userData;
@@ -1399,22 +1403,7 @@ namespace ggj
         if (tex == nullptr)
             return;
 
-        constexpr float BODY_RADIUS = 12.f; ///< Pixels; only used for the debug outline, the bomb never collides.
-        b2BodyDef bodyDef;
-        bodyDef.type = b2_dynamicBody;
-        bodyDef.position = PhysicsObject::ConvertToB2Vec2(bomb.position);
-        bodyDef.linearDamping = Bomb::LINEAR_DAMPING;
-        bodyDef.fixedRotation = true;
-        b2Body* body = m_world.CreateBody(&bodyDef);
-
-        b2CircleShape circle;
-        circle.m_radius = BODY_RADIUS / PhysicsObject::PPM;
-        b2FixtureDef fd;
-        fd.shape = &circle;
-        fd.density = 1.0f;
-        fd.isSensor = true; // Players walk through it, and it slides through walls.
-        body->CreateFixture(&fd);
-        body->SetLinearVelocity({ bomb.velocity.x, bomb.velocity.y });
+        b2Body* body = Bomb::CreateBody(m_world, bomb);
 
         const UserData userData { ObjectType::Trap, { 0.f, 0.f }, "", "", "bomb" };
         PhysicsObject* physicsObject = createObject<Bomb>(body, tex, explosionTex, userData, bomb.fuseTime, this);
