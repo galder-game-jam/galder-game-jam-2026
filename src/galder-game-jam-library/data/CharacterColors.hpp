@@ -36,6 +36,19 @@ namespace ggj
         std::array<::Color, MAX_COLORS> to {};
         int32_t count { 0 };
     };
+
+    /*!
+     * Per-slot colours for the mask recolour shader, which recolours painted art (the HUD portraits)
+     * where a slot mask marks each customizable part instead of exact sprite colours.
+     */
+    struct MaskRecolor
+    {
+        static constexpr size_t MAX_SLOTS = CharacterColors::MAX_SLOTS; ///< Must match MAX_SLOTS in mask_recolor.fs.
+
+        std::array<::Color, MAX_SLOTS> base {};     ///< The sprite's base shade; a texel this bright gets exactly the target colour.
+        std::array<::Color, MAX_SLOTS> target {};   ///< The picked colour.
+        std::array<bool, MAX_SLOTS> isRecolored {}; ///< false keeps the slot as painted (unused or left at its default).
+    };
 } // namespace ggj
 
 #endif // GALDER_GAME_JAM_2026_CHARACTERCOLORS_HPP

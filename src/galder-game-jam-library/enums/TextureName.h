@@ -90,9 +90,13 @@ namespace ggj
         HudRpgSubset = 301,
         HudRpgRoguePortrait = 302,
         HudRpgWizardPortrait = 303,
+        HudRpgRoguePortraitMask = 304,
+        HudRpgWizardPortraitMask = 305,
 
         CharacterSelectRoguePortrait = 330,
         CharacterSelectWizardPortrait = 331,
+        CharacterSelectRoguePortraitMask = 332,
+        CharacterSelectWizardPortraitMask = 333,
 
         MainMenuBackground = 340,
 

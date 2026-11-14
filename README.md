@@ -100,4 +100,4 @@ The following graphics from [OpenGameArt](https://opengameart.org) are used in t
 
 # Networking
 
-**IMPORTANT: Build `GameNetowrkingSockets` and `GameNetworkingSockets_s` individually first. Temporary solution, but for now this is what works.**
+**IMPORTANT: Build `GameNetowrkingSockets` and `GameNetworkingSockets_s` individualsly first. Temporary solution, but for now this is what works.**
