@@ -73,6 +73,25 @@ namespace ggj
             return result;
         }
 
+        /*!
+         * Tells a client it was kicked, then closes its connection. The close lingers so the notice
+         * is delivered first. The client is forgotten right away, so no disconnect event is queued
+         * for it and broadcasts stop reaching it.
+         *
+         * @param connection Client to remove
+         * @param notice     Message sent to the client just before the close
+         * @return           false if no such client is connected
+         */
+        bool kickClient(HSteamNetConnection connection, const ServerMessage& notice)
+        {
+            if (m_netInterface == nullptr || m_mapClients.erase(connection) == 0)
+                return false;
+
+            send(connection, notice);
+            m_netInterface->CloseConnection(connection, 0, "Kicked by host", true);
+            return true;
+        }
+
         /*! Drains and returns the connections that dropped since the last call. */
         std::vector<HSteamNetConnection> takeDisconnected()
         {

@@ -38,7 +38,10 @@ namespace ggj
         EnemyDamaged,     ///< Client -> Server: the client hit a boss (objectId, damage); the host applies it.
         BombSpawned,      ///< Server -> Client: the boss threw a bomb (position, velocity, fuseTime).
         RootSpawned,       ///< Server -> Client: the treant threw a root (position = origin, target, flightTime, spikeDelay).
-        Chat ///< Either direction: a chat line. Carried by ChatMessage, not the Client/ServerMessage envelopes.
+        Chat, ///< Either direction: a chat line. Carried by ChatMessage, not the Client/ServerMessage envelopes.
+
+        // --- Host moderation ---
+        Kicked ///< Server -> Client: the host removed you from the session; the connection closes right after.
     };
 } // namespace ggj
 

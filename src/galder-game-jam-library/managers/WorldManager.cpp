@@ -489,6 +489,12 @@ namespace ggj
         m_network.poll(timeDelta);
         m_chatBox.update(timeDelta);
 
+        if (m_network.wasKicked())
+        {
+            showConnectionLostPopup("The host removed you from the server.", "Kicked");
+            return;
+        }
+
         if (m_network.hasLostConnection())
         {
             showConnectionLostPopup(m_network.hasEverConnected() ? "Disconnected from server." : "Could not connect to server.");
@@ -576,7 +582,7 @@ namespace ggj
 #endif
     }
 
-    void WorldManager::showConnectionLostPopup(const std::string& message)
+    void WorldManager::showConnectionLostPopup(const std::string& message, const std::string& title)
     {
         m_logger.information(message);
         m_network.shutdown();
@@ -585,7 +591,7 @@ namespace ggj
         m_talentScreenActive = false;
         m_optionsScreenActive = false;
         m_optionsReturnToInGame = false;
-        m_connectionLostPopup.open("Connection lost", message);
+        m_connectionLostPopup.open(title, message);
     }
 
     void WorldManager::draw()
@@ -668,11 +674,11 @@ namespace ggj
         // Host gets an in-game window listing connected players and their stats.
         if (m_isNetplay && m_network.role() == NetworkRole::Server)
         {
-            ServerInfoMenu serverInfo;
-            serverInfo.draw(m_network.connectedPlayers(),
-                            m_network.serverName(),
-                            m_network.localIpAddress(),
-                            m_network.publicIpAddress());
+            if (const std::optional<uint32_t> kickedPlayerId = m_serverInfoMenu.draw(m_network.connectedPlayers(),
+                                                                                       m_network.serverName(),
+                                                                                       m_network.localIpAddress(),
+                                                                                       m_network.publicIpAddress()))
+                m_network.kickPlayer(*kickedPlayerId);
         }
         else if (m_isNetplay && m_network.role() == NetworkRole::Client
                  && m_worlds.count(m_currentStageIndex) > 0)

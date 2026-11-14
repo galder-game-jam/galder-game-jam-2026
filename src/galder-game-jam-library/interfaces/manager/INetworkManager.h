@@ -81,6 +81,8 @@ namespace ggj
 
         /*! Client: the connection failed or was closed by the host. Cleared by shutdown(). */
         [[nodiscard]] virtual bool hasLostConnection() const = 0;
+        /*! Client: the host removed the local player from the session. Cleared by shutdown(). */
+        [[nodiscard]] virtual bool wasKicked() const = 0;
         /*! Client: the connection was established at some point (tells a dropped session from a failed connect). */
         [[nodiscard]] virtual bool hasEverConnected() const = 0;
 
@@ -222,6 +224,16 @@ namespace ggj
 
         /*! Host's view of all connected players (host + clients) for the ServerInfo window. Empty off-server. */
         [[nodiscard]] virtual std::vector<ConnectedPlayer> connectedPlayers() const = 0;
+
+        /*!
+         * Host only: removes a client from the session. The client is told it was kicked, its
+         * connection is closed and every other peer is told the player left. Nothing stops the
+         * client from joining again.
+         *
+         * @param playerId Id of the client to remove
+         * @return         false if we are not hosting, or no client has that id (the host cannot be kicked)
+         */
+        virtual bool kickPlayer(uint32_t playerId) = 0;
 
         // --- Chat ---
 
