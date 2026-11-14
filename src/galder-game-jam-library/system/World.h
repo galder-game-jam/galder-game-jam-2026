@@ -195,6 +195,17 @@ namespace ggj
          */
         void updatePlayerTalentState(int32_t playerIndex, const TalentState& state, int talentPoints);
 
+        /*!
+         * Advances the slow health-regeneration talents and grants a life when the interval elapses.
+         * The clock only runs while the player is alive and below the regeneration cap, so it never
+         * stacks with extra lives from other sources.
+         *
+         * @param playerIndex Player to tick
+         * @param timeDelta   Time since last frame in seconds
+         * @return            true if a life was regenerated this call
+         */
+        [[nodiscard]] bool tickPlayerLifeRegen(int32_t playerIndex, float timeDelta);
+
         template <typename T> T* createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive);
 
         /*!

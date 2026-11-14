@@ -78,6 +78,15 @@ namespace ggj
             [[nodiscard]] std::string statusLabel(const TalentDef& def) const;
             void buildCharacterTalentList();
 
+            /*!
+             * Splits text into lines no wider than maxWidth pixels, breaking on spaces.
+             *
+             * @param text     Text to wrap
+             * @param maxWidth Maximum line width in pixels
+             * @return         The wrapped lines, in order
+             */
+            [[nodiscard]] std::vector<std::string> wrapText(const std::string& text, float maxWidth) const;
+
             IInputManager<KeyboardKey>& m_inputManager;
             PlayerPersistentState&      m_persistentState;
             IOptionsManager&            m_options;
@@ -92,13 +101,15 @@ namespace ggj
             static constexpr float SCREEN_WIDTH    = 800.0f;
             static constexpr float SCREEN_HEIGHT   = 600.0f;
             static constexpr float PANEL_X         = 100.0f;
-            static constexpr float PANEL_Y         = 75.0f;
+            static constexpr float PANEL_Y         = 30.0f;
             static constexpr float PANEL_W         = 600.0f;
-            static constexpr float PANEL_H         = 450.0f;
+            static constexpr float PANEL_H         = 540.0f;
             static constexpr int   TITLE_FONT_SIZE = 26;
             static constexpr int   ITEM_FONT_SIZE  = 20;
             static constexpr int   SMALL_FONT_SIZE = 15;
-            static constexpr float ITEM_SPACING    = 26.0f;
+            static constexpr float ITEM_SPACING    = 24.0f;
+            static constexpr float DESC_LINE_HEIGHT = 18.0f;
+            static constexpr int   DESC_MAX_LINES  = 3;
     };
 
 } // namespace ggj

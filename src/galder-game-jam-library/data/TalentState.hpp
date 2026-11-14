@@ -33,6 +33,8 @@ namespace ggj
         }
     };
 
+    inline constexpr float LIFE_REGEN_INTERVAL_SECONDS = 30.0f; ///< Seconds per life for the slow health-regeneration talents.
+
     /*!
      * Derives the active gameplay effects from a player's unlocked talents.
      *
@@ -62,6 +64,24 @@ namespace ggj
         if (state.hasTalent(TalentId::RogueShadowsGift))
             fx.xpMultiplier *= 1.50f;
 
+        if (state.hasTalent(TalentId::RogueSecondWind))
+            fx.energyRegenMultiplier *= 1.50f;
+
+        if (state.hasTalent(TalentId::RogueDeadlyEdge))
+            fx.meleeDamageBonus += 1;
+
+        if (state.hasTalent(TalentId::RogueRegeneration))
+            fx.lifeRegenIntervalSeconds = LIFE_REGEN_INTERVAL_SECONDS;
+
+        if (state.hasTalent(TalentId::RogueDeepReserves))
+            fx.maxEnergyBonus += 50.0f;
+
+        if (state.hasTalent(TalentId::RogueTireless))
+            fx.attackEnergyCostMultiplier *= 0.65f;
+
+        if (state.hasTalent(TalentId::RogueIronWill))
+            fx.damageCooldownMultiplier *= 1.50f;
+
         // ── Wizard ────────────────────────────────────────────────────────────
         if (state.hasTalent(TalentId::WizardArcaneFocus))
             fx.projectileSpeedMultiplier *= 1.35f;
@@ -77,6 +97,27 @@ namespace ggj
 
         if (state.hasTalent(TalentId::WizardArcaneMastery))
             fx.xpMultiplier *= 1.75f;
+
+        if (state.hasTalent(TalentId::WizardManaSpring))
+            fx.manaRegenMultiplier *= 1.50f;
+
+        if (state.hasTalent(TalentId::WizardThriftyCasting))
+            fx.spellManaCostMultiplier *= 0.70f;
+
+        if (state.hasTalent(TalentId::WizardVitalSpark))
+            fx.lifeRegenIntervalSeconds = LIFE_REGEN_INTERVAL_SECONDS;
+
+        if (state.hasTalent(TalentId::WizardDeepWell))
+            fx.maxManaMultiplier *= 1.25f;
+
+        if (state.hasTalent(TalentId::WizardOverflow))
+        {
+            fx.manaRegenDelayMultiplier = 0.0f;   // regenerates immediately after casting
+            fx.manaRegenMultiplier *= 1.25f;
+        }
+
+        if (state.hasTalent(TalentId::WizardWard))
+            fx.damageCooldownMultiplier *= 1.50f;
 
         return fx;
     }

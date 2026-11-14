@@ -26,6 +26,7 @@ namespace ggj
         int               talentPoints   { 0 }; ///< Unspent points earned from level-ups.
         TalentState       talentState    {};     ///< Talents the player has unlocked.
         TalentEffects     computedEffects{};     ///< Pre-computed talent modifiers — rebuilt on every talent change.
+        float             lifeRegenTimer { 0.f }; ///< Seconds accumulated towards the next regenerated life.
     };
 } // namespace ggj
 
