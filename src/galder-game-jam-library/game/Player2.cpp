@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include "Player2.h"
-#include "Hitbox.hpp"
 #include "../system/World.h"
 #include "projectiles/MageBall.hpp"
 
@@ -20,7 +19,6 @@ namespace ggj
             PhysicsSprite::draw();
         if (m_world != nullptr)
             m_world->endPlayerPalette();
-        m_hitbox.draw();
     }
 
     void Player2::update(float timeDelta)
@@ -65,8 +63,6 @@ namespace ggj
             m_animation.update(timeDelta);
             m_drawingRect = m_animation.getDrawingRect();
         }
-
-        m_hitbox.update(timeDelta);
     }
 
     void Player2::handleInputs(float timeDelta)
@@ -83,7 +79,6 @@ namespace ggj
                 m_isDead = false;
                 m_world->resetPlayerLives(m_playerIndex);
                 m_damageCooldown = 0.f;
-                m_hitbox.setIsActive(true);
                 m_body->SetEnabled(true);
                 m_soundManager.playSound(SoundName::PlayerRespawn);
             }
@@ -110,8 +105,6 @@ namespace ggj
         {
             if (m_inputManager.keyDown(kb.moveLeft) && !m_inputManager.keyDown(kb.moveRight))
             {
-                m_isLeftPosition = true;
-                m_hitbox.setLeftPosition(true);
                 m_flip = true;
                 m_velocity = raylib::Vector2 { -speed, m_velocity.y };
                 if (m_velocity.y < 0.2f && m_velocity.y > -0.2f)
@@ -119,8 +112,6 @@ namespace ggj
             }
             else if (m_inputManager.keyDown(kb.moveRight) && !m_inputManager.keyDown(kb.moveLeft))
             {
-                m_isLeftPosition = false;
-                m_hitbox.setLeftPosition(false);
                 m_flip = false;
                 m_velocity = raylib::Vector2 { speed, m_velocity.y };
                 if (m_velocity.y < 0.2f && m_velocity.y > -0.2f)
@@ -186,12 +177,6 @@ namespace ggj
             }
             ++m_attackCounter;
         }
-
-        m_hitbox.setIsActive(m_isAttacking);
-        if (m_isLeftPosition)
-            m_hitbox.getBody()->SetTransform(PhysicsObject::ConvertToB2Vec2({ m_position.x - 12, m_position.y }), 0);
-        else
-            m_hitbox.getBody()->SetTransform(PhysicsObject::ConvertToB2Vec2({ m_position.x + 12, m_position.y }), 0);
     }
 
     bool Player2::cameraShouldFollowPlayer() const
@@ -310,7 +295,7 @@ namespace ggj
 
     ggj::Hitbox* Player2::getHitbox()
     {
-        return &m_hitbox;
+        return nullptr;
     }
 
     void Player2::shootMageBall()

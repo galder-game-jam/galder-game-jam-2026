@@ -227,13 +227,13 @@ namespace ggj
         return pose;
     }
 
-    void TreantEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft)
+    void TreantEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage)
     {
         // Already dead (waiting for removal): don't count the boss kill a second time.
         if (shouldBeDestroyed() || m_invulTimer > 0.f)
             return;
 
-        --m_lives;
+        m_lives -= damage;
 
         if (m_lives <= 0)
         {
@@ -252,9 +252,9 @@ namespace ggj
         }
     }
 
-    void TreantEnemy::onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker)
+    void TreantEnemy::onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker, int32_t damage)
     {
-        takeDamage(soundManager, attacker, fromLeft);
+        takeDamage(soundManager, attacker, fromLeft, damage);
     }
 
     void TreantEnemy::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact)
@@ -279,7 +279,7 @@ namespace ggj
         {
             Projectile* p = dynamic_cast<Projectile*>(b);
             p->explode();
-            takeDamage(&m_soundManager, p->getOwner(), false);
+            takeDamage(&m_soundManager, p->getOwner(), false, PROJECTILE_DAMAGE);
         }
     }
 

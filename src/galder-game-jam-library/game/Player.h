@@ -40,8 +40,9 @@ namespace ggj
             auto hitBoxPos = raylib::Vector2(bodyPosition.x + 16, bodyPosition.y);
 
             const UserData hitboxData { ObjectType::PlayerHitbox, { 0.f, 0.f }, "melee_attack", "", "melee_hitbox" };
-            m_hitbox.create(this, m_body->GetWorld(), hitBoxPos, { 32, 32 }, hitboxData);
+            m_hitbox.create(this, m_body->GetWorld(), hitBoxPos, { HITBOX_SIZE, HITBOX_SIZE }, hitboxData);
             m_hitbox.setSoundManager(&m_soundManager);
+            m_hitbox.setDamage(MELEE_DAMAGE);
             setPlayerState(PlayerState::Idle);
         }
 
@@ -96,6 +97,9 @@ namespace ggj
         float m_damageCooldown { 0.f };                       ///< Seconds of invulnerability left
         bool m_isLeftPosition { false };
 
+        static constexpr int32_t MELEE_DAMAGE = 2;   ///< Lives removed per sword hit
+        static constexpr float HITBOX_SIZE = 40.f;   ///< Width/height of the melee hitbox (pixels)
+        static constexpr float HITBOX_OFFSET_X = 16.f; ///< Hitbox centre offset in facing direction; keeps the back edge put so the extra size all goes to reach
         ggj::Hitbox m_hitbox {};
         bool m_isAttacking { false };
         uint16_t m_attackFrames { 28 }; ///< How many frames an attack takes

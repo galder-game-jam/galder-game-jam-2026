@@ -81,12 +81,12 @@ namespace ggj
         return m_body;
     }
 
-    void PhysicsObject::onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker)
+    void PhysicsObject::onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker, int32_t damage)
     {
         // Already dying: further hits must not decrement lives or count the kill again.
         if (shouldBeDestroyed())
             return;
-        --m_lives;
+        m_lives -= damage;
         if (m_lives > 0)
             return;
         if (soundManager != nullptr)

@@ -248,7 +248,8 @@ namespace ggj
 #ifdef GAME_DEV_DEBUG
             if (m_pDebugState != nullptr)
             {
-                m_player->getHitbox()->setVisible(m_pDebugState->showHitboxes);
+                if (Hitbox* hitbox = m_player->getHitbox(); hitbox != nullptr)
+                    hitbox->setVisible(m_pDebugState->showHitboxes);
                 m_player->setCameraFollowsPlayer(m_pDebugState->cameraFollowsPlayer);
             }
 #endif
@@ -740,7 +741,6 @@ namespace ggj
                                                                                                     spriteSize, r, tex, generatorData.userData);
                     m_player = p2;
                     m_userDataManager.addUserData(body, p2);
-                    m_userDataManager.addUserData(p2->getHitbox()->getBody(), p2->getHitbox());
                 }
                 else
                 {
