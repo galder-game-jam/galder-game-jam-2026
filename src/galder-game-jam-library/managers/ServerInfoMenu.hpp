@@ -6,6 +6,7 @@
 #define GALDER_GAME_JAM_2026_PROJECT_SERVERINFOMENU_HPP
 
 #include "imgui.h"
+#include "../system/ImGuiPlacement.hpp"
 #include "../data/ConnectedPlayer.hpp"
 #include "../interfaces/manager/INetworkManager.h"
 
@@ -48,8 +49,9 @@ namespace ggj
                                                    const std::string& publicIp)
         {
             std::optional<KickRequest> kickRequest {};
-            ImGui::SetNextWindowSize({ 460, 360 }, ImGuiCond_FirstUseEver);
+            imgui::prepareWindow({ 460, 360 }, imgui::Anchor::BottomRight);
             ImGui::Begin("Server Info");
+            imgui::keepWindowOnScreen();
 
             ImGui::Text("Server: %s", serverName.c_str());
 
