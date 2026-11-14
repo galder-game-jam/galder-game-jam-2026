@@ -15,13 +15,14 @@ namespace tson { class Map; }
 
 namespace ggj
 {
-    /*! A player or enemy dot on the minimap. */
+    /*! A player, enemy or NPC dot on the minimap. */
     struct MinimapMarker
     {
         raylib::Vector2 worldPosition {}; ///< Visual centre of the player in world pixels.
         raylib::Color color { RED };      ///< The player's chosen name colour.
         bool isLocalPlayer { false };     ///< Drawn on top with a white ring so you can find yourself.
-        bool isEnemy { false };           ///< Drawn as a small dot underneath the player dots.
+        bool isEnemy { false };           ///< Drawn as a small red dot underneath the player dots.
+        bool isNpc { false };             ///< Drawn as a gold dot underneath the player dots.
     };
 
     /*!
@@ -36,9 +37,9 @@ namespace ggj
 
             void initialize(tson::Map& map, std::map<int32_t, WorldLayer>& layers);
             /*!
-             * Draws the map and a dot per player and enemy.
+             * Draws the map and a dot per player, enemy and NPC.
              *
-             * @param markers Players and enemies to mark; enemies are drawn first and the local player last so it stays on top
+             * @param markers Players, enemies and NPCs to mark; enemies and NPCs are drawn first and the local player last so it stays on top
              * @param alpha HUD opacity in 0..1
              */
             void draw(const std::vector<MinimapMarker>& markers, float alpha = 1.0f) const;
