@@ -466,12 +466,12 @@
                         {
                          "name":"bomb_max_time",
                          "type":"float",
-                         "value":5
+                         "value":4
                         }, 
                         {
                          "name":"bomb_min_time",
                          "type":"float",
-                         "value":3
+                         "value":1.5
                         }, 
                         {
                          "name":"bomb_spawn_idle_state_time",
@@ -511,7 +511,7 @@
                         {
                          "name":"lives",
                          "type":"int",
-                         "value":10
+                         "value":15
                         }, 
                         {
                          "name":"sprite",
