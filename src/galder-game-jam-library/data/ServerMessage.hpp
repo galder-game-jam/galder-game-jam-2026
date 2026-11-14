@@ -46,6 +46,11 @@ namespace ggj
         int32_t lives { 0 };
         int32_t score { 0 };
         int32_t kills { 0 };
+        int32_t level { 1 };   ///< Level and resources feed the party bars of the HUD.
+        float mana { 0.f };
+        float maxMana { 0.f };
+        float energy { 0.f };
+        float maxEnergy { 0.f };
 
         // World object sync (EnemyState / CoinState).
         uint32_t objectId { 0 }; ///< Networked object id this message refers to.

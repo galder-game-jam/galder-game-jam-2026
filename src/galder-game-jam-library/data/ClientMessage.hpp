@@ -43,6 +43,11 @@ namespace ggj
         int32_t lives { 0 };
         int32_t score { 0 };
         int32_t kills { 0 };
+        int32_t level { 1 };
+        float mana { 0.f };
+        float maxMana { 0.f };
+        float energy { 0.f };
+        float maxEnergy { 0.f };
 
         // Local world event report (GameEvent): something this peer destroyed locally.
         uint32_t objectId { 0 };

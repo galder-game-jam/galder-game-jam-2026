@@ -26,6 +26,10 @@ namespace ggj
         m_hudTexture = m_textures.get(TextureName::HudRpgSubset);
         m_playerPortraitTexture = m_textures.get(TextureName::HudRpgRoguePortrait);
         m_playerPortraitMaskTexture = m_textures.get(TextureName::HudRpgRoguePortraitMask);
+        m_roguePortraitTexture = m_textures.get(TextureName::HudRpgRoguePortrait);
+        m_roguePortraitMaskTexture = m_textures.get(TextureName::HudRpgRoguePortraitMask);
+        m_wizardPortraitTexture = m_textures.get(TextureName::HudRpgWizardPortrait);
+        m_wizardPortraitMaskTexture = m_textures.get(TextureName::HudRpgWizardPortraitMask);
     }
 
     void Hud::setFont(raylib::Font* font)
@@ -127,6 +131,7 @@ namespace ggj
             return;
 
         drawPlayerPortrait();
+        drawPartyBars();
         if (m_options.getHudOptions().showInventory)
             drawPlayerPositionBar(m_playerPositionOffset);
         drawXpBar();
@@ -201,23 +206,33 @@ namespace ggj
         m_font->DrawText(TextFormat("Portal is %s", isOpen ? "open" : "closed"), raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 67 }, FONT_SIZE, 0, tinted(isOpen ? GREEN : RED));
     }
 
-    void Hud::DrawResourceBar(const float counter, raylib::Rectangle rectResource, raylib::Rectangle rectEnd, float barNo) const
+    void Hud::drawResourceBar(const float counter, const raylib::Rectangle rectResource, const raylib::Rectangle rectEnd, const float barNo,
+                              const raylib::Vector2 portraitOrigin, const float scale) const
     {
         const raylib::Color texTint = tinted(WHITE);
-        float barTypeOffset = 20 * barNo;
+        const float barTypeOffset = 20 * barNo * scale;
+        const float barY = portraitOrigin.y + 6 * scale + barTypeOffset;
+        const float endY = portraitOrigin.y + 2 * scale + barTypeOffset;
+        const float firstBarX = portraitOrigin.x + m_portraitRect.width * scale;
+        const float barWidth = rectResource.width * scale;
+
         const int fullBars = static_cast<int>(counter);
         for (int i = 0; i < fullBars; ++i)
         {
-            m_hudTexture->Draw(rectResource, raylib::Vector2 { m_portraitRect.width + rectResource.width * i + m_portraitOffset.x, 6 + barTypeOffset + m_portraitOffset.y }, texTint);
+            const raylib::Rectangle dest { firstBarX + barWidth * static_cast<float>(i), barY, barWidth, rectResource.height * scale };
+            m_hudTexture->Draw(rectResource, dest, raylib::Vector2 {}, 0.f, texTint);
         }
         // A partly filled bar (energy regenerates continuously) is drawn cropped to its filled fraction.
         const float partialWidth = std::floor((counter - static_cast<float>(fullBars)) * rectResource.width);
+        const float lastBarX = firstBarX + barWidth * static_cast<float>(fullBars);
         if (partialWidth > 0.f)
         {
             const raylib::Rectangle partialRect { rectResource.x, rectResource.y, partialWidth, rectResource.height };
-            m_hudTexture->Draw(partialRect, raylib::Vector2 { m_portraitRect.width + rectResource.width * static_cast<float>(fullBars) + m_portraitOffset.x, 6 + barTypeOffset + m_portraitOffset.y }, texTint);
+            const raylib::Rectangle dest { lastBarX, barY, partialWidth * scale, rectResource.height * scale };
+            m_hudTexture->Draw(partialRect, dest, raylib::Vector2 {}, 0.f, texTint);
         }
-        m_hudTexture->Draw(rectEnd, raylib::Vector2 { m_portraitRect.width + rectResource.width * static_cast<float>(fullBars) + partialWidth + m_portraitOffset.x, 2 + barTypeOffset + m_portraitOffset.y }, texTint);
+        const raylib::Rectangle endDest { lastBarX + partialWidth * scale, endY, rectEnd.width * scale, rectEnd.height * scale };
+        m_hudTexture->Draw(rectEnd, endDest, raylib::Vector2 {}, 0.f, texTint);
     }
 
     void Hud::drawPlayerPortrait() const
@@ -231,11 +246,11 @@ namespace ggj
             m_maskRecolor.end();
         m_hudTexture->Draw(m_portraitRect, m_portraitOffset, texTint);
 
-        DrawResourceBar(m_health, m_lifeRect, m_lifeEnd, 0);
+        drawResourceBar(m_health, m_lifeRect, m_lifeEnd, 0, m_portraitOffset, 1.f);
         if (m_hasManaBar)
-            DrawResourceBar(m_mana, m_manaRect, m_manaEnd, 1);
+            drawResourceBar(m_mana, m_manaRect, m_manaEnd, 1, m_portraitOffset, 1.f);
         if (m_hasEnergyBar)
-            DrawResourceBar(m_energy, m_energyRect, m_energyEnd, 2);
+            drawResourceBar(m_energy, m_energyRect, m_energyEnd, 2, m_portraitOffset, 1.f);
 
         static constexpr float BADGE_RADIUS = 12.0f;
         const float cx = m_portraitOffset.x + m_portraitRect.width - BADGE_RADIUS - 20.0f;
@@ -247,6 +262,66 @@ namespace ggj
         m_font->DrawText(levelText,
                          raylib::Vector2 { cx - textSize.x * 0.5f, cy - textSize.y * 0.5f },
                          FONT_SIZE, 0, tinted(GOLD));
+    }
+
+    void Hud::drawPartyBars() const
+    {
+        if (m_currentWorld == nullptr || m_font == nullptr)
+            return;
+
+        const std::vector<const RemotePlayer*> members = m_currentWorld->getRemotePartyMembers();
+        const float rowHeight = PARTY_NAME_HEIGHT + m_portraitRect.height * PARTY_SCALE + PARTY_ROW_GAP;
+        raylib::Vector2 origin { m_portraitOffset.x, m_portraitOffset.y + m_portraitRect.height + PARTY_ROW_GAP };
+        for (const RemotePlayer* member : members)
+        {
+            drawPartyMember(*member, origin);
+            origin.y += rowHeight;
+        }
+    }
+
+    void Hud::drawPartyMember(const RemotePlayer& member, const raylib::Vector2 origin) const
+    {
+        const bool isWizard = member.character == PlayerPickedCharacter::Wizard;
+        const raylib::Texture* portrait = isWizard ? m_wizardPortraitTexture : m_roguePortraitTexture;
+        const raylib::Texture* mask = isWizard ? m_wizardPortraitMaskTexture : m_roguePortraitMaskTexture;
+        if (portrait == nullptr)
+            return;
+
+        const bool isDead = member.lives <= 0;
+        // A fallen party member is greyed out so it reads at a glance without extra icons.
+        const raylib::Color texTint = tinted(isDead ? raylib::Color { 110, 110, 110, 255 } : raylib::Color { WHITE });
+
+        m_font->DrawText(member.name, raylib::Vector2 { origin.x + 2, origin.y }, PARTY_FONT_SIZE, 0, tinted(member.nameColor));
+
+        const raylib::Vector2 frameOrigin { origin.x, origin.y + PARTY_NAME_HEIGHT };
+        const float portraitSize = static_cast<float>(portrait->width) * PARTY_SCALE;
+        const raylib::Rectangle portraitSource { 0, 0, static_cast<float>(portrait->width), static_cast<float>(portrait->height) };
+        // The art sits 3px inside the frame at full size; keep that inset, snapped to whole pixels.
+        const raylib::Rectangle portraitDest { std::round(frameOrigin.x + 3 * PARTY_SCALE), std::round(frameOrigin.y + 3 * PARTY_SCALE), portraitSize, portraitSize };
+
+        if (mask != nullptr)
+            m_maskRecolor.begin(CharacterPalette::BuildMaskRecolor(member.character, member.colors), *mask);
+        portrait->Draw(portraitSource, portraitDest, raylib::Vector2 {}, 0.f, texTint);
+        if (mask != nullptr)
+            m_maskRecolor.end();
+
+        const raylib::Rectangle frameDest { frameOrigin.x, frameOrigin.y, m_portraitRect.width * PARTY_SCALE, m_portraitRect.height * PARTY_SCALE };
+        m_hudTexture->Draw(m_portraitRect, frameDest, raylib::Vector2 {}, 0.f, texTint);
+
+        drawResourceBar(static_cast<float>(std::max(member.lives, 0)), m_lifeRect, m_lifeEnd, 0, frameOrigin, PARTY_SCALE);
+        if (member.maxMana > 0.f)
+            drawResourceBar(std::min(member.mana, member.maxMana) / MANA_PER_BAR, m_manaRect, m_manaEnd, 1, frameOrigin, PARTY_SCALE);
+        if (member.maxEnergy > 0.f)
+            drawResourceBar(std::min(member.energy, member.maxEnergy) / ENERGY_PER_BAR, m_energyRect, m_energyEnd, 2, frameOrigin, PARTY_SCALE);
+
+        const float badgeRadius = 6.0f;
+        const float cx = frameOrigin.x + frameDest.width - badgeRadius - 10.0f;
+        const float cy = frameOrigin.y + frameDest.height - badgeRadius;
+        DrawCircle(static_cast<int>(cx), static_cast<int>(cy), badgeRadius + 1.0f, tinted(BLACK));
+        DrawCircle(static_cast<int>(cx), static_cast<int>(cy), badgeRadius, tinted(Color { 70, 40, 10, 255 }));
+        const char* levelText = TextFormat("%i", member.level);
+        const raylib::Vector2 textSize = MeasureTextEx(*m_font, levelText, static_cast<float>(PARTY_FONT_SIZE - 2), 0.0f);
+        m_font->DrawText(levelText, raylib::Vector2 { cx - textSize.x * 0.5f, cy - textSize.y * 0.5f }, PARTY_FONT_SIZE - 2, 0, tinted(GOLD));
     }
 
     void Hud::drawBar(raylib::Vector2 offset, int middleParts) const

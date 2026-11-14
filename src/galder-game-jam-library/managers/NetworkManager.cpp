@@ -142,9 +142,7 @@ namespace ggj
         m_serverName.clear();
         m_cachedLocalIp.clear();
         m_cachedPublicIp.clear();
-        m_localLives = 0;
-        m_localScore = 0;
-        m_localKills = 0;
+        m_localStats = NetworkPlayerStats {};
         m_remotePlayers.clear();
         m_connectionToPlayerId.clear();
         m_nextPlayerId = HOST_PLAYER_ID + 1;
@@ -424,9 +422,14 @@ namespace ggj
         hostState.position = m_localPosition;
         hostState.animationState = static_cast<uint8_t>(m_localPlayerState);
         hostState.facingLeft = m_isLocalFacingLeft;
-        hostState.lives = m_localLives;
-        hostState.score = m_localScore;
-        hostState.kills = m_localKills;
+        hostState.lives = m_localStats.lives;
+        hostState.score = m_localStats.score;
+        hostState.kills = m_localStats.kills;
+        hostState.level = m_localStats.level;
+        hostState.mana = m_localStats.mana;
+        hostState.maxMana = m_localStats.maxMana;
+        hostState.energy = m_localStats.energy;
+        hostState.maxEnergy = m_localStats.maxEnergy;
         m_server->broadcast(hostState);
 
         for (const auto& [playerId, remote] : m_remotePlayers)
@@ -444,6 +447,11 @@ namespace ggj
             state.lives = remote.lives;
             state.score = remote.score;
             state.kills = remote.kills;
+            state.level = remote.level;
+            state.mana = remote.mana;
+            state.maxMana = remote.maxMana;
+            state.energy = remote.energy;
+            state.maxEnergy = remote.maxEnergy;
             m_server->broadcast(state);
         }
 
@@ -483,9 +491,14 @@ namespace ggj
             state.position = m_localPosition;
             state.animationState = static_cast<uint8_t>(m_localPlayerState);
             state.facingLeft = m_isLocalFacingLeft;
-            state.lives = m_localLives;
-            state.score = m_localScore;
-            state.kills = m_localKills;
+            state.lives = m_localStats.lives;
+            state.score = m_localStats.score;
+            state.kills = m_localStats.kills;
+            state.level = m_localStats.level;
+            state.mana = m_localStats.mana;
+            state.maxMana = m_localStats.maxMana;
+            state.energy = m_localStats.energy;
+            state.maxEnergy = m_localStats.maxEnergy;
             state.stageIndex = m_currentStage;
             m_client->sendToServer(state);
         }
@@ -589,6 +602,11 @@ namespace ggj
         remote.lives = message.lives;
         remote.score = message.score;
         remote.kills = message.kills;
+        remote.level = message.level;
+        remote.mana = message.mana;
+        remote.maxMana = message.maxMana;
+        remote.energy = message.energy;
+        remote.maxEnergy = message.maxEnergy;
 
         // First time we see this player, snap rather than interpolate from origin.
         if (remote.position.x == 0.0f && remote.position.y == 0.0f)
@@ -612,6 +630,11 @@ namespace ggj
         remote.lives = message.lives;
         remote.score = message.score;
         remote.kills = message.kills;
+        remote.level = message.level;
+        remote.mana = message.mana;
+        remote.maxMana = message.maxMana;
+        remote.energy = message.energy;
+        remote.maxEnergy = message.maxEnergy;
 
         if (remote.position.x == 0.0f && remote.position.y == 0.0f)
             remote.position = message.position;
@@ -628,9 +651,9 @@ namespace ggj
         host.name = m_localName;
         host.isHost = true;
         host.position = m_localPosition;
-        host.lives = m_localLives;
-        host.score = m_localScore;
-        host.kills = m_localKills;
+        host.lives = m_localStats.lives;
+        host.score = m_localStats.score;
+        host.kills = m_localStats.kills;
         host.pingMs = -1;
         host.localIp = m_cachedLocalIp;
         host.publicIp = m_cachedPublicIp;

@@ -7,6 +7,7 @@
 
 #include "../../enums/NetworkRole.h"
 #include "../../enums/PlayerPickedCharacter.h"
+#include "../../data/NetworkPlayerStats.hpp"
 #include "../../data/RemotePlayer.hpp"
 #include "../../data/CharacterColors.hpp"
 #include "../../data/ConnectedPlayer.hpp"
@@ -172,8 +173,8 @@ namespace ggj
          * @return Root spawns in arrival order
          */
         [[nodiscard]] virtual std::vector<RootSpawnEvent> takeRootSpawns() = 0;
-        /*! Feeds the local player's authoritative stats (lives/score/kills) for outbound sync. */
-        virtual void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) = 0;
+        /*! Feeds the local player's authoritative stats (lives, score, kills, level, resources) for outbound sync. */
+        virtual void setLocalPlayerStats(const NetworkPlayerStats& stats) = 0;
         /*!
          * Tells the network which stage the local peer is on. Call whenever the stage changes.
          * Changing stage clears the per-world synced state (object ids restart on every map), and

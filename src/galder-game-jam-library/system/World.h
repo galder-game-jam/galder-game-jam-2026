@@ -90,6 +90,13 @@ namespace ggj
         void setNetworkManager(INetworkManager* network) { m_network = network; }
         /*! Minimap dots for every remote netplay peer (visual centre + name colour). Empty offline. */
         [[nodiscard]] std::vector<MinimapMarker> getRemotePlayerMarkers() const;
+        /*!
+         * The other players in the session, for the HUD party bars.
+         *
+         * @return Pointers into the network manager's state, valid until the next network update.
+         *         Ordered by player id; empty outside netplay.
+         */
+        [[nodiscard]] std::vector<const RemotePlayer*> getRemotePartyMembers() const;
         /*! Minimap dots for every living enemy in the world (world-pixel position). */
         [[nodiscard]] std::vector<MinimapMarker> getEnemyMarkers() const;
         /*! Minimap dots for every NPC the player can talk to (world-pixel position). */

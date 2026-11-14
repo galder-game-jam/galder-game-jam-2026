@@ -753,6 +753,17 @@ namespace ggj
         return markers;
     }
 
+    std::vector<const RemotePlayer*> World::getRemotePartyMembers() const
+    {
+        std::vector<const RemotePlayer*> members;
+        if (m_network == nullptr || !m_network->isActive())
+            return members;
+
+        for (const auto& [playerId, remote] : m_network->remotePlayers())
+            members.push_back(&remote);
+        return members;
+    }
+
     std::vector<MinimapMarker> World::getEnemyMarkers() const
     {
         std::vector<MinimapMarker> markers;
@@ -818,7 +829,18 @@ namespace ggj
 
         // Feed the local player's authoritative stats out for syncing.
         if (m_player != nullptr)
-            m_network->setLocalPlayerStats(m_player->getLives(), m_player->getScore(), m_player->getEnemiesKilled());
+        {
+            NetworkPlayerStats stats {};
+            stats.lives = m_player->getLives();
+            stats.score = m_player->getScore();
+            stats.kills = m_player->getEnemiesKilled();
+            stats.level = m_player->getLevel();
+            stats.mana = m_player->getMana();
+            stats.maxMana = m_player->getMaxMana();
+            stats.energy = m_player->getEnergy();
+            stats.maxEnergy = m_player->getMaxEnergy();
+            m_network->setLocalPlayerStats(stats);
+        }
 
         // 1. Apply authoritative removals from the network (objects others destroyed).
         for (uint32_t id : m_network->removedObjectIds())
