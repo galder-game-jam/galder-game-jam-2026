@@ -431,6 +431,26 @@ namespace ggj
                 }
             }
 
+            if (m_managers.debugState.unlockAllTalents)
+            {
+                m_managers.debugState.unlockAllTalents = false;
+                if (m_worlds.count(m_currentStageIndex) > 0)
+                {
+                    World* world = m_worlds[m_currentStageIndex].get();
+                    const TalentClass talentClass = (m_pickedCharacter == PlayerPickedCharacter::Wizard)
+                        ? TalentClass::Wizard
+                        : TalentClass::Rogue;
+                    TalentState talentState = world->getPlayerTalentState(0);
+                    for (const TalentDef& talent : ALL_TALENTS)
+                    {
+                        if (talent.characterClass == talentClass)
+                            talentState.unlockTalent(talent.id);
+                    }
+                    world->updatePlayerTalentState(0, talentState, world->getPlayerTalentPoints(0));
+                    m_managers.persistentState.talentState = talentState;
+                }
+            }
+
             if (m_managers.debugState.gainLife)
             {
                 m_managers.debugState.gainLife = false;
