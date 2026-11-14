@@ -5,6 +5,7 @@
 #include "CharacterSelectScreen.h"
 #include "../graphics/CharacterPalette.h"
 #include "imgui.h"
+#include "ImGuiPlacement.hpp"
 #include "rlImGui.h"
 
 namespace ggj
@@ -247,10 +248,10 @@ namespace ggj
         // raylib texture modes can't be nested.
         renderPreview();
 
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(ImVec2 { viewport->WorkPos.x + viewport->WorkSize.x - 10.0f, viewport->WorkPos.y + 10.0f }, ImGuiCond_Appearing, ImVec2 { 1.0f, 0.0f });
+        imgui::prepareWindow({}, imgui::Anchor::TopRight, false);
         if (ImGui::Begin("Customize colors", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize))
         {
+            imgui::keepWindowOnScreen();
             if (m_previewTexture != nullptr)
             {
                 constexpr float PREVIEW_DRAW_SIZE = static_cast<float>(PREVIEW_SPRITE_SIZE) * PREVIEW_SCALE;

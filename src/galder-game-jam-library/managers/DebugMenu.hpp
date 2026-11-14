@@ -8,6 +8,7 @@
 
     #include "rlImGui.h"
     #include "imgui.h"
+#include "../system/ImGuiPlacement.hpp"
     #include "raylib.h"
     #include <cstdint>
     #include <string>
@@ -86,8 +87,9 @@ namespace ggj
                     m_rebindingAction = -1;
                 }
             }
-            ImGui::SetNextWindowSize({ 300, 660 }, ImGuiCond_FirstUseEver);
+            imgui::prepareWindow({ 300, 660 }, imgui::Anchor::TopLeft);
             ImGui::Begin("Debug Menu");
+            imgui::keepWindowOnScreen();
 
             ImGui::Text("UI Scale");
             ImGui::Separator();
