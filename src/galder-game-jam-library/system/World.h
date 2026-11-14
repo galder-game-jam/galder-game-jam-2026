@@ -92,6 +92,8 @@ namespace ggj
         [[nodiscard]] std::vector<MinimapMarker> getRemotePlayerMarkers() const;
         /*! Minimap dots for every living enemy in the world (world-pixel position). */
         [[nodiscard]] std::vector<MinimapMarker> getEnemyMarkers() const;
+        /*! Minimap dots for every NPC the player can talk to (world-pixel position). */
+        [[nodiscard]] std::vector<MinimapMarker> getNpcMarkers() const;
         [[nodiscard]] std::vector<uint32_t> getActivePlayerIds() const override;
         [[nodiscard]] uint32_t getLocalPlayerId() const override;
         [[nodiscard]] std::optional<raylib::Vector2> getPlayerPosition(uint32_t playerId) const override;

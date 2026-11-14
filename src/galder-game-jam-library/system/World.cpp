@@ -765,6 +765,15 @@ namespace ggj
         return markers;
     }
 
+    std::vector<MinimapMarker> World::getNpcMarkers() const
+    {
+        std::vector<MinimapMarker> markers;
+        markers.reserve(m_dialogSpots.size());
+        for (const DialogSpot& spot : m_dialogSpots)
+            markers.push_back(MinimapMarker { spot.position, raylib::Color { 255, 215, 0 }, false, false, true });
+        return markers;
+    }
+
     void World::notifyLocalPortalEntered()
     {
         if (m_network != nullptr && m_network->isActive())

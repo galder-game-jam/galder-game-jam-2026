@@ -53,17 +53,23 @@ namespace ggj
         DrawRectangle(static_cast<int>(minimapX) - 2, static_cast<int>(minimapY) - 2, MINIMAP_WIDTH + 4, MINIMAP_HEIGHT + 4, Color { 0, 0, 0, a });
         DrawTexturePro(m_mapTexture.texture, source, dest, { 0.f, 0.f }, 0.f, Color { 255, 255, 255, a });
 
-        // Enemies first, then remote players, then the local player, so players are never hidden underneath other dots.
+        // Enemies and NPCs first, then remote players, then the local player, so players are never hidden underneath other dots.
         for (const int32_t drawPass : { 0, 1, 2 })
         {
             for (const MinimapMarker& marker : markers)
             {
-                const int32_t markerPass = marker.isEnemy ? 0 : (marker.isLocalPlayer ? 2 : 1);
+                const int32_t markerPass = (marker.isEnemy || marker.isNpc) ? 0 : (marker.isLocalPlayer ? 2 : 1);
                 if (markerPass != drawPass)
                     continue;
 
                 const float dotX = minimapX + (marker.worldPosition.x / static_cast<float>(m_mapPixelWidth)) * static_cast<float>(MINIMAP_WIDTH);
                 const float dotY = minimapY + (marker.worldPosition.y / static_cast<float>(m_mapPixelHeight)) * static_cast<float>(MINIMAP_HEIGHT);
+                if (marker.isNpc)
+                {
+                    DrawCircle(static_cast<int>(dotX), static_cast<int>(dotY), 3.f, Color { 0, 0, 0, a });
+                    DrawCircle(static_cast<int>(dotX), static_cast<int>(dotY), 2.f, Color { 255, 215, 0, a });
+                    continue;
+                }
                 if (marker.isEnemy)
                 {
                     DrawCircle(static_cast<int>(dotX), static_cast<int>(dotY), 2.f, Color { 255, 40, 40, a });

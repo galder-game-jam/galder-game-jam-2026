@@ -139,6 +139,8 @@ namespace ggj
             {
                 const std::vector<MinimapMarker> enemyMarkers = m_currentWorld->getEnemyMarkers();
                 markers.insert(markers.end(), enemyMarkers.begin(), enemyMarkers.end());
+                const std::vector<MinimapMarker> npcMarkers = m_currentWorld->getNpcMarkers();
+                markers.insert(markers.end(), npcMarkers.begin(), npcMarkers.end());
             }
             markers.push_back(MinimapMarker { m_playerPosition, m_playerNameColor, true });
             m_minimap->draw(markers, m_options.getHudOptions().hudAlpha);
