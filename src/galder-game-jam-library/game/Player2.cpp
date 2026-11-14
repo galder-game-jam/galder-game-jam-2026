@@ -30,11 +30,18 @@ namespace ggj
             m_damageCooldown = std::max(0.f, m_damageCooldown - timeDelta);
 
         // The cap grows with level, so clamp every frame (and refill gradually, never instantly, on level-up).
+        const TalentEffects& talentFx = m_world->getPlayerTalentEffects(m_playerIndex);
         const float maxMana = getMaxMana();
         m_secondsSinceCast += timeDelta;
-        if (m_secondsSinceCast >= MANA_REGEN_DELAY_SECONDS)
-            m_mana += MANA_REGEN_PER_SECOND * timeDelta;
+        if (m_secondsSinceCast >= MANA_REGEN_DELAY_SECONDS * talentFx.manaRegenDelayMultiplier)
+            m_mana += MANA_REGEN_PER_SECOND * talentFx.manaRegenMultiplier * timeDelta;
         m_mana = std::min(m_mana, maxMana);
+
+        if (!m_isDead && m_world->tickPlayerLifeRegen(m_playerIndex, timeDelta))
+        {
+            m_world->spawnFloatingText(getPosition());
+            m_soundManager.playSound(SoundName::ExtraLife);
+        }
 
         if (m_isDead)
         {
@@ -51,7 +58,7 @@ namespace ggj
         if (currentKills > m_previousKillCount)
         {
             const ExperienceConfig& cfg = m_world->getXpConfig(m_playerIndex);
-            const TalentEffects& fx  = m_world->getPlayerTalentEffects(m_playerIndex);
+            const TalentEffects& fx = m_world->getPlayerTalentEffects(m_playerIndex);
             for (int i = m_previousKillCount; i < currentKills; ++i)
             {
                 m_world->addPlayerXp(m_playerIndex, GetRandomValue(cfg.xpPerKillMin, cfg.xpPerKillMax));
@@ -160,9 +167,10 @@ namespace ggj
                 m_lastMoveDirection = m_velocity;
         }
 
-        if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking && m_mana >= FIREBALL_MANA_COST)
+        const float fireballManaCost = FIREBALL_MANA_COST * m_world->getPlayerTalentEffects(m_playerIndex).spellManaCostMultiplier;
+        if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking && m_mana >= fireballManaCost)
         {
-            m_mana -= FIREBALL_MANA_COST;
+            m_mana -= fireballManaCost;
             m_secondsSinceCast = 0.f;
             setPlayerState(PlayerState::AttackGrounded);
 
@@ -224,7 +232,7 @@ namespace ggj
         if (m_damageCooldown > 0.f || m_isDead)
             return;
 
-        m_damageCooldown = DAMAGE_COOLDOWN_SECONDS;
+        m_damageCooldown = DAMAGE_COOLDOWN_SECONDS * m_world->getPlayerTalentEffects(m_playerIndex).damageCooldownMultiplier;
         if (m_world->getPlayerScore(m_playerIndex) != 0)
             m_world->addPlayerScore(m_playerIndex, -1);
 
@@ -296,7 +304,8 @@ namespace ggj
 
     float Player2::getMaxMana() const
     {
-        return BASE_MAX_MANA + MAX_MANA_PER_LEVEL * static_cast<float>(std::max(0, getLevel() - 1));
+        const float baseMana = BASE_MAX_MANA + MAX_MANA_PER_LEVEL * static_cast<float>(std::max(0, getLevel() - 1));
+        return baseMana * m_world->getPlayerTalentEffects(m_playerIndex).maxManaMultiplier;
     }
 
     int Player2::getEnemiesKilled() const
@@ -332,8 +341,8 @@ namespace ggj
         const float projSpeed = BASE_PROJ_SPEED * m_world->getPlayerTalentEffects(m_playerIndex).projectileSpeedMultiplier;
         const Vector2 dir = Vector2Normalize({ m_lastMoveDirection.x, m_lastMoveDirection.y });
         const raylib::Vector2 velocity { dir.x * projSpeed, dir.y * projSpeed };
-        MageBall* ball =
-            m_world->createProjectile<ggj::MageBall>(TextureName::MageBall, raylib::Vector2 { 16.f, 16.f }, raylib::Vector2 { m_position.x, m_position.y - 8 }, velocity, MageBall::DEFAULT_TTL);
+        MageBall* ball = m_world->createProjectile<ggj::MageBall>(TextureName::MageBall, raylib::Vector2 { 16.f, 16.f }, raylib::Vector2 { m_position.x, m_position.y - 8 },
+                                                                  velocity, MageBall::DEFAULT_TTL);
         ball->setOwner(this);
         m_world->registerLocalProjectile(ball);
     }

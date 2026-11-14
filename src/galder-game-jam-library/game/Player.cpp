@@ -29,7 +29,14 @@ namespace ggj
         if (m_damageCooldown > 0.f)
             m_damageCooldown = std::max(0.f, m_damageCooldown - timeDelta);
 
-        m_energy = std::min(MAX_ENERGY, m_energy + ENERGY_REGEN_PER_SECOND * timeDelta);
+        const TalentEffects& talentFx = m_world->getPlayerTalentEffects(m_playerIndex);
+        m_energy = std::min(getMaxEnergy(), m_energy + ENERGY_REGEN_PER_SECOND * talentFx.energyRegenMultiplier * timeDelta);
+
+        if (!m_isDead && m_world->tickPlayerLifeRegen(m_playerIndex, timeDelta))
+        {
+            m_world->spawnFloatingText(getPosition());
+            m_soundManager.playSound(SoundName::ExtraLife);
+        }
 
         if (m_isDead)
         {
@@ -47,7 +54,7 @@ namespace ggj
         if (currentKills > m_previousKillCount)
         {
             const ExperienceConfig& cfg = m_world->getXpConfig(m_playerIndex);
-            const TalentEffects& fx  = m_world->getPlayerTalentEffects(m_playerIndex);
+            const TalentEffects& fx = m_world->getPlayerTalentEffects(m_playerIndex);
             for (int i = m_previousKillCount; i < currentKills; ++i)
             {
                 m_world->addPlayerXp(m_playerIndex, GetRandomValue(cfg.xpPerKillMin, cfg.xpPerKillMax));
@@ -89,7 +96,7 @@ namespace ggj
                 m_isDead = false;
                 m_world->resetPlayerLives(m_playerIndex);
                 m_damageCooldown = 0.f;
-                m_energy = MAX_ENERGY;
+                m_energy = getMaxEnergy();
                 m_hitbox.setIsActive(true);
                 m_body->SetEnabled(true);
                 m_soundManager.playSound(SoundName::PlayerRespawn);
@@ -161,9 +168,12 @@ namespace ggj
             m_velocity = raylib::Vector2 { m_velocity.x, 0.f };
         }
 
-        if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking && m_energy >= ATTACK_ENERGY_COST)
+        const TalentEffects& talentFx = m_world->getPlayerTalentEffects(m_playerIndex);
+        const float attackEnergyCost = ATTACK_ENERGY_COST * talentFx.attackEnergyCostMultiplier;
+        if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking && m_energy >= attackEnergyCost)
         {
-            m_energy -= ATTACK_ENERGY_COST;
+            m_energy -= attackEnergyCost;
+            m_hitbox.setDamage(MELEE_DAMAGE + talentFx.meleeDamageBonus);
             setPlayerState(PlayerState::AttackGrounded);
             m_isAttacking = true;
             m_attackCounter = 0;
@@ -237,7 +247,7 @@ namespace ggj
         if (m_damageCooldown > 0.f || m_isDead)
             return;
 
-        m_damageCooldown = DAMAGE_COOLDOWN_SECONDS;
+        m_damageCooldown = DAMAGE_COOLDOWN_SECONDS * m_world->getPlayerTalentEffects(m_playerIndex).damageCooldownMultiplier;
         if (m_world->getPlayerScore(m_playerIndex) != 0)
             m_world->addPlayerScore(m_playerIndex, -1);
 
@@ -299,6 +309,11 @@ namespace ggj
     int Player::getXpToNextLevel() const
     {
         return m_world->getPlayerXpToNextLevel(m_playerIndex);
+    }
+
+    float Player::getMaxEnergy() const
+    {
+        return MAX_ENERGY + m_world->getPlayerTalentEffects(m_playerIndex).maxEnergyBonus;
     }
 
     int Player::getEnemiesKilled() const

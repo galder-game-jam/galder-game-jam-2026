@@ -1345,6 +1345,28 @@ namespace ggj
         }
     }
 
+    bool World::tickPlayerLifeRegen(int32_t playerIndex, float timeDelta)
+    {
+        if (m_playerStats.count(playerIndex) == 0)
+            return false;
+
+        PlayerStats& stats = m_playerStats[playerIndex];
+        const TalentEffects& fx = stats.computedEffects;
+        if (fx.lifeRegenIntervalSeconds <= 0.f || stats.lives <= 0 || stats.lives >= fx.lifeRegenCap)
+        {
+            stats.lifeRegenTimer = 0.f;
+            return false;
+        }
+
+        stats.lifeRegenTimer += timeDelta;
+        if (stats.lifeRegenTimer < fx.lifeRegenIntervalSeconds)
+            return false;
+
+        stats.lifeRegenTimer = 0.f;
+        ++stats.lives;
+        return true;
+    }
+
     void World::spawnClaudlings(raylib::Vector2 position, float followSpeed, float knockback)
     {
         if (!isEnemyAuthority())
