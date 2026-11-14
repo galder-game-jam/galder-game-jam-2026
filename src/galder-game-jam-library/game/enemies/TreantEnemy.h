@@ -34,6 +34,8 @@ namespace ggj
         Dying      ///< Death throes: invulnerable and convulsing; ends by throwing roots across the whole map.
     };
 
+    constexpr uint8_t TREANT_STATE_COUNT = 7; ///< Number of TreantState values; guards states received from the network.
+
     /*!
      * Forest boss. Slow on its own, but telegraphs a fast charge that punishes standing still. Below
      * half health it enrages: it moves faster, winds up quicker and chains two charges.
@@ -62,9 +64,18 @@ namespace ggj
         void onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker, int32_t damage) override;
         [[nodiscard]] EnemyNetworkState getNetworkState() const override;
         void applyNetworkState(const EnemyNetworkState& state) override;
+        void onNetworkDamage(int32_t damage, uint32_t attackerPlayerId) override;
 
         private:
-        void takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage);
+        /*!
+         * Applies a hit. Only the host changes health; a client forwards the hit to it instead.
+         *
+         * @param remoteAttackerId Network player id of a client's hit, for kill credit
+         */
+        void takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage, std::optional<uint32_t> remoteAttackerId = std::nullopt);
+
+        /*! Starts the post-hit invulnerability window and its flashing. */
+        void startInvulnerability();
         void setState(TreantState newState);
 
         /*!
@@ -164,6 +175,7 @@ namespace ggj
         ITintShader& m_tintShader;
         TreantRootConfig m_rootConfig;
         std::optional<uint32_t> m_targetPlayerId {}; ///< Network player id being chased and charged; empty until picked.
+        std::optional<uint32_t> m_remoteKillerId {}; ///< Client that landed the killing blow, when it was remote.
         PhysicsObject* m_killer { nullptr };         ///< Whoever landed the killing blow; credited once the death throes end.
 
         TreantState m_state { TreantState::Idle };

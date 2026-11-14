@@ -154,6 +154,7 @@ namespace ggj
     EnemyNetworkState TreantEnemy::getNetworkState() const
     {
         EnemyNetworkState state = PhysicsSprite::getNetworkState();
+        state.aiState = static_cast<uint8_t>(m_state);
         state.targetPlayerId = m_targetPlayerId.value_or(0);
         return state;
     }
@@ -161,8 +162,19 @@ namespace ggj
     void TreantEnemy::applyNetworkState(const EnemyNetworkState& state)
     {
         PhysicsSprite::applyNetworkState(state);
-        // The client runs its own AI timing, but must wind up and charge at whoever the host chose.
+        // The host owns the boss's health and attack cycle. Mirror both so every peer shows the same HP,
+        // enrage tint, telegraph colour and charge target.
+        if (state.lives < m_lives && m_invulTimer <= 0.f)
+            startInvulnerability();
+        m_lives = state.lives;
         m_targetPlayerId = state.targetPlayerId;
+
+        if (state.aiState < TREANT_STATE_COUNT)
+        {
+            const TreantState hostState = static_cast<TreantState>(state.aiState);
+            if (hostState != m_state)
+                setState(hostState);
+        }
     }
 
     void TreantEnemy::faceTowards(const raylib::Vector2& direction)
@@ -244,6 +256,8 @@ namespace ggj
         destroy();
         if (m_killer != nullptr)
             m_killer->getUserData()->enemiesKilled++;
+        else if (m_remoteKillerId.has_value() && m_world != nullptr)
+            m_world->creditRemoteKill(*this, *m_remoteKillerId);
         if (m_world != nullptr)
             m_world->clearBoss();
     }
@@ -326,6 +340,8 @@ namespace ggj
 
         m_stateTimer -= timeDelta;
         m_animTime += timeDelta;
+        // Only the host runs the attack cycle; clients are moved along by applyNetworkState().
+        const bool canAdvance = isAuthority() && m_stateTimer <= 0.f;
 
         // Derived from lives, so a client that joins after the enrage still sees the treant purple.
         const float tintStep = timeDelta / ENRAGE_TINT_FADE_DURATION;
@@ -337,7 +353,7 @@ namespace ggj
         switch (m_state)
         {
             case TreantState::Idle:
-                if (m_stateTimer <= 0.f)
+                if (canAdvance)
                     setState(TreantState::Walk);
                 break;
 
@@ -346,7 +362,7 @@ namespace ggj
                 const raylib::Vector2 direction = steerAroundObstacles(directionToTarget());
                 faceTowards(direction);
                 velocity = { direction.x * m_followSpeed * speedMultiplier, direction.y * m_followSpeed * speedMultiplier };
-                if (m_stateTimer <= 0.f)
+                if (canAdvance)
                     setState(chooseNextAttack());
                 break;
             }
@@ -354,7 +370,7 @@ namespace ggj
             case TreantState::Windup:
                 // Keep tracking the player while rooted so the telegraph points at them.
                 faceTowards(directionToTarget());
-                if (m_stateTimer <= 0.f)
+                if (canAdvance)
                     setState(TreantState::Charge);
                 break;
 
@@ -362,13 +378,13 @@ namespace ggj
             {
                 const float speed = m_followSpeed * CHARGE_SPEED_MULTIPLIER * speedMultiplier;
                 velocity = { m_chargeDirection.x * speed, m_chargeDirection.y * speed };
-                if (m_stateTimer <= 0.f)
+                if (canAdvance)
                     setState(m_chargesLeft > 0 ? TreantState::Windup : TreantState::Recover);
                 break;
             }
 
             case TreantState::Recover:
-                if (m_stateTimer <= 0.f)
+                if (canAdvance)
                     setState(TreantState::Idle);
                 break;
 
@@ -376,7 +392,7 @@ namespace ggj
                 // Flash between sickly green and white, faster as the end nears.
                 m_tint = (static_cast<int32_t>(m_animTime * (6.f + 10.f * (1.f - std::max(0.f, m_stateTimer) / m_stateDuration))) % 2 == 0) ? raylib::Color { 140, 255, 140, 255 }
                                                                                                                                             : WHITE;
-                if (m_stateTimer <= 0.f)
+                if (canAdvance)
                 {
                     die();
                     return;
@@ -385,7 +401,7 @@ namespace ggj
 
             case TreantState::RootThrow:
                 faceTowards(directionToTarget());
-                if (m_stateTimer <= 0.f)
+                if (canAdvance)
                 {
                     throwRoots();
                     setState(TreantState::Idle);
@@ -509,10 +525,34 @@ namespace ggj
         return pose;
     }
 
-    void TreantEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage)
+    void TreantEnemy::startInvulnerability()
+    {
+        m_invulTimer = INVUL_DURATION;
+        m_flashTimer = 0.f;
+    }
+
+    void TreantEnemy::onNetworkDamage(int32_t damage, uint32_t attackerPlayerId)
+    {
+        // The attacker lives on a client, which gets the kill credit through the network instead.
+        takeDamage(&m_soundManager, nullptr, false, damage, attackerPlayerId);
+    }
+
+    void TreantEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage, std::optional<uint32_t> remoteAttackerId)
     {
         // Already dead (waiting for removal): don't count the boss kill a second time.
-        if (shouldBeDestroyed() || m_state == TreantState::Dying || m_invulTimer > 0.f)
+        if (shouldBeDestroyed() || m_state == TreantState::Dying)
+            return;
+
+        // The host owns the boss's health. Send the hit there; the lives it syncs back drive the
+        // HP bar, the enrage tint and the hit flash, and it removes the boss everywhere when it dies.
+        if (!isAuthority())
+        {
+            if (m_world != nullptr)
+                m_world->reportEnemyDamage(*this, damage);
+            return;
+        }
+
+        if (m_invulTimer > 0.f)
             return;
 
         m_lives -= damage;
@@ -522,13 +562,11 @@ namespace ggj
             // Hold the death for a few seconds of convulsing; die() credits whoever landed this blow.
             m_lives = 0;
             m_killer = attacker;
+            m_remoteKillerId = remoteAttackerId;
             setState(TreantState::Dying);
         }
         else
-        {
-            m_invulTimer = INVUL_DURATION;
-            m_flashTimer = 0.f;
-        }
+            startInvulnerability();
     }
 
     void TreantEnemy::onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker, int32_t damage)
