@@ -9,22 +9,25 @@
 #include "../../interfaces/game/IPlayer.h"
 #include "../../../gamedev-base/interfaces/managers/ISoundManager.h"
 #include "../../enums/SoundName.h"
+#include "../../interfaces/graphics/ITintShader.h"
 
 namespace ggj
 {
     class World;
 
     /*!
-     * The phases of the treant's attack cycle: lumber towards the player, root itself and glow red
-     * (the telegraph), then barrel forward in a straight line and catch its breath.
+     * The phases of the treant's attack cycle: lumber towards the player, then either root itself and
+     * glow red (the telegraph) before barrelling forward in a straight line, or rear up and throw
+     * roots that spike the ground where they land.
      */
     enum class TreantState
     {
-        Idle,   ///< Standing still between cycles.
-        Walk,   ///< Slowly lumbering towards the player.
-        Windup, ///< Rooted and glowing red; the charge direction is locked when this ends.
-        Charge, ///< Fast, straight-line dash in the locked direction.
-        Recover ///< Stunned after a charge, the best time to strike.
+        Idle,     ///< Standing still between cycles.
+        Walk,     ///< Slowly lumbering towards the player.
+        Windup,   ///< Rooted and glowing red; the charge direction is locked when this ends.
+        Charge,   ///< Fast, straight-line dash in the locked direction.
+        Recover,  ///< Stunned after a charge, the best time to strike.
+        RootThrow ///< Rooted and glowing green; throws roots at the player when this ends.
     };
 
     /*!
@@ -37,9 +40,10 @@ namespace ggj
         TreantEnemy() = default;
         TreantEnemy(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper, ggj::ISoundManager& soundManager, b2Body* body,
                     const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
-                    int lives, float followSpeed, float knockback, IPlayer* player, World* world, bool isVisible = true)
+                    int lives, float followSpeed, float knockback, IPlayer* player, World* world, ITintShader& tintShader, bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager { animationManager }, m_mapper { mapper },
-              m_soundManager { soundManager }, m_followSpeed { followSpeed }, m_knockback { knockback }, m_maxLives { lives }, m_player { player }, m_world { world }
+              m_soundManager { soundManager }, m_followSpeed { followSpeed }, m_knockback { knockback }, m_maxLives { lives }, m_player { player }, m_world { world },
+              m_tintShader { tintShader }
         {
             m_lives = lives;
             m_body->SetFixedRotation(true);
@@ -55,6 +59,16 @@ namespace ggj
         private:
         void takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage);
         void setState(TreantState newState);
+
+        /*!
+         * Picks what follows a chase at random: a charge, a root throw or just a pause.
+         *
+         * @return Windup (charge), RootThrow or Idle
+         */
+        [[nodiscard]] TreantState chooseNextAttack() const;
+
+        /*! Throws roots that land around the player's current position. */
+        void throwRoots();
         void faceTowards(const raylib::Vector2& direction);
 
         /*!
@@ -117,6 +131,7 @@ namespace ggj
 
         IPlayer* m_player { nullptr };
         World* m_world { nullptr };
+        ITintShader& m_tintShader;
 
         TreantState m_state { TreantState::Idle };
         float m_stateTimer { IDLE_DURATION };
@@ -124,7 +139,8 @@ namespace ggj
         float m_animTime { 0.f };                ///< Seconds since spawn; drives the procedural animation.
         int32_t m_chargesLeft { 0 };             ///< Charges still to perform before returning to Idle.
         raylib::Vector2 m_chargeDirection { 0.f, 0.f };
-        float m_avoidSide { 1.f }; ///< +1/-1: which side of an obstacle the treant is currently going around.
+        float m_enrageTint { 0.f }; ///< 0..1, fades in once enraged so the purple does not pop in.
+        float m_avoidSide { 1.f };  ///< +1/-1: which side of an obstacle the treant is currently going around.
 
         // Invulnerability + flash
         float m_invulTimer { 0.f };
@@ -135,10 +151,25 @@ namespace ggj
         static constexpr float FLASH_INTERVAL = 0.1f;
 
         static constexpr float IDLE_DURATION = 1.f;
+        static constexpr float ENRAGE_TINT_FADE_DURATION = 1.f;
+        static constexpr ::Color ENRAGE_TINT_COLOR { 170, 60, 255, 255 };
         static constexpr float WALK_MIN_DURATION = 2.f;
         static constexpr float WALK_MAX_DURATION = 4.f;
-        static constexpr float CHARGE_CHANCE = 0.5f; ///< Odds a chase ends in a charge rather than a pause.
-        static constexpr float ENRAGED_CHARGE_CHANCE = 0.75f;
+        static constexpr float CHARGE_CHANCE = 0.4f; ///< Odds a chase ends in a charge; the rest is split between roots and a pause.
+        static constexpr float ROOT_CHANCE = 0.35f;
+        static constexpr float ENRAGED_CHARGE_CHANCE = 0.5f;
+        static constexpr float ENRAGED_ROOT_CHANCE = 0.4f;
+
+        static constexpr float ROOT_WINDUP_DURATION = 0.8f;
+        static constexpr float ENRAGED_ROOT_WINDUP_DURATION = 0.55f;
+        static constexpr int32_t ROOT_COUNT = 3;
+        static constexpr int32_t ENRAGED_ROOT_COUNT = 5;
+        static constexpr float ROOT_FLIGHT_DURATION = 0.5f;
+        static constexpr float ROOT_MIN_SPIKE_DELAY = 1.f; ///< Seconds between a root landing and spiking.
+        static constexpr float ROOT_MAX_SPIKE_DELAY = 2.f;
+        static constexpr float ROOT_MIN_SCATTER = 35.f; ///< Pixels from the player the extra roots land at.
+        static constexpr float ROOT_MAX_SCATTER = 110.f;
+        static constexpr float ROOT_AIMED_SCATTER = 20.f;    ///< The first root lands almost on the player.
         static constexpr float OBSTACLE_LOOKAHEAD = 2.5f;    ///< Metres past the treant's edge to scan for obstacles.
         static constexpr float OBSTACLE_FLANK_FACTOR = 0.9f; ///< Flank rays sit this fraction of the radius off-centre.
         static constexpr float WINDUP_DURATION = 0.9f;

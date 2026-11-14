@@ -10,6 +10,7 @@
 //Interfaces
 #include "interfaces/system/IMapper.h"
 #include "interfaces/graphics/IPaletteSwapShader.h"
+#include "interfaces/graphics/ITintShader.h"
 
 //Data
 #include "data/AudioOptions.hpp"
@@ -26,6 +27,7 @@
 //Graphics
 #include "graphics/CharacterPalette.h"
 #include "graphics/PaletteSwapShader.h"
+#include "graphics/TintShader.h"
 
 //Game
 #include "game/Player.h"

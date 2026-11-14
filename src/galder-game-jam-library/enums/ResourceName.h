@@ -124,6 +124,7 @@ namespace ggj
         ConfigOptions = 550,
 
         ShaderPaletteSwap = 560,
+        ShaderTint = 561,
 
         SoundCoinPickup = 600,
         SoundEnemyDie = 601,

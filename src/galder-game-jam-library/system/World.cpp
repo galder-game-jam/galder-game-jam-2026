@@ -9,6 +9,7 @@
 #include "../graphics/Sprite.h"
 #include "../game/enemies/ClaudeEnemy.h"
 #include "../game/enemies/TreantEnemy.h"
+#include "../game/enemies/TreantRoot.h"
 #include "../game/enemies/Claudling.h"
 #include "../game/enemies/Bomb.h"
 #include <numbers>
@@ -1390,6 +1391,45 @@ namespace ggj
                 m_network->publishBombSpawned(bomb);
         }
         m_pendingBombSpawns.clear();
+
+        for (const PendingRootSpawn& root : m_pendingRootSpawns)
+            doSpawnTreantRoot(root);
+        m_pendingRootSpawns.clear();
+    }
+
+    void World::spawnTreantRoot(const raylib::Vector2& origin, const raylib::Vector2& target, float flightTime, float spikeDelay)
+    {
+        m_pendingRootSpawns.push_back(PendingRootSpawn { origin, target, flightTime, spikeDelay });
+    }
+
+    void World::doSpawnTreantRoot(const PendingRootSpawn& root)
+    {
+        b2BodyDef bodyDef;
+        bodyDef.type = b2_dynamicBody;
+        bodyDef.position = PhysicsObject::ConvertToB2Vec2(root.origin);
+        bodyDef.fixedRotation = true;
+        b2Body* body = m_world.CreateBody(&bodyDef);
+
+        b2CircleShape circle;
+        circle.m_radius = TreantRoot::ROOT_RADIUS / PhysicsObject::PPM;
+        b2FixtureDef fd;
+        fd.shape = &circle;
+        fd.density = 1.0f;
+        fd.isSensor = true; // Flies over trees and walls; only the spike hurts.
+        body->CreateFixture(&fd);
+
+        // Fly in a straight line so it lands on the target exactly when the flight ends.
+        const float flightTime = std::max(root.flightTime, 0.01f);
+        body->SetLinearVelocity(PhysicsObject::ConvertToB2Vec2({ (root.target.x - root.origin.x) / flightTime, (root.target.y - root.origin.y) / flightTime }));
+
+        const UserData userData { ObjectType::Trap, { 0.f, 0.f }, "", "", "treant_root" };
+        PhysicsObject* physicsObject = createObject<TreantRoot>(body, userData, root.target, flightTime, root.spikeDelay, this);
+        if (physicsObject == nullptr)
+        {
+            m_world.DestroyBody(body);
+            return;
+        }
+        m_userDataManager.addUserData(body, physicsObject);
     }
 
     void World::doSpawnBomb(const BombSpawnEvent& bomb)
@@ -1524,7 +1564,7 @@ namespace ggj
                     m_animationManager, m_mapper, m_soundManager, body,
                     raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
                     spriteSize, r, tex, generatorData.userData, generatorData.lives,
-                    generatorData.followSpeed, generatorData.knockback, m_player, this);
+                    generatorData.followSpeed, generatorData.knockback, m_player, this, m_tintShader);
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {

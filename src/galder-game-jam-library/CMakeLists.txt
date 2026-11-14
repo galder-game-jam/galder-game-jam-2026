@@ -84,7 +84,12 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         graphics/CharacterPalette.h
         graphics/PaletteSwapShader.cpp
         graphics/PaletteSwapShader.h
-        interfaces/graphics/IPaletteSwapShader.h)
+        game/enemies/TreantRoot.cpp
+        game/enemies/TreantRoot.h
+        graphics/TintShader.cpp
+        graphics/TintShader.h
+        interfaces/graphics/IPaletteSwapShader.h
+        interfaces/graphics/ITintShader.h)
 
 # Link raylib_imgui so its PUBLIC compile definitions (IMGUI_DISABLE_OBSOLETE_*) reach every file
 # that includes imgui.h. Without them, ImGuiIO/ImGuiStyle get a different layout here than in

@@ -119,6 +119,38 @@ namespace ggj
             m_flip = direction.x < 0.f;
     }
 
+    TreantState TreantEnemy::chooseNextAttack() const
+    {
+        const float chargeChance = isEnraged() ? ENRAGED_CHARGE_CHANCE : CHARGE_CHANCE;
+        const float rootChance = isEnraged() ? ENRAGED_ROOT_CHANCE : ROOT_CHANCE;
+        const float roll = randomRange(0.f, 1.f);
+
+        if (roll < chargeChance)
+            return TreantState::Windup;
+        if (roll < chargeChance + rootChance)
+            return TreantState::RootThrow;
+        // Sometimes the treant just stops to catch its breath.
+        return TreantState::Idle;
+    }
+
+    void TreantEnemy::throwRoots()
+    {
+        if (m_world == nullptr || m_player == nullptr)
+            return;
+
+        const raylib::Vector2 target = m_player->getVisualCenter();
+        const int32_t count = isEnraged() ? ENRAGED_ROOT_COUNT : ROOT_COUNT;
+
+        for (int32_t i = 0; i < count; ++i)
+        {
+            // The first root lands (almost) on the player; the rest fan out so dodging one is not enough.
+            const float angle = randomRange(0.f, 2.f * std::numbers::pi_v<float>);
+            const float distance = (i == 0) ? randomRange(0.f, ROOT_AIMED_SCATTER) : randomRange(ROOT_MIN_SCATTER, ROOT_MAX_SCATTER);
+            const raylib::Vector2 landing { target.x + std::cos(angle) * distance, target.y + std::sin(angle) * distance };
+            m_world->spawnTreantRoot(getPosition(), landing, ROOT_FLIGHT_DURATION, randomRange(ROOT_MIN_SPIKE_DELAY, ROOT_MAX_SPIKE_DELAY));
+        }
+    }
+
     void TreantEnemy::setState(TreantState newState)
     {
         m_state = newState;
@@ -151,6 +183,10 @@ namespace ggj
                 m_stateTimer = RECOVER_DURATION;
                 m_tint = WHITE;
                 break;
+            case TreantState::RootThrow:
+                m_stateTimer = isEnraged() ? ENRAGED_ROOT_WINDUP_DURATION : ROOT_WINDUP_DURATION;
+                m_tint = raylib::Color { 140, 255, 140, 255 };
+                break;
         }
 
         m_stateDuration = m_stateTimer;
@@ -181,6 +217,10 @@ namespace ggj
         m_stateTimer -= timeDelta;
         m_animTime += timeDelta;
 
+        // Derived from lives, so a client that joins after the enrage still sees the treant purple.
+        const float tintStep = timeDelta / ENRAGE_TINT_FADE_DURATION;
+        m_enrageTint = std::clamp(m_enrageTint + (isEnraged() ? tintStep : -tintStep), 0.f, 1.f);
+
         const float speedMultiplier = isEnraged() ? ENRAGED_SPEED_MULTIPLIER : 1.f;
         b2Vec2 velocity { 0.f, 0.f };
 
@@ -197,11 +237,7 @@ namespace ggj
                 faceTowards(direction);
                 velocity = { direction.x * m_followSpeed * speedMultiplier, direction.y * m_followSpeed * speedMultiplier };
                 if (m_stateTimer <= 0.f)
-                {
-                    // Not every chase ends in a charge; sometimes the treant just stops to catch its breath.
-                    const float chargeChance = isEnraged() ? ENRAGED_CHARGE_CHANCE : CHARGE_CHANCE;
-                    setState(randomRange(0.f, 1.f) < chargeChance ? TreantState::Windup : TreantState::Idle);
-                }
+                    setState(chooseNextAttack());
                 break;
             }
 
@@ -224,6 +260,15 @@ namespace ggj
             case TreantState::Recover:
                 if (m_stateTimer <= 0.f)
                     setState(TreantState::Idle);
+                break;
+
+            case TreantState::RootThrow:
+                faceTowards(directionToPlayer());
+                if (m_stateTimer <= 0.f)
+                {
+                    throwRoots();
+                    setState(TreantState::Idle);
+                }
                 break;
         }
 
@@ -254,7 +299,11 @@ namespace ggj
         const raylib::Rectangle destination { m_position.x, m_position.y, m_spriteSize.x * pose.scaleX, m_spriteSize.y * pose.scaleY };
         // The origin scales with the sprite so the feet stay on the same spot while squashing and stretching.
         const raylib::Vector2 origin { m_origin.x * pose.scaleX, m_origin.y * pose.scaleY };
+        if (m_enrageTint > 0.f)
+            m_tintShader.begin(ENRAGE_TINT_COLOR, m_enrageTint);
         m_texture->Draw(source, destination, origin, m_rotation + pose.rotation, m_tint);
+        if (m_enrageTint > 0.f)
+            m_tintShader.end();
     }
 
     TreantEnemy::TreantPose TreantEnemy::computePose() const
@@ -290,6 +339,17 @@ namespace ggj
                 pose.scaleY = 1.f - 0.12f * progress;
                 pose.scaleX = 1.f + 0.08f * progress;
                 pose.rotation = (1.f + 4.f * progress) * std::sin(m_animTime * 60.f);
+                break;
+            }
+
+            case TreantState::RootThrow:
+            {
+                // Hunch down to gather the roots, then rear up tall right before the throw.
+                const float progress = m_stateDuration > 0.f ? 1.f - std::max(0.f, m_stateTimer) / m_stateDuration : 1.f;
+                const float crouch = progress < 0.6f ? progress / 0.6f : 1.f - (progress - 0.6f) / 0.4f;
+                pose.scaleY = 1.f - 0.1f * crouch + (progress >= 0.6f ? 0.18f * (progress - 0.6f) / 0.4f : 0.f);
+                pose.scaleX = 1.f + 0.06f * crouch;
+                pose.rotation = 2.f * std::sin(m_animTime * 25.f);
                 break;
             }
 
