@@ -44,6 +44,7 @@ namespace ggj
         bool awardCoin      { false }; ///< Consumer adds one coin to player 0's score and resets to false.
         bool gainLife       { false }; ///< Consumer grants one extra life to player 0 and resets to false.
         bool loseLife       { false }; ///< Consumer removes one life from player 0 and resets to false.
+        bool unlockAllTalents { false }; ///< Consumer unlocks every talent of player 0's class, ignoring level and prerequisites, and resets to false.
     };
 
     /*!
@@ -149,6 +150,9 @@ namespace ggj
                 ImGui::SameLine();
                 if (ImGui::Button("-1 Life"))
                     state.loseLife = true;
+
+                if (ImGui::Button("Unlock All Talents"))
+                    state.unlockAllTalents = true;
             }
             else
             {
