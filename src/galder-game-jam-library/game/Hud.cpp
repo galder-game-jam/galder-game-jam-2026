@@ -2,6 +2,8 @@
 // Created by robin on 22.11.2025.
 //
 
+#include <algorithm>
+#include <cmath>
 #include "Hud.h"
 #include "Minimap.h"
 #include "../graphics/CharacterPalette.h"
@@ -102,7 +104,8 @@ namespace ggj
 
         m_health = static_cast<float>(m_currentPlayer->getLives());
         m_mana = 2;   // Implement mana and then: static_cast<float>(m_currentPlayer->getMana());
-        m_energy = 3; // Implement energy and then: static_cast<float>(m_currentPlayer->getEnergy());
+        m_hasEnergyBar = m_currentPlayer->getMaxEnergy() > 0.f;
+        m_energy = std::min(m_currentPlayer->getEnergy(), m_currentPlayer->getMaxEnergy()) / ENERGY_PER_BAR;
         m_coins = m_currentPlayer->getScore();
         m_level       = m_currentPlayer->getLevel();
         m_currentXp   = m_currentPlayer->getCurrentXp();
@@ -201,11 +204,19 @@ namespace ggj
     {
         const raylib::Color texTint = tinted(WHITE);
         float barTypeOffset = 20 * barNo;
-        for (int i = 0; i < counter; ++i)
+        const int fullBars = static_cast<int>(counter);
+        for (int i = 0; i < fullBars; ++i)
         {
             m_hudTexture->Draw(rectResource, raylib::Vector2 { m_portraitRect.width + rectResource.width * i + m_portraitOffset.x, 6 + barTypeOffset + m_portraitOffset.y }, texTint);
         }
-        m_hudTexture->Draw(rectEnd, raylib::Vector2 { m_portraitRect.width + rectResource.width * counter + m_portraitOffset.x, 2 + barTypeOffset + m_portraitOffset.y }, texTint);
+        // A partly filled bar (energy regenerates continuously) is drawn cropped to its filled fraction.
+        const float partialWidth = std::floor((counter - static_cast<float>(fullBars)) * rectResource.width);
+        if (partialWidth > 0.f)
+        {
+            const raylib::Rectangle partialRect { rectResource.x, rectResource.y, partialWidth, rectResource.height };
+            m_hudTexture->Draw(partialRect, raylib::Vector2 { m_portraitRect.width + rectResource.width * static_cast<float>(fullBars) + m_portraitOffset.x, 6 + barTypeOffset + m_portraitOffset.y }, texTint);
+        }
+        m_hudTexture->Draw(rectEnd, raylib::Vector2 { m_portraitRect.width + rectResource.width * static_cast<float>(fullBars) + partialWidth + m_portraitOffset.x, 2 + barTypeOffset + m_portraitOffset.y }, texTint);
     }
 
     void Hud::drawPlayerPortrait() const
@@ -221,7 +232,8 @@ namespace ggj
 
         DrawResourceBar(m_health, m_lifeRect, m_lifeEnd, 0);
         DrawResourceBar(m_mana, m_manaRect, m_manaEnd, 1);
-        DrawResourceBar(m_energy, m_energyRect, m_energyEnd, 2);
+        if (m_hasEnergyBar)
+            DrawResourceBar(m_energy, m_energyRect, m_energyEnd, 2);
 
         static constexpr float BADGE_RADIUS = 12.0f;
         const float cx = m_portraitOffset.x + m_portraitRect.width - BADGE_RADIUS - 20.0f;

@@ -92,7 +92,9 @@ namespace ggj
 
             float m_health{};
             float m_mana{};
-            float m_energy{};
+            float m_energy{};                    ///< Energy in bars (fractional while regenerating)
+            bool m_hasEnergyBar{};               ///< False for characters without energy (the Wizard)
+            static constexpr float ENERGY_PER_BAR = 10.0f;
 
             raylib::Vector2 m_playerPortraitOffset{};
             raylib::Vector2 m_portraitOffset{};

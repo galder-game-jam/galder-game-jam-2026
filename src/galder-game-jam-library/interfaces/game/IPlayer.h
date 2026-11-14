@@ -38,6 +38,10 @@ namespace ggj
             [[nodiscard]] virtual int getTotalXp() const = 0;
             [[nodiscard]] virtual int getXpToNextLevel() const = 0;
             [[nodiscard]] virtual int getEnemiesKilled() const = 0;
+            /*! @return Current energy points (0 for characters that don't use energy) */
+            [[nodiscard]] virtual float getEnergy() const = 0;
+            /*! @return Maximum energy points; 0 means the character has no energy resource and the HUD hides the bar */
+            [[nodiscard]] virtual float getMaxEnergy() const = 0;
             virtual void restoreState(const PlayerPersistentState& state) = 0;
             /*!
              * @return The character's melee hitbox, or nullptr if it has none (e.g. the Wizard)
