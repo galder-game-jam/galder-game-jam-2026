@@ -26,6 +26,9 @@ namespace ggj
               m_soundManager {soundManager}, m_velocity{velocity}
             {
                 m_lives = lives;
+                // Draw the sprite centred on the body so the hitbox lines up with the visible bat.
+                // PhysicsSprite's default origin hangs the sprite below/around the hitbox.
+                m_origin = raylib::Vector2(spriteSize.x / 2.f, spriteSize.y / 2.f);
                 m_body->SetFixedRotation(true);
                 m_animation = m_animationManager.getAnimation(AnimationName::EnemyBatMove);
                 m_body->SetLinearVelocity({m_velocity.x, m_velocity.y});
