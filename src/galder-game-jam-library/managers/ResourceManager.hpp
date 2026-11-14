@@ -136,6 +136,7 @@ namespace ggj
         add(ggj::ResourceName::ConfigOptions, "options.json");
 
         add(ggj::ResourceName::ShaderPaletteSwap, "shaders/palette_swap.fs");
+        add(ggj::ResourceName::ShaderTint, "shaders/tint.fs");
         add(ggj::ResourceName::ShaderMaskRecolor, "shaders/mask_recolor.fs");
 
         add(ggj::ResourceName::SoundCoinPickup, "audio/sfx/coin_pickup.wav");

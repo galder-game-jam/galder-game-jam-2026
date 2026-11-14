@@ -164,6 +164,7 @@ namespace ggj
         m_enemyDamageEvents.clear();
         m_claudlingSpawns.clear();
         m_bombSpawns.clear();
+        m_rootSpawns.clear();
         m_spawnedClaudlings.clear();
         m_projectileEvents.clear();
         m_isPortalEntered = false;
@@ -529,6 +530,10 @@ namespace ggj
                     if (m_bombSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
                         m_bombSpawns.push_back(BombSpawnEvent { message.position, message.velocity, message.fuseTime });
                     break;
+                case NetMessageType::RootSpawned:
+                    if (m_rootSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
+                        m_rootSpawns.push_back(RootSpawnEvent { message.position, message.target, message.flightTime, message.spikeDelay });
+                    break;
                 case NetMessageType::ClaudlingSpawned:
                     if (m_claudlingSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
                         m_claudlingSpawns.push_back(ClaudlingSpawnEvent { message.objectId, message.targetPlayerId, message.position, message.followSpeed, message.knockback });
@@ -747,6 +752,28 @@ namespace ggj
         std::vector<BombSpawnEvent> bombs;
         bombs.swap(m_bombSpawns);
         return bombs;
+    }
+
+    void NetworkManager::publishRootSpawned(const RootSpawnEvent& root)
+    {
+        if (m_role != NetworkRole::Server || !m_server)
+            return;
+
+        // Not kept for late joiners: a root is gone within a few seconds.
+        ServerMessage message {};
+        message.type = NetMessageType::RootSpawned;
+        message.position = root.origin;
+        message.target = root.target;
+        message.flightTime = root.flightTime;
+        message.spikeDelay = root.spikeDelay;
+        m_server->broadcast(message);
+    }
+
+    std::vector<RootSpawnEvent> NetworkManager::takeRootSpawns()
+    {
+        std::vector<RootSpawnEvent> roots;
+        roots.swap(m_rootSpawns);
+        return roots;
     }
 
     void NetworkManager::sendWorldStateTo(HSteamNetConnection connection)

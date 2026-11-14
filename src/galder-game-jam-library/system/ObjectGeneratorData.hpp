@@ -38,6 +38,13 @@ namespace ggj
         float bombSpawnIdleStateTime { 3.f };
         int bombSpawnCount { 5 };
 
+        // The treant's root throws (see TreantRootConfig).
+        int rootCount { 3 };
+        int enragedRootCount { 5 };
+        int deathRootCount { 60 };
+        float rootMinSpikeDelay { 1.f };
+        float rootMaxSpikeDelay { 2.f };
+
         int layerIndex{};
         tson::Object obj{};
         tson::Vector2i pos{};

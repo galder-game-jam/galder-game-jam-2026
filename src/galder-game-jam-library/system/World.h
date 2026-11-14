@@ -32,6 +32,7 @@ namespace ggj
 #include "../interfaces/manager/INetworkManager.h"
 #include "../interfaces/manager/IOptionsManager.h"
 #include "../interfaces/graphics/IPaletteSwapShader.h"
+#include "../interfaces/graphics/ITintShader.h"
 #include "../data/CharacterColors.hpp"
 #include "../data/DialogSpot.hpp"
 #include <optional>
@@ -49,10 +50,10 @@ namespace ggj
         World(ggj::ILogger& logger, ggj::IResourceManager<ResourceName>& resources, IMapper& mapper, ggj::ITextureManager<TextureName, raylib::Texture>& textures,
               raylib::Window& window, ggj::IInputManager<ggj::KeyboardKey>& input, CollisionManager& collisionManager, IDebugManager& debugManager,
               ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IUserDataManager<PhysicsObject*>& userDataManager, ggj::ISoundManager& soundManager,
-              std::unique_ptr<tson::Map> map, ggj::Hud& hud, Dialog& dialog, IOptionsManager& optionsManager, IPaletteSwapShader& paletteSwap)
+              std::unique_ptr<tson::Map> map, ggj::Hud& hud, Dialog& dialog, IOptionsManager& optionsManager, IPaletteSwapShader& paletteSwap, ITintShader& tintShader)
             : m_logger { logger }, m_resources { resources }, m_mapper { mapper }, m_textures { textures }, m_window { window }, m_input { input },
               m_collisionManager { collisionManager }, m_debugManager { debugManager }, m_animationManager { animationManager }, m_userDataManager { userDataManager },
-              m_soundManager { soundManager }, m_map { std::move(map) }, m_hud { hud }, m_dialog { dialog }, m_optionsManager { optionsManager }, m_paletteSwap { paletteSwap }
+              m_soundManager { soundManager }, m_map { std::move(map) }, m_hud { hud }, m_dialog { dialog }, m_optionsManager { optionsManager }, m_paletteSwap { paletteSwap }, m_tintShader { tintShader }
         {
             m_camera.target = Vector2 { 0.f, 0.f };
             m_camera.offset = { 0.f, 0.f }; //{8.f, 8.f};//(Vector2){ (float) window.GetWidth() / 2.0f, (float)window.GetHeight() / 2.0f };
@@ -91,6 +92,19 @@ namespace ggj
          * the host's boss (state, target, health) and must not roll their own.
          */
         [[nodiscard]] bool isEnemyAuthority() const;
+
+        /*!
+         * Where every player is, as the point attacks should aim at (the centre of their sprite).
+         * Includes remote netplay peers.
+         */
+        [[nodiscard]] std::vector<raylib::Vector2> getPlayerCenters() const;
+
+        /*!
+         * Whether a point lies inside something solid and immovable such as a wall or a tree.
+         *
+         * @param point Position in pixels
+         */
+        [[nodiscard]] bool isSolidAt(const raylib::Vector2& point) const;
 
         /*!
          * Client: sends a hit on a host-authoritative enemy (a boss) to the host, which applies it.
@@ -213,6 +227,31 @@ namespace ggj
          */
         void damageLocalPlayerWithin(const raylib::Vector2& center, float radius);
 
+        /*!
+         * Queues a root thrown by the treant. It is created after this frame's update pass. Host/offline
+         * only: the host tells the clients, which each create their copy and only hurt their own player.
+         *
+         * @param origin Where the root is thrown from (pixels)
+         * @param target Where it lands (pixels)
+         * @param flightTime Seconds spent in the air
+         * @param spikeDelay Seconds between landing and spiking
+         */
+        void spawnTreantRoot(const raylib::Vector2& origin, const raylib::Vector2& target, float flightTime, float spikeDelay);
+
+        /*!
+         * Queues @p count roots thrown from @p origin that land spread evenly across the whole map,
+         * never inside walls or trees. Each root gets its own random flight and spike delay, so they
+         * rain down and spike in waves.
+         *
+         * @param origin Where the roots are thrown from (pixels)
+         * @param count Number of roots; fewer if the map has no free spot for some of them
+         * @param minFlightTime Shortest flight (seconds)
+         * @param maxFlightTime Longest flight (seconds)
+         * @param minSpikeDelay Shortest wait between landing and spiking (seconds)
+         * @param maxSpikeDelay Longest wait between landing and spiking (seconds)
+         */
+        void spawnTreantRootsAcrossMap(const raylib::Vector2& origin, int32_t count, float minFlightTime, float maxFlightTime, float minSpikeDelay, float maxSpikeDelay);
+
         void clearBoss() { m_boss = nullptr; }
 
         /*!
@@ -282,6 +321,9 @@ namespace ggj
         uint32_t doSpawnClaudling(const PendingClaudlingSpawn& spawn);
         /*! Creates a bomb (not a networked object and not counted as an enemy). */
         void doSpawnBomb(const BombSpawnEvent& bomb);
+
+        /*! Creates a treant root (not a networked object and not counted as an enemy). */
+        void doSpawnTreantRoot(const RootSpawnEvent& root);
         void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
@@ -342,6 +384,7 @@ namespace ggj
 
         IOptionsManager& m_optionsManager;
         IPaletteSwapShader& m_paletteSwap;
+        ITintShader& m_tintShader;
 
         b2World m_world { { 0.f, 0.f } };
         std::unique_ptr<tson::Map> m_map { nullptr };
@@ -361,6 +404,7 @@ namespace ggj
 
         std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;
         std::vector<BombSpawnEvent> m_pendingBombSpawns;
+        std::vector<RootSpawnEvent> m_pendingRootSpawns;
 
         PhysicsObject* m_boss        { nullptr };
         std::string    m_bossName    {};

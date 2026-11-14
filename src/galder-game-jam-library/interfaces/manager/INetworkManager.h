@@ -15,6 +15,7 @@
 #include "../../data/ClaudlingSpawnEvent.hpp"
 #include "../../data/EnemyDamageEvent.hpp"
 #include "../../data/BombSpawnEvent.hpp"
+#include "../../data/RootSpawnEvent.hpp"
 #include "../../data/ChatEntry.hpp"
 #include "../../data/DiscoveredServer.hpp"
 #include "../../../gamedev-base/enums/ConnectionStatus.hpp"
@@ -153,6 +154,19 @@ namespace ggj
          * @return Bomb spawns in arrival order
          */
         [[nodiscard]] virtual std::vector<BombSpawnEvent> takeBombSpawns() = 0;
+
+        /*!
+         * Server: tells every client that the treant threw a root. No-op when not hosting.
+         *
+         * @param root Where it starts, where it lands and its timings
+         */
+        virtual void publishRootSpawned(const RootSpawnEvent& root) = 0;
+        /*!
+         * Client: drains the roots the host threw since the last call.
+         *
+         * @return Root spawns in arrival order
+         */
+        [[nodiscard]] virtual std::vector<RootSpawnEvent> takeRootSpawns() = 0;
         /*! Feeds the local player's authoritative stats (lives/score/kills) for outbound sync. */
         virtual void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) = 0;
         /*!

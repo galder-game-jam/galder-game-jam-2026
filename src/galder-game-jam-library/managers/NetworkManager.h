@@ -71,6 +71,8 @@ namespace ggj
         [[nodiscard]] std::vector<ClaudlingSpawnEvent> takeClaudlingSpawns() override;
         void publishBombSpawned(const BombSpawnEvent& bomb) override;
         [[nodiscard]] std::vector<BombSpawnEvent> takeBombSpawns() override;
+        void publishRootSpawned(const RootSpawnEvent& root) override;
+        [[nodiscard]] std::vector<RootSpawnEvent> takeRootSpawns() override;
         void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) override
         {
             m_localLives = lives;
@@ -148,6 +150,7 @@ namespace ggj
         std::vector<EnemyDamageEvent> m_enemyDamageEvents;    ///< Server: client boss hits awaiting the World.
         std::vector<ClaudlingSpawnEvent> m_claudlingSpawns;   ///< Client: host Claudling spawns awaiting the World.
         std::vector<BombSpawnEvent> m_bombSpawns;             ///< Client: host bomb throws awaiting the World.
+        std::vector<RootSpawnEvent> m_rootSpawns;             ///< Client: host root throws awaiting the World.
         static constexpr size_t MAX_QUEUED_WORLD_EVENTS = 256; ///< Guards against growth while no World drains.
         std::vector<ChatEntry> m_chatMessages;                 ///< Chat lines awaiting the chat box.
         static constexpr size_t MAX_QUEUED_CHAT_MESSAGES = 64; ///< Guards against growth while no chat box drains.

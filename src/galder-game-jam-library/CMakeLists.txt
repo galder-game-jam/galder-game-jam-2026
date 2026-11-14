@@ -32,6 +32,7 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         data/ClaudlingSpawnEvent.hpp
         data/EnemyDamageEvent.hpp
         data/BombSpawnEvent.hpp
+        data/RootSpawnEvent.hpp
         data/ClaudeBombConfig.hpp
         interfaces/game/IPlayerLocator.h
         enums/NetMessageType.h
@@ -91,6 +92,12 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         graphics/CharacterPalette.h
         graphics/PaletteSwapShader.cpp
         graphics/PaletteSwapShader.h
+        game/enemies/TreantRoot.cpp
+        game/enemies/TreantRoot.h
+        graphics/TintShader.cpp
+        graphics/TintShader.h
+        interfaces/graphics/IPaletteSwapShader.h
+        interfaces/graphics/ITintShader.h
         interfaces/graphics/IPaletteSwapShader.h
         graphics/MaskRecolorShader.cpp
         graphics/MaskRecolorShader.h

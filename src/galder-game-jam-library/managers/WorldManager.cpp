@@ -129,7 +129,7 @@ namespace ggj
                         }
                         m_worlds[stage] =
                             std::make_unique<World>(m_logger, m_resources, m_mapper, m_textures, m_window, m_input, m_collisionManager, m_debugManager, m_animationManager,
-                                                    m_userDataManager, m_soundManager, std::move(map), m_hud, m_dialog, m_optionsManager, m_managers.paletteSwap);
+                                                    m_userDataManager, m_soundManager, std::move(map), m_hud, m_dialog, m_optionsManager, m_managers.paletteSwap, m_managers.tint);
                         m_worlds[stage]->setPickedCharacter(m_pickedCharacter);
                         m_worlds[stage]->setPlayerColors(m_pickedColors);
                         m_worlds[stage]->initialize();

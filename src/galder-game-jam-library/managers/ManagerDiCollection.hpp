@@ -8,6 +8,7 @@
 #include "../data/PlayerPersistentState.hpp"
 #include "../interfaces/manager/INetworkManager.h"
 #include "../interfaces/graphics/IPaletteSwapShader.h"
+#include "../interfaces/graphics/ITintShader.h"
 
 #ifdef GAME_DEV_DEBUG
 namespace ggj
@@ -25,7 +26,7 @@ namespace ggj
                             ggj::IInputManager<ggj::KeyboardKey>& inputManager, ggj::CollisionManager& collisionManager, ggj::IDebugManager& debugManager,
                             ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IUserDataManager<PhysicsObject*>& userDataManager,
                             ggj::ISoundManager& soundManager, ggj::PlayerPersistentState& persistentState, ggj::INetworkManager& networkManager,
-                            ggj::IPaletteSwapShader& paletteSwapShader
+                            ggj::IPaletteSwapShader& paletteSwapShader, ggj::ITintShader& tintShader
 #ifdef GAME_DEV_DEBUG
                             ,
                             ggj::DebugState& debugState
@@ -33,7 +34,7 @@ namespace ggj
                             )
             : resources { resourceManager }, textures { textureManager }, input { inputManager }, collision { collisionManager }, debug { debugManager },
               animation { animationManager }, userData { userDataManager }, sound { soundManager }, persistentState { persistentState }, network { networkManager },
-              paletteSwap { paletteSwapShader }
+              paletteSwap { paletteSwapShader }, tint { tintShader }
 #ifdef GAME_DEV_DEBUG
               ,
               debugState { debugState }
@@ -52,6 +53,7 @@ namespace ggj
         ggj::PlayerPersistentState& persistentState;
         ggj::INetworkManager& network;
         ggj::IPaletteSwapShader& paletteSwap;
+        ggj::ITintShader& tint;
 #ifdef GAME_DEV_DEBUG
         ggj::DebugState& debugState;
 #endif
