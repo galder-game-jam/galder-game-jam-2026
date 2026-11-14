@@ -54,7 +54,7 @@ namespace ggj
             /*!
              * Draws one row of resource bars (hearts, mana or energy) next to a portrait.
              *
-             * @param counter Bars to fill; the fraction draws a partly filled last bar
+             * @param counter Bar segments to fill (at most 10); the fraction draws a partly filled last bar
              * @param rectResource Source rectangle of a single bar in the HUD texture
              * @param rectEnd Source rectangle of the end cap drawn after the last bar
              * @param barNo Row index below the portrait's top edge (0 = life, 1 = mana, 2 = energy)
@@ -115,13 +115,11 @@ namespace ggj
             const float TILE_UNIT = 16.0f;
             const int FONT_SIZE = 15;
 
-            float m_health{};
-            float m_mana{};                      ///< Mana in bars (fractional while regenerating)
+            float m_health{};                    ///< Life in bar segments (one per life, at most 10)
+            float m_mana{};                      ///< Mana in bar segments (0-10, fractional while regenerating)
             bool m_hasManaBar{};                 ///< False for characters without mana (the Rogue)
-            static constexpr float MANA_PER_BAR = 20.0f; ///< Level 1 cap of 200 mana fills 10 bars; later levels add partial bars
-            float m_energy{};                    ///< Energy in bars (fractional while regenerating)
+            float m_energy{};                    ///< Energy in bar segments (0-10, fractional while regenerating)
             bool m_hasEnergyBar{};               ///< False for characters without energy (the Wizard)
-            static constexpr float ENERGY_PER_BAR = 10.0f;
 
             static constexpr float PARTY_SCALE = 0.5f;          ///< Party portraits are drawn at half the size of the player's own.
             static constexpr float PARTY_NAME_HEIGHT = 13.0f;   ///< Room above each party portrait for the name.

@@ -7,6 +7,7 @@
 #include "Hud.h"
 #include "Minimap.h"
 #include "../graphics/CharacterPalette.h"
+#include "../data/ResourceBar.hpp"
 
 namespace ggj
 {
@@ -106,11 +107,11 @@ namespace ggj
         if (m_currentPlayer == nullptr)
             return;
 
-        m_health = static_cast<float>(m_currentPlayer->getLives());
+        m_health = ResourceBar::cappedSegments(m_currentPlayer->getLives());
         m_hasManaBar = m_currentPlayer->getMaxMana() > 0.f;
-        m_mana = std::min(m_currentPlayer->getMana(), m_currentPlayer->getMaxMana()) / MANA_PER_BAR;
+        m_mana = ResourceBar::scaledSegments(m_currentPlayer->getMana(), m_currentPlayer->getMaxMana());
         m_hasEnergyBar = m_currentPlayer->getMaxEnergy() > 0.f;
-        m_energy = std::min(m_currentPlayer->getEnergy(), m_currentPlayer->getMaxEnergy()) / ENERGY_PER_BAR;
+        m_energy = ResourceBar::scaledSegments(m_currentPlayer->getEnergy(), m_currentPlayer->getMaxEnergy());
         m_coins = m_currentPlayer->getScore();
         m_level       = m_currentPlayer->getLevel();
         m_currentXp   = m_currentPlayer->getCurrentXp();
@@ -308,11 +309,11 @@ namespace ggj
         const raylib::Rectangle frameDest { frameOrigin.x, frameOrigin.y, m_portraitRect.width * PARTY_SCALE, m_portraitRect.height * PARTY_SCALE };
         m_hudTexture->Draw(m_portraitRect, frameDest, raylib::Vector2 {}, 0.f, texTint);
 
-        drawResourceBar(static_cast<float>(std::max(member.lives, 0)), m_lifeRect, m_lifeEnd, 0, frameOrigin, PARTY_SCALE);
+        drawResourceBar(ResourceBar::cappedSegments(member.lives), m_lifeRect, m_lifeEnd, 0, frameOrigin, PARTY_SCALE);
         if (member.maxMana > 0.f)
-            drawResourceBar(std::min(member.mana, member.maxMana) / MANA_PER_BAR, m_manaRect, m_manaEnd, 1, frameOrigin, PARTY_SCALE);
+            drawResourceBar(ResourceBar::scaledSegments(member.mana, member.maxMana), m_manaRect, m_manaEnd, 1, frameOrigin, PARTY_SCALE);
         if (member.maxEnergy > 0.f)
-            drawResourceBar(std::min(member.energy, member.maxEnergy) / ENERGY_PER_BAR, m_energyRect, m_energyEnd, 2, frameOrigin, PARTY_SCALE);
+            drawResourceBar(ResourceBar::scaledSegments(member.energy, member.maxEnergy), m_energyRect, m_energyEnd, 2, frameOrigin, PARTY_SCALE);
 
         const float badgeRadius = 6.0f;
         const float cx = frameOrigin.x + frameDest.width - badgeRadius - 10.0f;
