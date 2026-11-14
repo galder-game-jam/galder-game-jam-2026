@@ -38,6 +38,9 @@ namespace ggj
             [[nodiscard]] virtual int getXpToNextLevel() const = 0;
             [[nodiscard]] virtual int getEnemiesKilled() const = 0;
             virtual void restoreState(const PlayerPersistentState& state) = 0;
+            /*!
+             * @return The character's melee hitbox, or nullptr if it has none (e.g. the Wizard)
+             */
             virtual Hitbox* getHitbox() = 0;
             [[nodiscard]] virtual bool cameraShouldFollowPlayer() const = 0;
             virtual void setCameraFollowsPlayer(bool follow) = 0;

@@ -14,7 +14,6 @@
 #include "../../gamedev-base/interfaces/managers/ISoundManager.h"
 #include "../interfaces/manager/IOptionsManager.h"
 
-#include "Hitbox.hpp"
 #include "projectiles/Projectile.h"
 
 namespace ggj
@@ -36,12 +35,6 @@ namespace ggj
             m_body->SetFixedRotation(true);
             m_animation = m_animationManager.getAnimation(AnimationName::PlayerIdleNG);
             m_startPos = ConvertToVector2(m_body->GetPosition());
-
-            const raylib::Vector2 bodyPosition = ConvertToVector2(m_body->GetPosition());
-            auto hitBoxPos = raylib::Vector2(bodyPosition.x + 16, bodyPosition.y);
-
-            const UserData hitboxData { ObjectType::PlayerHitbox, { 0.f, 0.f }, "ranged_attack", "", "ranged_hitbox" };
-            m_hitbox.create(this, m_body->GetWorld(), hitBoxPos, { 32, 16 }, hitboxData);
             setPlayerState(PlayerState::Idle);
         }
 
@@ -61,6 +54,11 @@ namespace ggj
         [[nodiscard]] int getXpToNextLevel() const override;
         [[nodiscard]] int getEnemiesKilled() const override;
         void restoreState(const PlayerPersistentState& state) override;
+        /*!
+         * The Wizard has no melee hitbox (balancing) — damage comes only from mage balls.
+         *
+         * @return Always nullptr
+         */
         Hitbox* getHitbox() override;
         [[nodiscard]] bool isInDialog() const override { return m_inDialog; }
         std::string getDialogId() override { return m_currentDialogId; }
@@ -95,10 +93,8 @@ namespace ggj
         static constexpr float DAMAGE_COOLDOWN_SECONDS = 2.f; ///< Invulnerability window after taking damage
         static constexpr float DAMAGE_BLINK_INTERVAL = 0.1f;  ///< Sprite blink half-period while invulnerable
         float m_damageCooldown { 0.f };                       ///< Seconds of invulnerability left
-        bool m_isLeftPosition { false };
         raylib::Vector2 m_lastMoveDirection { 1.f, 0.f }; ///< Last non-zero input direction, used for projectile aim
 
-        ggj::Hitbox m_hitbox {};
         bool m_isAttacking { false };
         uint16_t m_attackFrames { 20 }; ///< How many frames an attack takes
         uint16_t m_attackCounter { 0 }; ///< Counts attack duration

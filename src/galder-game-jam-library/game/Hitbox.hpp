@@ -46,7 +46,7 @@ namespace ggj
                 {
                     if(b->getUserData()->getObjectType() == ObjectType::Enemy)
                     {
-                        b->onMeleeHit(m_soundManager, m_isLeftPos, m_owner);
+                        b->onMeleeHit(m_soundManager, m_isLeftPos, m_owner, m_damage);
                     }
                 }
             }
@@ -56,6 +56,16 @@ namespace ggj
                 m_soundManager = soundManager;
             }
             
+            /*!
+             * Sets how many lives each enemy hit removes.
+             *
+             * @param damage Lives removed per hit
+             */
+            void setDamage(int32_t damage)
+            {
+                m_damage = damage;
+            }
+
             /*!
              * Position decides the type of knockback
              * @param setLeft
@@ -112,6 +122,7 @@ namespace ggj
             ISoundManager *m_soundManager {nullptr};
             bool m_isLeftPos {false};
             bool m_isActive {false};
+            int32_t m_damage {1};
     };
     
 } // ggj

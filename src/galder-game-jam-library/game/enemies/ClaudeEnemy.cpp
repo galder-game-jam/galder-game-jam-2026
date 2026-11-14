@@ -99,13 +99,13 @@ namespace ggj
         }
     }
 
-    void ClaudeEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft)
+    void ClaudeEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage)
     {
         // Already dead (waiting for removal): don't count the boss kill a second time.
         if (shouldBeDestroyed() || m_invulTimer > 0.f)
             return;
 
-        --m_lives;
+        m_lives -= damage;
 
         if (m_body != nullptr)
             m_body->ApplyLinearImpulseToCenter({fromLeft ? -50.f : 50.f, 0.f}, true);
@@ -127,9 +127,9 @@ namespace ggj
         }
     }
 
-    void ClaudeEnemy::onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker)
+    void ClaudeEnemy::onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker, int32_t damage)
     {
-        takeDamage(soundManager, attacker, fromLeft);
+        takeDamage(soundManager, attacker, fromLeft, damage);
     }
 
     void ClaudeEnemy::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact)
@@ -160,7 +160,7 @@ namespace ggj
         {
             Projectile* p = dynamic_cast<Projectile*>(b);
             p->explode();
-            takeDamage(&m_soundManager, p->getOwner(), false);
+            takeDamage(&m_soundManager, p->getOwner(), false, PROJECTILE_DAMAGE);
         }
     }
 

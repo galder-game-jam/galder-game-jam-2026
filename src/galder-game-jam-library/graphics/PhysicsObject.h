@@ -51,8 +51,9 @@ namespace ggj
          * @param soundManager Sound manager for playing hit/death sounds.
          * @param fromLeft     True if the swing came from the left side (determines knockback direction).
          * @param attacker     The owning PhysicsObject of the hitbox (for kill credits).
+         * @param damage       Lives removed by this hit.
          */
-        virtual void onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker);
+        virtual void onMeleeHit(ISoundManager* soundManager, bool fromLeft, PhysicsObject* attacker, int32_t damage);
 
         b2Body* getBody();
         UserData* getUserData();

@@ -104,7 +104,7 @@ namespace ggj
         b2Vec2 vel = m_body->GetLinearVelocity();
         m_velocity = raylib::Vector2 { vel.x, vel.y };
 
-        const float BASE_SPEED = 7.f;
+        constexpr float BASE_SPEED = 10.5f; // 1.5x the Wizard's: the melee Rogue needs to close distance fast
         const float speed = BASE_SPEED * m_world->getPlayerTalentEffects(m_playerIndex).speedMultiplier;
 
         if (m_inputManager.keyDown(kb.moveLeft) && !m_inputManager.keyDown(kb.moveRight))
@@ -193,9 +193,9 @@ namespace ggj
         }
         m_hitbox.setIsActive(m_isAttacking);
         if (m_isLeftPosition)
-            m_hitbox.getBody()->SetTransform(PhysicsObject::ConvertToB2Vec2({ m_position.x - 12, m_position.y - 8 }), 0);
+            m_hitbox.getBody()->SetTransform(PhysicsObject::ConvertToB2Vec2({ m_position.x - HITBOX_OFFSET_X, m_position.y - 8 }), 0);
         else
-            m_hitbox.getBody()->SetTransform(PhysicsObject::ConvertToB2Vec2({ m_position.x + 12, m_position.y - 8 }), 0);
+            m_hitbox.getBody()->SetTransform(PhysicsObject::ConvertToB2Vec2({ m_position.x + HITBOX_OFFSET_X, m_position.y - 8 }), 0);
     }
 
     bool Player::cameraShouldFollowPlayer() const
