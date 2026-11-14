@@ -109,6 +109,8 @@ namespace ggj
 
         CharacterSelectRoguePortrait = 330,
         CharacterSelectWizardPortrait = 331,
+        CharacterSelectRoguePortraitMask = 332,
+        CharacterSelectWizardPortraitMask = 333,
 
         GraphicsMainMenuBackground = 340,
 

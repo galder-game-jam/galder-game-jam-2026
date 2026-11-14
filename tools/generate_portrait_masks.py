@@ -27,27 +27,39 @@ WIZARD_CLOTHES, WIZARD_BEARD = 0, 1
 
 
 def classify_rogue(x, y, hue, sat, val):
+    # The skin, bow and daggers are orange (~25 deg) and the backdrop light blue (218 deg), so the hue
+    # ranges alone keep them out.
     if 35 <= hue <= 80 and sat >= 0.2:
-        return ROGUE_CLOTH  # Olive hood. The skin and bow are orange (~25 deg), well below this.
-    if 18 <= y <= 28 and 16 <= x <= 46 and 185 <= hue <= 210 and sat >= 0.5:
-        return ROGUE_EYES  # Region keeps the light blue backdrop (218 deg) out.
-    if y >= 26 and 12 <= x <= 48 and (hue >= 320 or hue <= 12) and 0.2 <= sat <= 0.6:
+        return ROGUE_CLOTH  # Olive hood
+    if 185 <= hue <= 210 and sat >= 0.5:
+        return ROGUE_EYES
+    if (hue >= 320 or hue <= 12) and 0.2 <= sat <= 0.6 and val >= 0.1:  # Darker is outline
         return ROGUE_SCARF
     return None
 
 
-def classify_wizard(x, y, hue, sat, val):
-    if 250 <= hue <= 335 and sat >= 0.35 and val >= 0.08:
-        return WIZARD_CLOTHES  # Purple hat and robe; the hat band is orange.
-    is_eye = 21 <= y <= 25 and 22 <= x <= 42  # The eye whites are grey too.
-    if not is_eye and y >= 15 and sat <= 0.26 and val >= 0.15:
-        return WIZARD_BEARD  # Greys; the skin is far more saturated (> 0.5).
-    return None
+def wizard_classifier(eye_whites, excluded_below_y):
+    """
+    @param eye_whites (x0, y0, x1, y1) box around the eyes; the eye whites are grey like the beard
+    @param excluded_below_y Rows from here down hold no beard (stray greys on the robe clasp)
+    """
+    def classify(x, y, hue, sat, val):
+        if 250 <= hue <= 335 and sat >= 0.35 and val >= 0.08:
+            return WIZARD_CLOTHES  # Purple hat and robe; the hat band is orange.
+        x0, y0, x1, y1 = eye_whites
+        is_eye = x0 <= x <= x1 and y0 <= y <= y1
+        if not is_eye and y < excluded_below_y and sat <= 0.26 and val >= 0.15:
+            return WIZARD_BEARD  # Greys; the skin is far more saturated (> 0.5).
+        return None
+
+    return classify
 
 
 PORTRAITS = {
     'rogue_hud': classify_rogue,
-    'wizard_hud': classify_wizard,
+    'wizard_hud': wizard_classifier(eye_whites=(22, 21, 42, 25), excluded_below_y=60),
+    'character_select_rogue': classify_rogue,
+    'character_select_wizard': wizard_classifier(eye_whites=(55, 68, 100, 75), excluded_below_y=149),
 }
 
 

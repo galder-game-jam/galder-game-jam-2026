@@ -122,6 +122,8 @@ namespace ggj
 
         add(ggj::ResourceName::CharacterSelectRoguePortrait, "graphics/portraits/character_select_rogue.png");
         add(ggj::ResourceName::CharacterSelectWizardPortrait, "graphics/portraits/character_select_wizard.png");
+        add(ggj::ResourceName::CharacterSelectRoguePortraitMask, "graphics/portraits/character_select_rogue_mask.png");
+        add(ggj::ResourceName::CharacterSelectWizardPortraitMask, "graphics/portraits/character_select_wizard_mask.png");
 
         add(ggj::ResourceName::GraphicsMainMenuBackground, "graphics/backgrounds/ggj-main-menu.png");
 

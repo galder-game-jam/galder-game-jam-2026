@@ -20,6 +20,8 @@ namespace ggj
         m_roguePortraitTexture = m_textures.get(TextureName::CharacterSelectRoguePortrait);
         m_wizardPortraitTexture = m_textures.get(TextureName::CharacterSelectWizardPortrait);
         m_currentPortraitTexture = m_roguePortraitTexture;
+        m_roguePortraitMaskTexture = m_textures.get(TextureName::CharacterSelectRoguePortraitMask);
+        m_wizardPortraitMaskTexture = m_textures.get(TextureName::CharacterSelectWizardPortraitMask);
 
         m_rogueSpriteTexture = m_textures.get(TextureName::RoguePlayer);
         m_wizardSpriteTexture = m_textures.get(TextureName::WizardPlayer);
@@ -151,7 +153,7 @@ namespace ggj
 
         //Portrait
         drawDialogBox(m_position + raylib::Vector2{0,2 * GRID_UNIT}, 4, 4, BLACK);
-        m_currentPortraitTexture->Draw(m_position + raylib::Vector2{6,2 * GRID_UNIT + 26});
+        drawPortrait(m_position + raylib::Vector2{6,2 * GRID_UNIT + 26});
 
         //Class
         drawDialogBox(m_position + raylib::Vector2{0,8 * GRID_UNIT}, 4, 0, BLACK);
@@ -208,6 +210,18 @@ namespace ggj
                 m_hudTexture->Draw(src, pos);
             }
         }
+    }
+
+    void CharacterSelectScreen::drawPortrait(const raylib::Vector2& position) const
+    {
+        const raylib::Texture* mask = (m_pickedCharacter == PlayerPickedCharacter::Wizard) ? m_wizardPortraitMaskTexture : m_roguePortraitMaskTexture;
+        // Rebuilt every frame so the portrait follows the colour pickers live, like the idle preview.
+        // Without a mask the portrait is still drawn, just in its painted colours.
+        if (mask != nullptr)
+            m_maskRecolor.begin(CharacterPalette::BuildMaskRecolor(m_pickedCharacter, getPickedColors()), *mask);
+        m_currentPortraitTexture->Draw(position);
+        if (mask != nullptr)
+            m_maskRecolor.end();
     }
 
     void CharacterSelectScreen::renderPreview()
