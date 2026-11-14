@@ -14,6 +14,7 @@
 #include "../../data/ProjectileEvent.hpp"
 #include "../../data/ClaudlingSpawnEvent.hpp"
 #include "../../data/EnemyDamageEvent.hpp"
+#include "../../data/BombSpawnEvent.hpp"
 #include "../../data/DiscoveredServer.hpp"
 #include "../../../gamedev-base/enums/ConnectionStatus.hpp"
 #include "raylib-cpp.hpp"
@@ -137,6 +138,19 @@ namespace ggj
          * @return Spawn events in arrival order
          */
         [[nodiscard]] virtual std::vector<ClaudlingSpawnEvent> takeClaudlingSpawns() = 0;
+
+        /*!
+         * Server: tells every client that the boss threw a bomb. No-op when not hosting.
+         *
+         * @param bomb Where it starts, how it was thrown and its fuse
+         */
+        virtual void publishBombSpawned(const BombSpawnEvent& bomb) = 0;
+        /*!
+         * Client: drains the bombs the host threw since the last call.
+         *
+         * @return Bomb spawns in arrival order
+         */
+        [[nodiscard]] virtual std::vector<BombSpawnEvent> takeBombSpawns() = 0;
         /*! Feeds the local player's authoritative stats (lives/score/kills) for outbound sync. */
         virtual void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) = 0;
         /*!

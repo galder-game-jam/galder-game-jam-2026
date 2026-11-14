@@ -59,6 +59,7 @@ namespace ggj
         uint32_t killerPlayerId { 0 };
         float followSpeed { 0.f }; ///< ClaudlingSpawned: chase speed.
         float knockback { 0.f };   ///< ClaudlingSpawned: knockback applied to players on contact.
+        float fuseTime { 0.f };    ///< BombSpawned: seconds until the bomb explodes.
 
         int32_t stageIndex { 0 }; ///< JoinAccept / StageChanged: the host's stage. PortalEntered: stage of that portal.
     };

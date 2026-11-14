@@ -9,6 +9,8 @@
 #include "../game/enemies/ClaudeEnemy.h"
 #include "../game/enemies/TreantEnemy.h"
 #include "../game/enemies/Claudling.h"
+#include "../game/enemies/Bomb.h"
+#include <numbers>
 #include "../game/projectiles/MageBall.hpp"
 #include "../graphics/CharacterPalette.h"
 
@@ -149,6 +151,12 @@ namespace ggj
                                 generatorData.isBoss = value.getValue<bool>();
                             else if (key == "boss_name")
                                 generatorData.bossName = value.getValue<std::string>();
+                            else if (key == "bomb_min_time")
+                                generatorData.bombMinTime = value.getValue<float>();
+                            else if (key == "bomb_max_time")
+                                generatorData.bombMaxTime = value.getValue<float>();
+                            else if (key == "bomb_spawn_idle_state_time")
+                                generatorData.bombSpawnIdleStateTime = value.getValue<float>();
                         }
 
                         ObjectType objectType = (ObjectType)userdataObjectType;
@@ -748,6 +756,8 @@ namespace ggj
         if (m_network->role() == NetworkRole::Client)
         {
             spawnHostClaudlings();
+            for (const BombSpawnEvent& bomb : m_network->takeBombSpawns())
+                doSpawnBomb(bomb);
             for (const auto& [id, state] : m_network->enemyStates())
             {
                 auto found = m_networkObjects.find(id);
@@ -1255,6 +1265,57 @@ namespace ggj
         }
     }
 
+    void World::spawnBombs(raylib::Vector2 origin, int32_t bombsPerPlayer, float minFuseTime, float maxFuseTime)
+    {
+        if (!isEnemyAuthority())
+            return;
+
+        constexpr float MAX_SPREAD_DEGREES = 25.f; ///< Max angle between a bomb's path and the line to its player.
+        constexpr float MIN_REACH = 0.6f;          ///< Shortest throw, as a fraction of the distance to the player.
+        constexpr float MAX_REACH = 1.3f;          ///< Longest throw (overshoots the player).
+        const auto randomBetween = [](float min, float max)
+        {
+            constexpr int32_t STEPS = 10000;
+            return min + (max - min) * static_cast<float>(GetRandomValue(0, STEPS)) / static_cast<float>(STEPS);
+        };
+
+        for (const uint32_t playerId : getActivePlayerIds())
+        {
+            const std::optional<raylib::Vector2> target = getPlayerPosition(playerId);
+            if (!target.has_value())
+                continue;
+
+            const float dx = target->x - origin.x;
+            const float dy = target->y - origin.y;
+            const float distance = std::sqrt(dx * dx + dy * dy);
+            // Someone standing right on top of the boss: throw in a random direction instead.
+            const float baseAngle = distance > 1.f ? std::atan2(dy, dx) : randomBetween(0.f, 2.f * std::numbers::pi_v<float>);
+            const float distanceInMetres = std::max(distance, 48.f) / PhysicsObject::PPM;
+
+            for (int32_t i = 0; i < bombsPerPlayer; ++i)
+            {
+                const float angle = baseAngle + randomBetween(-MAX_SPREAD_DEGREES, MAX_SPREAD_DEGREES) * std::numbers::pi_v<float> / 180.f;
+                // With linear damping d a body launched at speed v slides about v / d before stopping,
+                // so this makes the bomb come to rest at the chosen fraction of the distance.
+                const float speed = Bomb::LINEAR_DAMPING * distanceInMetres * randomBetween(MIN_REACH, MAX_REACH);
+                const raylib::Vector2 velocity { std::cos(angle) * speed, std::sin(angle) * speed };
+                m_pendingBombSpawns.push_back(BombSpawnEvent { origin, velocity, randomBetween(minFuseTime, maxFuseTime) });
+            }
+        }
+    }
+
+    void World::damageLocalPlayerWithin(const raylib::Vector2& center, float radius)
+    {
+        if (m_player == nullptr)
+            return;
+
+        const raylib::Vector2 playerCenter = m_player->getVisualCenter();
+        const float dx = playerCenter.x - center.x;
+        const float dy = playerCenter.y - center.y;
+        if (dx * dx + dy * dy <= radius * radius)
+            m_player->takeHit();
+    }
+
     void World::flushPendingSpawns()
     {
         const bool isHosting = m_network != nullptr && m_network->isActive() && m_network->role() == NetworkRole::Server;
@@ -1265,6 +1326,48 @@ namespace ggj
                 m_network->publishClaudlingSpawned(ClaudlingSpawnEvent { networkId, spawn.targetPlayerId, spawn.position, spawn.followSpeed, spawn.knockback });
         }
         m_pendingClaudlingSpawns.clear();
+
+        for (const BombSpawnEvent& bomb : m_pendingBombSpawns)
+        {
+            doSpawnBomb(bomb);
+            if (isHosting)
+                m_network->publishBombSpawned(bomb);
+        }
+        m_pendingBombSpawns.clear();
+    }
+
+    void World::doSpawnBomb(const BombSpawnEvent& bomb)
+    {
+        raylib::Texture* tex = m_textures.get(TextureName::EnemyBomb);
+        raylib::Texture* explosionTex = m_textures.get(TextureName::EnemyBombExplosion);
+        if (tex == nullptr)
+            return;
+
+        constexpr float BODY_RADIUS = 12.f; ///< Pixels; only used for the debug outline, the bomb never collides.
+        b2BodyDef bodyDef;
+        bodyDef.type = b2_dynamicBody;
+        bodyDef.position = PhysicsObject::ConvertToB2Vec2(bomb.position);
+        bodyDef.linearDamping = Bomb::LINEAR_DAMPING;
+        bodyDef.fixedRotation = true;
+        b2Body* body = m_world.CreateBody(&bodyDef);
+
+        b2CircleShape circle;
+        circle.m_radius = BODY_RADIUS / PhysicsObject::PPM;
+        b2FixtureDef fd;
+        fd.shape = &circle;
+        fd.density = 1.0f;
+        fd.isSensor = true; // Players walk through it, and it slides through walls.
+        body->CreateFixture(&fd);
+        body->SetLinearVelocity({ bomb.velocity.x, bomb.velocity.y });
+
+        const UserData userData { ObjectType::Trap, { 0.f, 0.f }, "", "", "bomb" };
+        PhysicsObject* physicsObject = createObject<Bomb>(body, tex, explosionTex, userData, bomb.fuseTime, this);
+        if (physicsObject == nullptr)
+        {
+            m_world.DestroyBody(body);
+            return;
+        }
+        m_userDataManager.addUserData(body, physicsObject);
     }
 
     uint32_t World::doSpawnClaudling(const PendingClaudlingSpawn& spawn)
@@ -1332,7 +1435,8 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::ClaudeEnemy>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, this);
+                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, this, m_paletteSwap,
+                    ClaudeBombConfig { generatorData.bombMinTime, generatorData.bombMaxTime, generatorData.bombSpawnIdleStateTime });
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {

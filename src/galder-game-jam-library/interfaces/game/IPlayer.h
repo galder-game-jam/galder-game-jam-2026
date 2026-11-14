@@ -54,6 +54,12 @@ namespace ggj
             [[nodiscard]] virtual PlayerState getPlayerState() const = 0;
             /*! True when the sprite is drawn flipped (facing left). */
             [[nodiscard]] virtual bool isFacingLeft() const = 0;
+
+            /*!
+             * Hurts the player as if an enemy touched them: costs a life (and a point of score)
+             * unless the post-hit damage cooldown is still running or the player is already dead.
+             */
+            virtual void takeHit() = 0;
     };
 } // namespace ggj
 

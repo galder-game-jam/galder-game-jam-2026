@@ -92,6 +92,8 @@ namespace ggj
                 m_strToTex["mage.png"] = TextureName::NpcMage;
                 m_strToTex["claude.png"]    = TextureName::EnemyClaude;
                 m_strToTex["claudling.png"] = TextureName::EnemyClaudling;
+                m_strToTex["bomb.png"] = TextureName::EnemyBomb;
+                m_strToTex["bomb-explosion.png"] = TextureName::EnemyBombExplosion;
 
                 m_texToRes[TextureName::Player] = ResourceName::GraphicsPlayer;
                 m_texToRes[TextureName::MagicCliffsTileset] = ResourceName::GraphicsMagicCliffsTileset;
@@ -169,6 +171,8 @@ namespace ggj
                 m_texToRes[TextureName::NpcMage] = ResourceName::GraphicsNpcMage;
                 m_texToRes[TextureName::EnemyClaude]    = ResourceName::GraphicsEnemyClaude;
                 m_texToRes[TextureName::EnemyClaudling] = ResourceName::GraphicsEnemyClaudling;
+                m_texToRes[TextureName::EnemyBomb] = ResourceName::GraphicsEnemyBomb;
+                m_texToRes[TextureName::EnemyBombExplosion] = ResourceName::GraphicsEnemyBombExplosion;
 
                 m_texToRes[TextureName::HudRpg] = ResourceName::HudRpg;
                 m_texToRes[TextureName::HudRpgSubset] = ResourceName::HudRpgSubset;

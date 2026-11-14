@@ -68,6 +68,8 @@ namespace ggj
         [[nodiscard]] std::vector<EnemyDamageEvent> takeEnemyDamageEvents() override;
         void publishClaudlingSpawned(const ClaudlingSpawnEvent& spawn) override;
         [[nodiscard]] std::vector<ClaudlingSpawnEvent> takeClaudlingSpawns() override;
+        void publishBombSpawned(const BombSpawnEvent& bomb) override;
+        [[nodiscard]] std::vector<BombSpawnEvent> takeBombSpawns() override;
         void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) override
         {
             m_localLives = lives;
@@ -139,6 +141,7 @@ namespace ggj
         std::set<uint32_t> m_locallyCreditedKills;            ///< Client: removed enemies the host credited to us.
         std::vector<EnemyDamageEvent> m_enemyDamageEvents;    ///< Server: client boss hits awaiting the World.
         std::vector<ClaudlingSpawnEvent> m_claudlingSpawns;   ///< Client: host Claudling spawns awaiting the World.
+        std::vector<BombSpawnEvent> m_bombSpawns;             ///< Client: host bomb throws awaiting the World.
         static constexpr size_t MAX_QUEUED_WORLD_EVENTS = 256; ///< Guards against growth while no World drains.
 
         // Shared progression

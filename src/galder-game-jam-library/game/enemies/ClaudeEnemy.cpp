@@ -1,6 +1,7 @@
 #include "ClaudeEnemy.h"
 #include "../projectiles/Projectile.h"
 #include "../../system/World.h"
+#include <algorithm>
 #include <cmath>
 #include <optional>
 #include <vector>
@@ -33,6 +34,10 @@ namespace ggj
             }
         }
 
+        m_shakeTime += timeDelta;
+        if (m_bossState == ClaudeState::Transform)
+            m_transformElapsed = std::min(m_transformElapsed + timeDelta, TRANSFORM_DURATION);
+
         // Boss AI. Only the host rolls states; clients get theirs through applyNetworkState().
         if (!m_isSittingDuck)
         {
@@ -40,15 +45,7 @@ namespace ggj
             {
                 m_stateTimer -= timeDelta;
                 if (m_stateTimer <= 0.f)
-                {
-                    ClaudeState newState;
-                    do
-                    {
-                        newState = static_cast<ClaudeState>(GetRandomValue(0, CLAUDE_STATE_COUNT - 1));
-                    } while (newState == m_bossState);
-                    setBossState(newState);
-                    m_stateTimer = m_stateInterval;
-                }
+                    finishState();
             }
 
             const std::optional<raylib::Vector2> target = (m_bossState == ClaudeState::Walk && m_world != nullptr) ? m_world->getPlayerPosition(m_targetPlayerId) : std::nullopt;
@@ -92,13 +89,123 @@ namespace ggj
         }
     }
 
+    void ClaudeEnemy::draw()
+    {
+        const raylib::Vector2 restPosition = m_position;
+        if (isShaking())
+        {
+            // Two out-of-step sines read as a nervous rattle rather than a smooth sway.
+            m_position.x += SHAKE_AMPLITUDE * std::sin(m_shakeTime * 61.f);
+            m_position.y += SHAKE_AMPLITUDE * 0.5f * std::sin(m_shakeTime * 47.f);
+        }
+
+        const float enrage = getEnrageProgress();
+        if (enrage > 0.f)
+            m_paletteSwap.begin(BuildEnragePaletteSwap(enrage));
+        PhysicsSprite::draw();
+        if (enrage > 0.f)
+            m_paletteSwap.end();
+
+        m_position = restPosition;
+    }
+
+    PaletteSwap ClaudeEnemy::BuildEnragePaletteSwap(float progress)
+    {
+        PaletteSwap swap;
+        const float t = std::clamp(progress, 0.f, 1.f);
+        if (t <= 0.f)
+            return swap;
+
+        const auto blend = [t](const ::Color& from, const ::Color& to)
+        {
+            const auto channel = [t](unsigned char a, unsigned char b)
+            { return static_cast<unsigned char>(std::lround(static_cast<float>(a) + (static_cast<float>(b) - static_cast<float>(a)) * t)); };
+            return ::Color { channel(from.r, to.r), channel(from.g, to.g), channel(from.b, to.b), 255 };
+        };
+        const auto add = [&swap, &blend](const ::Color& from, const ::Color& to)
+        {
+            swap.from[static_cast<size_t>(swap.count)] = from;
+            swap.to[static_cast<size_t>(swap.count)] = blend(from, to);
+            ++swap.count;
+        };
+
+        // The body plus the few slightly different shades on its anti-aliased edges in claude.png.
+        add(BODY_COLOR, ENRAGED_BODY_COLOR);
+        add(::Color { 190, 117, 83, 255 }, ENRAGED_BODY_COLOR);
+        add(::Color { 182, 119, 83, 255 }, ENRAGED_BODY_COLOR);
+        add(::Color { 196, 119, 100, 255 }, ENRAGED_BODY_COLOR);
+        add(EYE_COLOR, ENRAGED_EYE_COLOR);
+        return swap;
+    }
+
+    float ClaudeEnemy::getEnrageProgress() const
+    {
+        if (m_bossState == ClaudeState::Transform)
+            return m_transformElapsed / TRANSFORM_DURATION;
+        // The lives check covers a client that joined after the host already transformed.
+        return (m_hasTransformed || m_lives * 2 <= m_maxLives) ? 1.f : 0.f;
+    }
+
+    void ClaudeEnemy::finishState()
+    {
+        switch (m_bossState)
+        {
+            case ClaudeState::Transform:
+                throwBombs();
+                setBossState(ClaudeState::Idle);
+                return;
+            case ClaudeState::BombLaunch:
+                throwBombs();
+                break;
+            default:
+                break;
+        }
+        rollNextState();
+    }
+
+    void ClaudeEnemy::rollNextState()
+    {
+        std::vector<ClaudeState> candidates;
+        for (const ClaudeState state : { ClaudeState::Idle, ClaudeState::Walk, ClaudeState::Attack, ClaudeState::BombLaunch })
+        {
+            if (state == m_bossState || (state == ClaudeState::BombLaunch && !m_hasTransformed))
+                continue;
+            candidates.push_back(state);
+        }
+        setBossState(candidates[static_cast<size_t>(GetRandomValue(0, static_cast<int>(candidates.size()) - 1))]);
+    }
+
+    void ClaudeEnemy::throwBombs()
+    {
+        if (m_world != nullptr && isAuthority())
+            m_world->spawnBombs(getPosition(), BOMBS_PER_PLAYER, m_bombConfig.minFuseTime, m_bombConfig.maxFuseTime);
+    }
+
     void ClaudeEnemy::setBossState(ClaudeState newState)
     {
+        // Leaving the transform (host or client) locks in the enraged look and the faster rolls.
+        if (m_bossState == ClaudeState::Transform && newState != ClaudeState::Transform && !m_hasTransformed)
+        {
+            m_hasTransformed = true;
+            m_transformElapsed = TRANSFORM_DURATION;
+            m_stateInterval *= ENRAGED_INTERVAL_FACTOR;
+        }
+
         m_bossState = newState;
+        m_stateTimer = m_stateInterval;
         switch (newState)
         {
             case ClaudeState::Idle:
                 m_animation = m_idleAnimation;
+                break;
+            case ClaudeState::Transform:
+                m_animation = m_idleAnimation;
+                m_transformElapsed = 0.f;
+                m_stateTimer = TRANSFORM_DURATION;
+                break;
+            case ClaudeState::BombLaunch:
+                m_animation = m_attackAnimation;
+                m_stateTimer = m_bombConfig.launchWindupTime;
                 break;
             case ClaudeState::Walk:
                 m_animation = m_walkAnimation;
@@ -171,7 +278,8 @@ namespace ggj
     void ClaudeEnemy::takeDamage(ISoundManager* soundManager, PhysicsObject* attacker, bool fromLeft, int32_t damage)
     {
         // Already dead (waiting for removal): don't count the boss kill a second time.
-        if (shouldBeDestroyed())
+        // Invulnerable while transforming, on every peer.
+        if (shouldBeDestroyed() || m_bossState == ClaudeState::Transform)
             return;
 
         // The host owns the boss's health. Send the hit there; the lives it syncs back drive the
@@ -203,6 +311,8 @@ namespace ggj
         else
         {
             startInvulnerability();
+            if (!m_hasTransformed && m_lives * 2 <= m_maxLives)
+                setBossState(ClaudeState::Transform);
         }
     }
 

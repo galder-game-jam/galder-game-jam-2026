@@ -168,6 +168,28 @@ namespace ggj
          */
         void spawnClaudlings(raylib::Vector2 position, float followSpeed, float knockback);
 
+        /*!
+         * Queues bombs thrown from @p origin: @p bombsPerPlayer at every active player, each aimed
+         * roughly at them with a random spread and speed so they land scattered around the player.
+         * Spawned after the current update loop, like spawnClaudlings(). Host/offline only:
+         * clients create the host's bombs when told to.
+         *
+         * @param origin Where the bombs are thrown from (pixels)
+         * @param bombsPerPlayer Bombs aimed at each player
+         * @param minFuseTime Shortest fuse in seconds
+         * @param maxFuseTime Longest fuse in seconds
+         */
+        void spawnBombs(raylib::Vector2 origin, int32_t bombsPerPlayer, float minFuseTime, float maxFuseTime);
+
+        /*!
+         * Hurts the local player if they are within @p radius of @p center. Remote players are
+         * hurt by their own peer's copy of the same blast.
+         *
+         * @param center Blast centre (pixels)
+         * @param radius Blast radius (pixels)
+         */
+        void damageLocalPlayerWithin(const raylib::Vector2& center, float radius);
+
         void clearBoss() { m_boss = nullptr; }
 
         /*!
@@ -227,6 +249,8 @@ namespace ggj
         };
         /*! Creates the Claudling. @return Its network id, or 0 if it could not be created. */
         uint32_t doSpawnClaudling(const PendingClaudlingSpawn& spawn);
+        /*! Creates a bomb (not a networked object and not counted as an enemy). */
+        void doSpawnBomb(const BombSpawnEvent& bomb);
         void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
@@ -304,6 +328,7 @@ namespace ggj
         std::vector<FloatingTextEntry> m_floatingTexts;
 
         std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;
+        std::vector<BombSpawnEvent> m_pendingBombSpawns;
 
         PhysicsObject* m_boss        { nullptr };
         std::string    m_bossName    {};

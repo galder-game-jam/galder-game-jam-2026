@@ -161,6 +161,7 @@ namespace ggj
         m_locallyCreditedKills.clear();
         m_enemyDamageEvents.clear();
         m_claudlingSpawns.clear();
+        m_bombSpawns.clear();
         m_spawnedClaudlings.clear();
         m_projectileEvents.clear();
         m_isPortalEntered = false;
@@ -504,6 +505,10 @@ namespace ggj
                             m_locallyCreditedKills.insert(message.objectId);
                     }
                     break;
+                case NetMessageType::BombSpawned:
+                    if (m_bombSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
+                        m_bombSpawns.push_back(BombSpawnEvent { message.position, message.velocity, message.fuseTime });
+                    break;
                 case NetMessageType::ClaudlingSpawned:
                     if (m_claudlingSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
                         m_claudlingSpawns.push_back(ClaudlingSpawnEvent { message.objectId, message.targetPlayerId, message.position, message.followSpeed, message.knockback });
@@ -694,6 +699,27 @@ namespace ggj
         std::vector<ClaudlingSpawnEvent> spawns;
         spawns.swap(m_claudlingSpawns);
         return spawns;
+    }
+
+    void NetworkManager::publishBombSpawned(const BombSpawnEvent& bomb)
+    {
+        if (m_role != NetworkRole::Server || !m_server)
+            return;
+
+        // Not kept for late joiners: a bomb is gone within a few seconds.
+        ServerMessage message {};
+        message.type = NetMessageType::BombSpawned;
+        message.position = bomb.position;
+        message.velocity = bomb.velocity;
+        message.fuseTime = bomb.fuseTime;
+        m_server->broadcast(message);
+    }
+
+    std::vector<BombSpawnEvent> NetworkManager::takeBombSpawns()
+    {
+        std::vector<BombSpawnEvent> bombs;
+        bombs.swap(m_bombSpawns);
+        return bombs;
     }
 
     void NetworkManager::sendWorldStateTo(HSteamNetConnection connection)
