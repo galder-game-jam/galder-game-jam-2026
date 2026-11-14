@@ -12,6 +12,9 @@
         "showQuestLog": true,
         "showInventory": true
     },
+    "graphics": {
+        "bloodAmount": 10
+    },
     "keybindings": {
         "moveUp": 87,
         "moveDown": 83,

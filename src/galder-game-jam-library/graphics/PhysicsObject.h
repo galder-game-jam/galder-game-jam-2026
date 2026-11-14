@@ -11,6 +11,7 @@
 #include "../../gamedev-base/GameDevBase.h"
 #include "../system/UserData.hpp"
 #include "../data/EnemyNetworkState.hpp"
+#include "../interfaces/graphics/IBloodEmitter.h"
 
 namespace ggj
 {
@@ -115,7 +116,55 @@ namespace ggj
 
         [[nodiscard]] int getLives() const { return m_lives; }
 
+        /*!
+         * Sets where this object's blood goes when it is hurt. World hands this to every object it
+         * creates; objects without one (tests, fakes) simply don't bleed.
+         *
+         * @param emitter Blood system; must outlive this object, or be nullptr to stop bleeding
+         */
+        void setBloodEmitter(IBloodEmitter* emitter) { m_bloodEmitter = emitter; }
+
         protected:
+        /*!
+         * Splashes blood out of this object's centre. Call whenever it takes damage.
+         *
+         * @param direction Direction the blow travelled; see IBloodEmitter::emitBlood()
+         * @param strength  1.0 for an ordinary hit, higher for a killing blow
+         */
+        void emitBlood(const raylib::Vector2& direction, float strength = 1.f) const
+        {
+            if (m_bloodEmitter != nullptr)
+                m_bloodEmitter->emitBlood(getPosition(), direction, strength);
+        }
+
+        /*!
+         * Splashes blood away from a projectile that just hit this object.
+         *
+         * @param projectile Whatever hit this object
+         * @param strength   1.0 for an ordinary hit, higher for a killing blow
+         */
+        void emitBloodFrom(const PhysicsObject& projectile, float strength = 1.f) const
+        {
+            const raylib::Vector2 away = getPosition() - projectile.getPosition();
+            emitBlood(away, strength);
+        }
+
+        /*!
+         * Splashes blood away from whoever dealt the blow, or sideways when nobody is known (a hit
+         * a remote peer reported).
+         *
+         * @param attacker Owner of the blow, or nullptr
+         * @param fromLeft True if the blow came from the left; only used without an @p attacker
+         * @param strength 1.0 for an ordinary hit, higher for a killing blow
+         */
+        void emitBloodFromAttacker(const PhysicsObject* attacker, bool fromLeft, float strength = 1.f) const
+        {
+            if (attacker != nullptr)
+                emitBloodFrom(*attacker, strength);
+            else
+                emitBlood({ fromLeft ? -1.f : 1.f, 0.f }, strength);
+        }
+
         b2Body* m_body { nullptr };
         PhysicsShape m_shape { PhysicsShape::None };
         int m_lives { 1 };
@@ -126,6 +175,7 @@ namespace ggj
         UserData m_userData {};
         raylib::Vector2 m_velocity {};
         uint32_t m_networkId { 0 };
+        IBloodEmitter* m_bloodEmitter { nullptr };
 
         public:
         [[nodiscard]] raylib::Vector2 getVelocity() const;

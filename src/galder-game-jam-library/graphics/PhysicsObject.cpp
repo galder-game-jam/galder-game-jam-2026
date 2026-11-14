@@ -87,7 +87,9 @@ namespace ggj
         if (shouldBeDestroyed())
             return;
         m_lives -= damage;
-        if (m_lives > 0)
+        const bool isKill = m_lives <= 0;
+        emitBlood({ fromLeft ? -1.f : 1.f, 0.f }, isKill ? KILL_BLOOD_STRENGTH : 1.f);
+        if (!isKill)
             return;
         if (soundManager != nullptr)
             soundManager->playSound(SoundName::EnemyDie);

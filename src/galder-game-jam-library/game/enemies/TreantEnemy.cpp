@@ -165,7 +165,11 @@ namespace ggj
         // The host owns the boss's health and attack cycle. Mirror both so every peer shows the same HP,
         // enrage tint, telegraph colour and charge target.
         if (state.lives < m_lives && m_invulTimer <= 0.f)
+        {
             startInvulnerability();
+            // The hit happened on the host (or another peer): all that is known here is that it bled.
+            emitBlood({ 0.f, 0.f }, state.lives <= 0 ? KILL_BLOOD_STRENGTH : 1.f);
+        }
         m_lives = state.lives;
         m_targetPlayerId = state.targetPlayerId;
 
@@ -556,6 +560,7 @@ namespace ggj
             return;
 
         m_lives -= damage;
+        emitBloodFromAttacker(attacker, fromLeft, m_lives <= 0 ? KILL_BLOOD_STRENGTH : 1.f);
 
         if (m_lives <= 0)
         {
