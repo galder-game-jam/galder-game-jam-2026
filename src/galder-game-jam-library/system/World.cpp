@@ -503,9 +503,9 @@ namespace ggj
         if (texture == nullptr)
             return;
 
-        // Origin matches PhysicsSprite for a 16x16 circle body: (size.x / 2, size.y - physicsSize.y).
+        // Matches Projectile: the sprite is centred on the body position.
         constexpr float MAGE_BALL_SIZE = 16.0f;
-        const raylib::Vector2 origin { MAGE_BALL_SIZE / 2.0f, 0.0f };
+        const raylib::Vector2 origin { MAGE_BALL_SIZE / 2.0f, MAGE_BALL_SIZE / 2.0f };
         for (RemoteProjectile& projectile : m_remoteProjectiles)
         {
             if (!projectile.animation.isValid())
