@@ -346,7 +346,11 @@ namespace ggj
                 return;
             }
 
-            if (m_input.keyPressed(KeyboardKey::Escape))
+            // While a dialog is open, Escape closes the dialog (handled by Dialog) instead of opening the menu.
+            const bool isPlayerInDialog = m_worlds.count(m_currentStageIndex) > 0 && m_worlds[m_currentStageIndex]->getPlayer() != nullptr
+                && m_worlds[m_currentStageIndex]->getPlayer()->isInDialog();
+
+            if (m_input.keyPressed(KeyboardKey::Escape) && !isPlayerInDialog)
             {
                 m_inGameMenuActive = true;
                 m_inGameMenuScreen.reset();

@@ -244,18 +244,25 @@ void ggj::Dialog::drawDialogBox(raylib::Vector2 offset, int width, int height, c
     //     m_font->DrawText(TextFormat("Collect your reward! Come, come my good friend!"), raylib::Vector2{offset.x + TILE_UNIT, offset.y + 87}, FONT_SIZE, 0, BLACK);
     // }
 
-    m_dialogTexture->Draw(m_dialogTabButtonRect, offset + raylib::Vector2(grid * (width + 1) - 6, grid * (height + 1) - 6 + TILE_UNIT));
+    // The Space sprite is 16px wider than the old Tab/Esc one; shift left so the right edge stays put.
+    m_dialogTexture->Draw(m_dialogSpaceButtonRect, offset + raylib::Vector2(grid * (width + 1) - 6 - TILE_UNIT, grid * (height + 1) - 6 + TILE_UNIT));
+}
+
+void ggj::Dialog::closeDialog()
+{
+    m_draw = false;
+    m_dialogId = {};
+    m_visibleChoices.clear();
+    m_talkTimer = 0.0f;
+    m_currentPlayer->setHasFinishedDialog();
 }
 
 void ggj::Dialog::handleInputs(float timeDelta)
 {
-    if (m_inputManager.keyPressed(KeyboardKey::Tab))
+    if (m_inputManager.keyPressed(KeyboardKey::Escape))
     {
-        m_draw = false;
-        m_dialogId = {};
-        m_visibleChoices.clear();
-        m_talkTimer = 0.0f;
-        m_currentPlayer->setHasFinishedDialog();
+        closeDialog();
+        return;
     }
     if (m_inputManager.keyPressed(KeyboardKey::S))
     {
@@ -276,8 +283,12 @@ void ggj::Dialog::handleInputs(float timeDelta)
     }
     if (m_inputManager.keyPressed(KeyboardKey::Space))
     {
+        // No choice to select: Space dismisses the dialog just like Escape.
         if (m_visibleChoices.empty())
+        {
+            closeDialog();
             return;
+        }
 
         m_dialogId = m_visibleChoices[m_currentChoice].nextDialogId;
         m_currentChoice = 0;

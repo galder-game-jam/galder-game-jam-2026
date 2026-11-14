@@ -38,6 +38,8 @@ namespace ggj
 
         private:
         void handleInputs(float timeDelta);
+        /*! Ends the current conversation and hands control back to the player. */
+        void closeDialog();
         void refreshVisibleChoices();
         void startTalking(const std::string& text);
         void DrawBox(raylib::Vector2 offset, int width, int height) const;
@@ -77,7 +79,6 @@ namespace ggj
         raylib::Rectangle m_boxBottomMiddleRect { TILE_UNIT * 2, TILE_UNIT * 12, TILE_UNIT * 2, TILE_UNIT * 2 };
         raylib::Rectangle m_boxBottomRightRect { TILE_UNIT * 4, TILE_UNIT * 12, TILE_UNIT * 2, TILE_UNIT * 2 };
 
-        raylib::Rectangle m_dialogTabButtonRect { TILE_UNIT * 0, TILE_UNIT * 15, TILE_UNIT * 2, TILE_UNIT * 1 };
         raylib::Rectangle m_dialogSpaceButtonRect { TILE_UNIT * 4, TILE_UNIT * 15, TILE_UNIT * 3, TILE_UNIT * 1 };
         raylib::Rectangle m_dialogArrowRect { TILE_UNIT * 2, TILE_UNIT * 15, TILE_UNIT * 2, TILE_UNIT * 1 };
         std::string m_dialogId {};
