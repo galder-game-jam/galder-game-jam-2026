@@ -29,6 +29,7 @@ namespace ggj
     {
         public:
         Client(ILogger& logger, IIpAddressResolver& ipAddressResolver) : m_logger { logger }, m_resolver { ipAddressResolver } {}
+        ~Client() noexcept override;
         bool initialize() override;
         void connect(uint16_t port, std::string ipAddress) override;
         void beginConnect(uint16_t port, std::string ipAddress) override;
@@ -82,11 +83,24 @@ namespace ggj
         //std::thread *m_threadUserInput = nullptr;
     };
 
-    template <class TClientData, class TServerData> static Client<TClientData, TServerData>* clientCallbackInstance;
+    /*!
+     * The client currently receiving connection status callbacks. `inline` so every translation unit
+     * shares one pointer. It is cleared by ~Client(), because GameNetworkingSockets can still deliver
+     * queued status changes for a closed connection after the client is gone.
+     */
+    template <class TClientData, class TServerData> inline Client<TClientData, TServerData>* clientCallbackInstance { nullptr };
 
-    template <class TClientData, class TServerData> static void SteamClientNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* pInfo)
+    template <class TClientData, class TServerData> void SteamClientNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* pInfo)
     {
-        clientCallbackInstance<TClientData, TServerData>->onSteamNetConnectionStatusChanged(pInfo);
+        Client<TClientData, TServerData>* const instance = clientCallbackInstance<TClientData, TServerData>;
+        if (instance != nullptr)
+            instance->onSteamNetConnectionStatusChanged(pInfo);
+    }
+
+    template <class TClientData, class TServerData> Client<TClientData, TServerData>::~Client() noexcept
+    {
+        if (clientCallbackInstance<TClientData, TServerData> == this)
+            clientCallbackInstance<TClientData, TServerData> = nullptr;
     }
 
     template <class TClientData, class TServerData> void Client<TClientData, TServerData>::beginConnect(uint16_t port, std::string ipAddress)

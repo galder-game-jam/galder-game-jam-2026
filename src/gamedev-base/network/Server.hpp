@@ -30,6 +30,7 @@ namespace ggj
     {
         public:
         Server(ILogger& logger, IIpAddressResolver& ipAddressResolver) : m_logger { logger }, m_resolver { ipAddressResolver } {}
+        ~Server() noexcept override;
         bool initialize(uint16_t port, const std::string& name) override;
         void run() override;
         void stop() override;
@@ -89,11 +90,25 @@ namespace ggj
         bool localUserInputGetNext(std::string& result);
     };
 
-    template <class TServerData, class TClientData> static Server<TServerData, TClientData>* serverCallbackInstance; //TODO: Find a cleaner solution than using a static instance
+    /*!
+     * The server currently receiving connection status callbacks. GameNetworkingSockets takes a plain
+     * function pointer with no context argument, so the callback finds its server through this
+     * pointer; that means one active server per message-type pair. Cleared by ~Server() so a late
+     * callback never reaches a destroyed instance.
+     */
+    template <class TServerData, class TClientData> inline Server<TServerData, TClientData>* serverCallbackInstance { nullptr };
 
-    template <class TServerData, class TClientData> static void SteamServerNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* pInfo)
+    template <class TServerData, class TClientData> void SteamServerNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* pInfo)
     {
-        serverCallbackInstance<TServerData, TClientData>->onSteamNetConnectionStatusChanged(pInfo);
+        Server<TServerData, TClientData>* const instance = serverCallbackInstance<TServerData, TClientData>;
+        if (instance != nullptr)
+            instance->onSteamNetConnectionStatusChanged(pInfo);
+    }
+
+    template <class TServerData, class TClientData> Server<TServerData, TClientData>::~Server() noexcept
+    {
+        if (serverCallbackInstance<TServerData, TClientData> == this)
+            serverCallbackInstance<TServerData, TClientData> = nullptr;
     }
 
     template <class TServerData, class TClientData> bool Server<TServerData, TClientData>::startListening()
