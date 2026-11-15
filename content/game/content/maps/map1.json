@@ -3263,29 +3263,6 @@
             
                 {
                  "height":16,
-                 "id":619,
-                 "name":"enemyTurnRight",
-                 "opacity":1,
-                 "properties":[
-                        {
-                         "name":"is_trigger",
-                         "type":"bool",
-                         "value":true
-                        }, 
-                        {
-                         "name":"userdata_command",
-                         "type":"string",
-                         "value":"enemy_turn_right"
-                        }],
-                 "rotation":0,
-                 "type":"PhysicsObject",
-                 "visible":true,
-                 "width":4.72727,
-                 "x":1439.63619833333,
-                 "y":1473
-                }, 
-                {
-                 "height":16,
                  "id":620,
                  "name":"enemyTurnLeft",
                  "opacity":1,
@@ -4045,7 +4022,7 @@
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
-                 "width":331.8333,
+                 "width":360.499966666667,
                  "x":1108.08335,
                  "y":1183.54183333333
                 }, 
@@ -4081,7 +4058,7 @@
                  "rotation":0,
                  "type":"PhysicsObject",
                  "visible":true,
-                 "width":93.8333,
+                 "width":117.8333,
                  "x":1344.08335,
                  "y":1471.54166666667
                 }, 
@@ -4266,7 +4243,7 @@
                  "y":1470.54181666667
                 }, 
                 {
-                 "height":252.916366666667,
+                 "height":265.583033333334,
                  "id":665,
                  "name":"",
                  "opacity":1,
@@ -4280,26 +4257,8 @@
                  "type":"PhysicsObject",
                  "visible":true,
                  "width":31.0313,
-                 "x":1886.48435,
-                 "y":1215.87515
-                }, 
-                {
-                 "height":62.2497000000001,
-                 "id":666,
-                 "name":"",
-                 "opacity":1,
-                 "properties":[
-                        {
-                         "name":"allow_projectile_passthrough",
-                         "type":"bool",
-                         "value":true
-                        }],
-                 "rotation":0,
-                 "type":"PhysicsObject",
-                 "visible":true,
-                 "width":62.3646333333334,
-                 "x":1441.15101666667,
-                 "y":1216.54181666667
+                 "x":1862.48435,
+                 "y":1213.87515
                 }, 
                 {
                  "height":129.583033333333,
@@ -4859,8 +4818,7 @@
                  "width":16,
                  "x":806.833333333333,
                  "y":255.5
-                },
-            
+                }, 
                 {
                  "ellipse":true,
                  "height":16,
@@ -4980,7 +4938,8 @@
                  "width":16,
                  "x":934.833333333333,
                  "y":255.5
-                }, 
+                },
+            
                 {
                  "ellipse":true,
                  "height":16,
@@ -6944,8 +6903,7 @@
                  "width":62.167,
                  "x":1021.9165,
                  "y":306.875
-                },
-            
+                }, 
                 {
                  "height":34.25,
                  "id":756,
@@ -6981,7 +6939,8 @@
                  "width":139.167,
                  "x":423.4165,
                  "y":239.875
-                }, 
+                },
+            
                 {
                  "height":96.25,
                  "id":758,
@@ -7387,6 +7346,25 @@
                  "width":16,
                  "x":1376,
                  "y":1696
+                }, 
+                {
+                 "ellipse":true,
+                 "height":211.333433333334,
+                 "id":771,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"allow_projectile_passthrough",
+                         "type":"bool",
+                         "value":true
+                        }],
+                 "rotation":0,
+                 "type":"PhysicsObject",
+                 "visible":true,
+                 "width":211.333433333334,
+                 "x":1351.33333333333,
+                 "y":1113.33333333333
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -7466,7 +7444,7 @@
          "y":0
         }],
  "nextlayerid":15,
- "nextobjectid":771,
+ "nextobjectid":772,
  "orientation":"orthogonal",
  "properties":[
         {
