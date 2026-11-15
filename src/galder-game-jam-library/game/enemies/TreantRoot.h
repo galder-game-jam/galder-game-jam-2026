@@ -17,7 +17,7 @@ namespace ggj
     {
         public:
         static constexpr float ROOT_RADIUS = 28.f; ///< Pixels; how big the root looks lying on the ground.
-        static constexpr float HIT_RADIUS = 20.f;  ///< Pixels; half the width of the area a player must stand in to be spiked. A bit smaller than the root looks, to be forgiving.
+        static constexpr float HIT_RADIUS = 26.f;  ///< Pixels; half the width of the area a player's feet must be in to be spiked; just inside the root's drawn size (ROOT_RADIUS).
         static constexpr float GROUND_SQUASH = 0.6f; ///< Height of the ground area relative to its width; the same flattening the warning ring is drawn with.
         static constexpr float ARC_HEIGHT = 70.f;    ///< Pixels the thrown root rises above the ground at the top of its arc.
         static constexpr float LANDING_SQUASH_DURATION = 0.2f;
@@ -47,13 +47,16 @@ namespace ggj
         [[nodiscard]] static float ArcFraction(float progress);
 
         /*!
-         * Whether a player standing at @p feet is spiked by a root lying at @p root. The area is the
-         * flat ellipse of the warning ring, so what the player sees is what hurts them.
+         * Whether a player is spiked by a root lying at @p root. The root's area is the flat ellipse of
+         * the warning ring, so what the player sees is what hurts them; the player counts with the
+         * lower half of their body (centre down to the feet), so touching the ring with their feet
+         * is enough.
          *
          * @param root Where the root lies on the ground (pixels)
-         * @param feet Where the player stands (pixels), not the centre of their sprite
+         * @param footMin Top-left of the player's lower body: left edge, and the body's vertical centre (pixels)
+         * @param footMax Bottom-right of the player's lower body: right edge, and where the feet are drawn (pixels)
          */
-        [[nodiscard]] static bool IsInsideSpikeArea(const raylib::Vector2& root, const raylib::Vector2& feet);
+        [[nodiscard]] static bool IsInsideSpikeArea(const raylib::Vector2& root, const raylib::Vector2& footMin, const raylib::Vector2& footMax);
 
         /*!
          * How far the spikes have grown.

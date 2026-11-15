@@ -1103,6 +1103,7 @@ namespace ggj
                 const bool isCircle = body->GetFixtureList()->GetShape()->GetType() == b2Shape::e_circle;
                 m_playerSpriteOrigin = raylib::Vector2 { spriteSize.x / 2.f, isCircle ? spriteSize.y - physicsSize.y : spriteSize.y - physicsSize.y / 2.f };
                 m_playerSpriteHeight = spriteSize.y;
+                m_playerBodyHalfWidth = isCircle ? physicsSize.x : physicsSize.x / 2.f; // A circle's size is already the radius (see above).
                 m_rogueTexture = tex;
                 m_wizardTexture = m_textures.get(TextureName::WizardPlayer);
 
@@ -1647,8 +1648,13 @@ namespace ggj
         if (m_player == nullptr)
             return false;
 
-        // getPosition() is the player's body, i.e. where they stand; getVisualCenter() is half a sprite higher up.
-        if (!TreantRoot::IsInsideSpikeArea(root, m_player->getPosition()))
+        // The lower half of the player's body: from the middle of the body (getPosition()) down to the
+        // bottom of the sprite, which is about 15 px lower and where the feet are drawn.
+        const raylib::Vector2 body = m_player->getPosition();
+        const raylib::Vector2 visualCenter = m_player->getVisualCenter();
+        const raylib::Vector2 footMin { body.x - m_playerBodyHalfWidth, body.y };
+        const raylib::Vector2 footMax { body.x + m_playerBodyHalfWidth, visualCenter.y + m_playerSpriteHeight / 2.f };
+        if (!TreantRoot::IsInsideSpikeArea(root, footMin, footMax))
             return false;
 
         m_player->takeHit();

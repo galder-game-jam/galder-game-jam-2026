@@ -34,10 +34,13 @@ namespace ggj
         return 4.f * t * (1.f - t);
     }
 
-    bool TreantRoot::IsInsideSpikeArea(const raylib::Vector2& root, const raylib::Vector2& feet)
+    bool TreantRoot::IsInsideSpikeArea(const raylib::Vector2& root, const raylib::Vector2& footMin, const raylib::Vector2& footMax)
     {
-        const float dx = (feet.x - root.x) / HIT_RADIUS;
-        const float dy = (feet.y - root.y) / (HIT_RADIUS * GROUND_SQUASH);
+        // The point of the player's lower body closest to the root decides: if it is inside the ellipse, they overlap.
+        const float closestX = std::clamp(root.x, footMin.x, footMax.x);
+        const float closestY = std::clamp(root.y, footMin.y, footMax.y);
+        const float dx = (closestX - root.x) / HIT_RADIUS;
+        const float dy = (closestY - root.y) / (HIT_RADIUS * GROUND_SQUASH);
         return dx * dx + dy * dy <= 1.f;
     }
 

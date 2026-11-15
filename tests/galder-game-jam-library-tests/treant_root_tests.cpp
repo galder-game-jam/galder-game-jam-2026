@@ -28,19 +28,29 @@ TEST_CASE("TreantRoot - spikes shoot up, hold and then sink away", "[treant]")
     REQUIRE(TreantRoot::SpikeFraction(TreantRoot::SPIKE_DURATION + 1.f) == Approx(0.f));
 }
 
+namespace
+{
+    /*! A player 24 px wide whose body centre is at @p x, @p y and whose feet are 16 px lower, like the Rogue. */
+    bool isSpiked(const raylib::Vector2& root, float x, float y)
+    {
+        return TreantRoot::IsInsideSpikeArea(root, { x - 12.f, y }, { x + 12.f, y + 16.f });
+    }
+} // namespace
+
 TEST_CASE("TreantRoot - spikes hurt a player whose feet are on the root", "[treant]")
 {
     const raylib::Vector2 root { 100.f, 100.f };
-    REQUIRE(TreantRoot::IsInsideSpikeArea(root, root));
-    REQUIRE(TreantRoot::IsInsideSpikeArea(root, { 100.f + TreantRoot::HIT_RADIUS - 1.f, 100.f }));
-    REQUIRE(TreantRoot::IsInsideSpikeArea(root, { 100.f, 100.f - TreantRoot::HIT_RADIUS * TreantRoot::GROUND_SQUASH + 1.f }));
+    REQUIRE(isSpiked(root, 100.f, 90.f)); // Body centre above the root, feet on it.
+    REQUIRE(isSpiked(root, 100.f, 100.f));
+    REQUIRE(isSpiked(root, 100.f + TreantRoot::HIT_RADIUS + 10.f, 100.f)); // The body's edge reaches into the root from the side.
 }
 
-TEST_CASE("TreantRoot - spikes miss a player standing beside the root", "[treant]")
+TEST_CASE("TreantRoot - spikes miss a player standing clear of the root", "[treant]")
 {
     const raylib::Vector2 root { 100.f, 100.f };
-    REQUIRE_FALSE(TreantRoot::IsInsideSpikeArea(root, { 100.f + TreantRoot::HIT_RADIUS + 1.f, 100.f }));
-    // The ground area is flat: the same distance above or below the root is already outside.
-    REQUIRE_FALSE(TreantRoot::IsInsideSpikeArea(root, { 100.f, 100.f + TreantRoot::HIT_RADIUS }));
-    REQUIRE_FALSE(TreantRoot::IsInsideSpikeArea(root, { 100.f, 100.f - TreantRoot::HIT_RADIUS }));
+    REQUIRE_FALSE(isSpiked(root, 100.f + TreantRoot::HIT_RADIUS + 13.f, 100.f));
+    // Feet well above the root: the lower body ends before the ring starts.
+    REQUIRE_FALSE(isSpiked(root, 100.f, 100.f - 16.f - TreantRoot::HIT_RADIUS * TreantRoot::GROUND_SQUASH - 1.f));
+    // Body centre below the ring: the lower body starts after it ends.
+    REQUIRE_FALSE(isSpiked(root, 100.f, 100.f + TreantRoot::HIT_RADIUS * TreantRoot::GROUND_SQUASH + 1.f));
 }
