@@ -12,13 +12,16 @@ namespace ggj
     class Thing : public PhysicsSprite
     {
         public:
+            /*! Impulse pushing a player away on contact when the map gives no `knockback`. */
+            static constexpr float DEFAULT_KNOCKBACK = 50.f;
+
             Thing() = default;
             Thing(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &animationManager, IMapper &mapper, ggj::ISoundManager &soundManager, b2Body *body,
                 const raylib::Vector2 &physicsSize,
                 const raylib::Vector2 &spriteSize,
-                const raylib::Rectangle &drawingRect, raylib::Texture * texture, const UserData &userData, const raylib::Vector2 &velocity, int lives = 1, bool isVisible = true)
+                const raylib::Rectangle &drawingRect, raylib::Texture * texture, const UserData &userData, const raylib::Vector2 &velocity, float knockback, int lives = 1, bool isVisible = true)
                     : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager {animationManager}, m_mapper{mapper},
-                      m_soundManager {soundManager}, m_velocity{velocity}
+                      m_soundManager {soundManager}, m_velocity{velocity}, m_knockback{knockback}
             {
                 m_lives = lives;
                 // The map only gives a 16x16 box at the feet; cover the visible grass-dude instead.
@@ -46,6 +49,7 @@ namespace ggj
             ggj::ISoundManager &m_soundManager;
             Animation m_animation;
             raylib::Vector2 m_velocity {0.f, 0.f};
+            float m_knockback {DEFAULT_KNOCKBACK};
     };
 } // ggj
 #endif //GAME_DEV_TEMPLATE_THING_H

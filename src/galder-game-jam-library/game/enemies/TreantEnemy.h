@@ -44,6 +44,9 @@ namespace ggj
     class TreantEnemy : public PhysicsSprite
     {
         public:
+            /*! Impulse pushing a player away on contact when the map gives no `knockback`. */
+            static constexpr float DEFAULT_KNOCKBACK = 0.f;
+
         TreantEnemy() = default;
         /*!
          * @param chargeSpeed Speed of a charge, in the same units as @p followSpeed (the map's charge_speed);

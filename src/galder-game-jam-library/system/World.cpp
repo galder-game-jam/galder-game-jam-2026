@@ -155,6 +155,8 @@ namespace ggj
                                 generatorData.velocity.y = value.getValue<float>();
                             else if (key == "is_kinematic")
                                 generatorData.isKinematic = value.getValue<bool>();
+                            else if (key == "allow_projectile_passthrough")
+                                generatorData.isProjectilePassthroughAllowed = value.getValue<bool>();
                             else if (key == "userdata_force_x")
                                 userDataForceX = value.getValue<float>();
                             else if (key == "userdata_force_y")
@@ -301,6 +303,8 @@ namespace ggj
                         // Solid static objects are the walls bombs bounce off.
                         if (bodyType == b2_staticBody && !generatorData.isTrigger)
                             CollisionCategory::MarkAsTerrain(*body);
+                        if (generatorData.isProjectilePassthroughAllowed)
+                            CollisionCategory::AllowProjectilePassthrough(*body);
 
                         UserData userData { objectType, { userDataForceX, userDataForceY }, userdataCommand, userdataDialogId, name };
                         generatorData.userData = userData;
@@ -1155,7 +1159,8 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Bat>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity, generatorData.isFacingLeft, generatorData.lives);
+                    generatorData.userData, generatorData.velocity, generatorData.isFacingLeft,
+                    generatorData.knockback.value_or(Bat::DEFAULT_KNOCKBACK), generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -1230,7 +1235,8 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Snake>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity, generatorData.lives);
+                    generatorData.userData, generatorData.velocity,
+                    generatorData.knockback.value_or(Snake::DEFAULT_KNOCKBACK), generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -1292,7 +1298,8 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Spider>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity, generatorData.lives);
+                    generatorData.userData, generatorData.velocity,
+                    generatorData.knockback.value_or(Spider::DEFAULT_KNOCKBACK), generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -1322,7 +1329,8 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Thing>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity, generatorData.lives);
+                    generatorData.userData, generatorData.velocity,
+                    generatorData.knockback.value_or(Thing::DEFAULT_KNOCKBACK), generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -1352,7 +1360,8 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Ghost>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.followRange, generatorData.followSpeed, this, generatorData.lives);
+                    generatorData.userData, generatorData.followRange, generatorData.followSpeed, this,
+                    generatorData.knockback.value_or(Ghost::DEFAULT_KNOCKBACK), generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -2223,7 +2232,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::ClaudeEnemy>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, generatorData.idleTime, this, m_paletteSwap,
+                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback.value_or(ClaudeEnemy::DEFAULT_KNOCKBACK), generatorData.idleTime, this, m_paletteSwap,
                     ClaudeBombConfig { generatorData.bombMinTime, generatorData.bombMaxTime, generatorData.bombSpawnIdleStateTime, generatorData.bombSpawnCount });
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
@@ -2256,7 +2265,7 @@ namespace ggj
                     m_animationManager, m_mapper, m_soundManager, body,
                     raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y),
                     spriteSize, r, tex, generatorData.userData, generatorData.lives,
-                    generatorData.followSpeed, generatorData.knockback, m_player, this, m_tintShader,
+                    generatorData.followSpeed, generatorData.knockback.value_or(TreantEnemy::DEFAULT_KNOCKBACK), m_player, this, m_tintShader,
                     TreantRootConfig { generatorData.rootCount, generatorData.enragedRootCount, generatorData.deathRootCount,
                                        SpikeDelayRange { generatorData.rootMinSpikeDelay, generatorData.rootMaxSpikeDelay } },
                     generatorData.chargeSpeed);
@@ -2289,7 +2298,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::ButcherEnemy>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, this, m_tintShader,
+                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback.value_or(ButcherEnemy::DEFAULT_KNOCKBACK), this, m_tintShader,
                     ButcherConfig { generatorData.cleaverCount, generatorData.enragedCleaverCount, generatorData.deathCleaverCount, generatorData.cleaverSpeed,
                                     generatorData.spiderFlightTime });
                 m_userDataManager.addUserData(body, physicsObject);
@@ -2382,7 +2391,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Claudling>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.followSpeed, generatorData.knockback, this, std::nullopt);
+                    generatorData.userData, generatorData.followSpeed, generatorData.knockback.value_or(Claudling::DEFAULT_KNOCKBACK), this, std::nullopt);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }

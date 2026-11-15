@@ -34,6 +34,11 @@
             "id": 1,
             "members": [
                 {
+                    "name": "allow_projectile_passthrough",
+                    "type": "bool",
+                    "value": false
+                },
+                {
                     "name": "is_kinematic",
                     "type": "bool",
                     "value": false
