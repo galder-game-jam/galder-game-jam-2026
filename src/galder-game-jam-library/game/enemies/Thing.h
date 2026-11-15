@@ -35,6 +35,12 @@ namespace ggj
 
         private:
             void turn();
+            /*!
+             * Sends the enemy along @p direction at its current speed (enemy_turn_up/down/left/right).
+             *
+             * @param direction Unit direction from EnemyTurn::DirectionFromCommand()
+             */
+            void turnTowards(const raylib::Vector2& direction);
             ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &m_animationManager;
             IMapper &m_mapper;
             ggj::ISoundManager &m_soundManager;

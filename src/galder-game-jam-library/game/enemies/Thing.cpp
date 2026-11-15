@@ -1,4 +1,5 @@
 #include "Thing.h"
+#include "EnemyTurn.hpp"
 #include "../projectiles/Projectile.h"
 
 namespace ggj
@@ -23,9 +24,15 @@ namespace ggj
     {
         UserData* userDataB = b->getUserData();
 
-        if(userDataB->getCommand() == "enemy_turn")
+        const std::optional<raylib::Vector2> turnDirection = EnemyTurn::DirectionFromCommand(userDataB->getCommand());
+
+        if(userDataB->getCommand() == EnemyTurn::REVERSE)
         {
             turn();
+        }
+        else if(turnDirection.has_value())
+        {
+            turnTowards(*turnDirection);
         }
         else if(userDataB->getObjectType() == ObjectType::Player)
         {
@@ -69,5 +76,13 @@ namespace ggj
     {
         m_flip = !m_flip;
         m_velocity = -m_velocity;
+    }
+
+    void Thing::turnTowards(const raylib::Vector2& direction)
+    {
+        m_velocity = EnemyTurn::Redirect(m_velocity, direction);
+        // Only a horizontal turn changes which way the sprite faces; up/down keep the last facing.
+        if(m_velocity.x != 0.f)
+            m_flip = m_velocity.x > 0.f;
     }
 } // ggj

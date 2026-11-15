@@ -1,4 +1,5 @@
 #include "Bat.h"
+#include "EnemyTurn.hpp"
 #include "../projectiles/Projectile.h"
 
 namespace ggj
@@ -12,9 +13,15 @@ namespace ggj
     {
         UserData* userDataB = b->getUserData();
 
-        if(userDataB->getCommand() == "enemy_turn")
+        const std::optional<raylib::Vector2> turnDirection = EnemyTurn::DirectionFromCommand(userDataB->getCommand());
+
+        if(userDataB->getCommand() == EnemyTurn::REVERSE)
         {
             turn();
+        }
+        else if(turnDirection.has_value())
+        {
+            turnTowards(*turnDirection);
         }
         else if(userDataB->getObjectType() == ObjectType::Player)
         {
@@ -79,7 +86,11 @@ namespace ggj
 
     void Bat::turn()
     {
-        m_flip = !m_flip;
         m_velocity = -m_velocity;
+    }
+
+    void Bat::turnTowards(const raylib::Vector2& direction)
+    {
+        m_velocity = EnemyTurn::Redirect(m_velocity, direction);
     }
 } // ggj
