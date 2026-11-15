@@ -169,6 +169,7 @@ namespace ggj
         m_spiderSpawns.clear();
         m_spawnedClaudlings.clear();
         m_projectileEvents.clear();
+        m_soundEvents.clear();
         m_isPortalEntered = false;
         m_hasPendingRemotePortalEntry = false;
     }
@@ -331,6 +332,22 @@ namespace ggj
                     relay.objectId = message.objectId;
                     relay.position = message.position;
                     relay.velocity = message.velocity;
+                    m_server->broadcast(relay);
+                    break;
+                }
+                case NetMessageType::SoundPlayed:
+                {
+                    auto it = m_connectionToPlayerId.find(connection);
+                    if (it == m_connectionToPlayerId.end() || message.stageIndex != m_currentStage || message.objectId > std::numeric_limits<uint16_t>::max() ||
+                        !isNetworkedSound(static_cast<SoundName>(message.objectId)))
+                        break;
+
+                    queueSoundEvent(it->second, message.objectId);
+
+                    ServerMessage relay {};
+                    relay.type = NetMessageType::SoundPlayed;
+                    relay.playerId = it->second;
+                    relay.objectId = message.objectId;
                     m_server->broadcast(relay);
                     break;
                 }
@@ -571,6 +588,11 @@ namespace ggj
                     // The server relays to everyone, including the shooter; skip our own.
                     if (message.playerId != m_localPlayerId)
                         queueProjectileEvent(message.type, message.playerId, message.objectId, message.position, message.velocity);
+                    break;
+                case NetMessageType::SoundPlayed:
+                    // The server relays to everyone, including the sender; ours already played locally.
+                    if (message.playerId != m_localPlayerId)
+                        queueSoundEvent(message.playerId, message.objectId);
                     break;
                 default:
                     break;
@@ -948,6 +970,50 @@ namespace ggj
         std::vector<ProjectileEvent> events;
         events.swap(m_projectileEvents);
         return events;
+    }
+
+    void NetworkManager::notifyLocalSound(SoundName sound)
+    {
+        if (!isNetworkedSound(sound))
+            return;
+
+        if (m_role == NetworkRole::Server && m_server)
+        {
+            ServerMessage message {};
+            message.type = NetMessageType::SoundPlayed;
+            message.playerId = HOST_PLAYER_ID;
+            message.objectId = static_cast<uint32_t>(sound);
+            m_server->broadcast(message);
+        }
+        else if (m_role == NetworkRole::Client && m_client && m_client->status() == ConnectionStatus::Connected)
+        {
+            ClientMessage message {};
+            message.type = NetMessageType::SoundPlayed;
+            message.playerId = m_localPlayerId;
+            message.objectId = static_cast<uint32_t>(sound);
+            message.stageIndex = m_currentStage;
+            m_client->sendToServer(message);
+        }
+    }
+
+    std::vector<SoundEvent> NetworkManager::takeSoundEvents()
+    {
+        std::vector<SoundEvent> events;
+        events.swap(m_soundEvents);
+        return events;
+    }
+
+    void NetworkManager::queueSoundEvent(uint32_t ownerId, uint32_t soundId)
+    {
+        if (m_soundEvents.size() >= MAX_QUEUED_SOUND_EVENTS)
+            return;
+
+        // Untrusted input: only play sounds that are meant to be networked.
+        const SoundName sound = static_cast<SoundName>(soundId);
+        if (soundId > std::numeric_limits<uint16_t>::max() || !isNetworkedSound(sound))
+            return;
+
+        m_soundEvents.push_back(SoundEvent { ownerId, sound });
     }
 
     void NetworkManager::sendChatMessage(const std::string& text)

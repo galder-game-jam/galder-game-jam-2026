@@ -302,6 +302,7 @@ namespace ggj
         m_dialog.update(timeDelta);
         updateRemotePlayerSprites(timeDelta);
         updateRemoteProjectiles(timeDelta);
+        playRemoteSounds();
 
         if (m_player != nullptr)
         {
@@ -464,6 +465,22 @@ namespace ggj
             }
             sprite.lives = remote.lives;
         }
+    }
+
+    void World::playPlayerSound(SoundName sound)
+    {
+        m_soundManager.playSound(sound);
+        if (m_network != nullptr && m_network->isActive())
+            m_network->notifyLocalSound(sound);
+    }
+
+    void World::playRemoteSounds()
+    {
+        if (m_network == nullptr || !m_network->isActive())
+            return;
+
+        for (const SoundEvent& event : m_network->takeSoundEvents())
+            m_soundManager.playSound(event.sound);
     }
 
     void World::registerLocalProjectile(Projectile* projectile)
@@ -1472,7 +1489,7 @@ namespace ggj
         stats.xpTracker.addXp(scaled > 0 ? scaled : amount, stats.xpConfig);
         const int newLevel  = stats.xpTracker.getLevel();
         if (newLevel > prevLevel)
-            m_soundManager.playSound(SoundName::LevelUp);
+            playPlayerSound(SoundName::LevelUp);
         // Grant 1 talent point for each even level crossed (levels 2, 4, 6 …)
         stats.talentPoints += (newLevel / 2) - (prevLevel / 2);
     }

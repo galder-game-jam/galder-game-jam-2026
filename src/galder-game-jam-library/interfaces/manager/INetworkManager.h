@@ -13,6 +13,7 @@
 #include "../../data/ConnectedPlayer.hpp"
 #include "../../data/EnemyNetworkState.hpp"
 #include "../../data/ProjectileEvent.hpp"
+#include "../../data/SoundEvent.hpp"
 #include "../../data/ClaudlingSpawnEvent.hpp"
 #include "../../data/EnemyDamageEvent.hpp"
 #include "../../data/BombSpawnEvent.hpp"
@@ -251,6 +252,19 @@ namespace ggj
          * @return Fired/impact events in arrival order
          */
         [[nodiscard]] virtual std::vector<ProjectileEvent> takeProjectileEvents() = 0;
+        /*!
+         * Tells the other peers that the local player triggered a sound they should hear too.
+         * Sounds that are not isNetworkedSound() are ignored.
+         *
+         * @param sound The sound the local player just played
+         */
+        virtual void notifyLocalSound(SoundName sound) = 0;
+        /*!
+         * Drains sounds triggered by remote peers received since the last call.
+         *
+         * @return Sound events in arrival order
+         */
+        [[nodiscard]] virtual std::vector<SoundEvent> takeSoundEvents() = 0;
         /*! Object ids the server has declared gone (collected coins / dead enemies). */
         [[nodiscard]] virtual const std::set<uint32_t>& removedObjectIds() const = 0;
 
