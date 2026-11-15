@@ -1642,6 +1642,19 @@ namespace ggj
         return true;
     }
 
+    bool World::damageLocalPlayerOnRoot(const raylib::Vector2& root)
+    {
+        if (m_player == nullptr)
+            return false;
+
+        // getPosition() is the player's body, i.e. where they stand; getVisualCenter() is half a sprite higher up.
+        if (!TreantRoot::IsInsideSpikeArea(root, m_player->getPosition()))
+            return false;
+
+        m_player->takeHit();
+        return true;
+    }
+
     bool World::stunLocalPlayerWithin(const raylib::Vector2& center, float radius, float seconds)
     {
         if (m_player == nullptr)

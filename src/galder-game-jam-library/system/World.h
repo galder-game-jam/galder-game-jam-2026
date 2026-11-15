@@ -287,6 +287,16 @@ namespace ggj
         bool damageLocalPlayerWithin(const raylib::Vector2& center, float radius);
 
         /*!
+         * Hurts the local player if their feet are on a spiking treant root (see
+         * TreantRoot::IsInsideSpikeArea()). Unlike damageLocalPlayerWithin() this ignores how tall
+         * the player sprite is, so standing on the root hurts and standing just beside it does not.
+         *
+         * @param root Where the root lies on the ground (pixels)
+         * @return True if the local player was on the root, whether or not the hit cost them a life
+         */
+        bool damageLocalPlayerOnRoot(const raylib::Vector2& root);
+
+        /*!
          * Stuns the local player if they are within @p radius of @p center. Remote players are
          * stunned by their own peer's copy of the same thing.
          *
