@@ -26,6 +26,8 @@ namespace ggj
 
         int   lives       { 1 };
         float followSpeed { 0.f };
+        float followRange { 0.f }; ///< Ghost: pixels within which it starts following a player.
+        bool isFacingLeft { false }; ///< Bat: faces left (true) or right (false) whichever way it flies.
         float knockback   { 0.f };
         float idleTime    { 2.5f }; ///< King Claude: base seconds spent in each state before rolling the next.
 

@@ -88,7 +88,7 @@ void ggj::Dialog::update(float timeDelta)
     if (m_currentPlayer == nullptr)
         return;
 
-    if (m_currentWorld->getNumberOfEnemiesLeft() == 0)
+    if (m_currentWorld->getQuestProgress().isComplete())
         m_dialogManager.setCondition("levelComplete");
 
     if (m_currentPlayer->getEnemiesKilled() >= 5)

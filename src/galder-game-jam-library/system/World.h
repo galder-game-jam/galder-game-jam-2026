@@ -36,6 +36,7 @@ namespace ggj
 #include "../interfaces/graphics/ITintShader.h"
 #include "../data/CharacterColors.hpp"
 #include "../data/DialogSpot.hpp"
+#include "../data/QuestProgress.hpp"
 #include <optional>
 #include <set>
 #include <vector>
@@ -166,6 +167,10 @@ namespace ggj
 #endif
         void reduceEnemyKillCountByOne();
         [[nodiscard]] int getNumberOfEnemiesLeft() const;
+        /*! Coins on the map that nobody has picked up yet, counting pickups by netplay peers. */
+        [[nodiscard]] int getNumberOfCoinsLeft() const;
+        /*! The stage's quest goals and progress; its isComplete() decides when the portal opens. */
+        [[nodiscard]] QuestProgress getQuestProgress() const;
 
         // Player stat accessors (playerIndex assigned by World on player creation)
         [[nodiscard]] int getPlayerLives(int32_t playerIndex) const { return m_playerStats.at(playerIndex).lives; }
@@ -425,6 +430,9 @@ namespace ggj
 
         int m_numberOfEnemies { 0 };
         int m_networkRemovedEnemyCount { 0 }; ///< Enemies killed by remote peers (coop quest log).
+        int m_numberOfCoins { 0 };
+        bool m_isAllEnemiesRequired { true }; ///< Map property require_all_monsters_killed.
+        bool m_isAllCoinsRequired { false };  ///< Map property require_all_coins_collected.
         Minimap m_minimap {};
 
         int32_t m_nextPlayerIndex { 0 };
