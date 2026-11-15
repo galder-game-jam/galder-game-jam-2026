@@ -52,6 +52,9 @@ namespace ggj
     class MageBossEnemy : public PhysicsSprite
     {
         public:
+        /*! Impulse pushing a player away on contact when the map gives no `knockback`. */
+        static constexpr float DEFAULT_KNOCKBACK = 0.f;
+
         MageBossEnemy() = default;
         MageBossEnemy(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper, ggj::ISoundManager& soundManager, b2Body* body,
                       const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture,
@@ -181,7 +184,7 @@ namespace ggj
         Animation m_animation;
 
         float m_followSpeed { 0.f };
-        float m_knockback { 0.f };
+        float m_knockback { DEFAULT_KNOCKBACK };
         int32_t m_maxLives { 0 };
 
         World* m_world { nullptr };

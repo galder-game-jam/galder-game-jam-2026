@@ -2330,7 +2330,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::MageBossEnemy>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, this, m_tintShader,
+                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback.value_or(MageBossEnemy::DEFAULT_KNOCKBACK), this, m_tintShader,
                     generatorData.mageBoss.sanitized());
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
