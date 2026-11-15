@@ -240,6 +240,14 @@ namespace ggj
         void registerLocalProjectile(Projectile* projectile);
 
         /*!
+         * Plays a sound the local player caused and, in netplay, has the other peers play it too.
+         * Use this instead of ISoundManager::playSound() for player actions (attack, hurt, ...).
+         *
+         * @param sound The sound to play
+         */
+        void playPlayerSound(SoundName sound);
+
+        /*!
          * Queues one Claudling per active player, each chasing its own player, to be spawned
          * around @p position after the current update loop finishes. Must be queued (not spawned
          * immediately) because calling createGameObject during layer iteration would invalidate
@@ -436,6 +444,8 @@ namespace ggj
         void syncLocalProjectiles();
         /*! Spawns/explodes/advances the visual-only projectiles fired by remote peers. */
         void updateRemoteProjectiles(float timeDelta);
+        /*! Plays the sound effects the remote peers triggered since the last frame. */
+        void playRemoteSounds();
         void drawRemoteProjectiles();
 
         /*!

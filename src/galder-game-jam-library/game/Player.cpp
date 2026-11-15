@@ -44,7 +44,7 @@ namespace ggj
         if (!m_isDead && m_world->tickPlayerLifeRegen(m_playerIndex, timeDelta))
         {
             m_world->spawnFloatingText(getPosition());
-            m_soundManager.playSound(SoundName::ExtraLife);
+            m_world->playPlayerSound(SoundName::ExtraLife);
         }
 
         if (m_isDead)
@@ -72,7 +72,7 @@ namespace ggj
                 {
                     m_world->addPlayerLives(m_playerIndex, 1);
                     m_world->spawnFloatingText(getPosition());
-                    m_soundManager.playSound(SoundName::ExtraLife);
+                    m_world->playPlayerSound(SoundName::ExtraLife);
                 }
             }
             m_previousKillCount = currentKills;
@@ -109,7 +109,7 @@ namespace ggj
                 m_energy = getMaxEnergy();
                 m_hitbox.setIsActive(true);
                 m_body->SetEnabled(true);
-                m_soundManager.playSound(SoundName::PlayerRespawn);
+                m_world->playPlayerSound(SoundName::PlayerRespawn);
             }
             else
                 return;
@@ -195,7 +195,7 @@ namespace ggj
             setPlayerState(PlayerState::AttackGrounded);
             m_isAttacking = true;
             m_attackCounter = 0;
-            m_soundManager.playSound(SoundName::PlayerAttack);
+            m_world->playPlayerSound(SoundName::PlayerAttack);
         }
         else if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking)
         {
@@ -208,7 +208,7 @@ namespace ggj
         {
             m_world->addPlayerLives(m_playerIndex, 1);
             m_world->spawnFloatingText(getPosition());
-            m_soundManager.playSound(SoundName::ExtraLife);
+            m_world->playPlayerSound(SoundName::ExtraLife);
         }
 #endif
 
@@ -274,7 +274,7 @@ namespace ggj
         if (m_world->getPlayerScore(m_playerIndex) != 0)
             m_world->addPlayerScore(m_playerIndex, -1);
 
-        m_soundManager.playSound(SoundName::PlayerHurt);
+        m_world->playPlayerSound(SoundName::PlayerHurt);
         m_world->decrementPlayerLives(m_playerIndex);
 
         const bool isKill = m_world->getPlayerLives(m_playerIndex) <= 0;
@@ -282,7 +282,7 @@ namespace ggj
 
         if (isKill)
         {
-            m_soundManager.playSound(SoundName::PlayerDeath);
+            m_world->playPlayerSound(SoundName::PlayerDeath);
             m_isDead = true;
         }
     }
@@ -297,7 +297,7 @@ namespace ggj
         m_isAttacking = false;
         m_attackCounter = 0;
         m_hitbox.setIsActive(false);
-        m_soundManager.playSound(SoundName::PlayerHurt);
+        m_world->playPlayerSound(SoundName::PlayerHurt);
     }
 
     void Player::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact)
