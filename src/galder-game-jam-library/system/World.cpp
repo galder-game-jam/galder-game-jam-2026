@@ -151,6 +151,8 @@ namespace ggj
                                 generatorData.velocity.y = value.getValue<float>();
                             else if (key == "is_kinematic")
                                 generatorData.isKinematic = value.getValue<bool>();
+                            else if (key == "allow_projectile_passthrough")
+                                generatorData.isProjectilePassthroughAllowed = value.getValue<bool>();
                             else if (key == "userdata_force_x")
                                 userDataForceX = value.getValue<float>();
                             else if (key == "userdata_force_y")
@@ -267,6 +269,8 @@ namespace ggj
                         // Solid static objects are the walls bombs bounce off.
                         if (bodyType == b2_staticBody && !generatorData.isTrigger)
                             CollisionCategory::MarkAsTerrain(*body);
+                        if (generatorData.isProjectilePassthroughAllowed)
+                            CollisionCategory::AllowProjectilePassthrough(*body);
 
                         UserData userData { objectType, { userDataForceX, userDataForceY }, userdataCommand, userdataDialogId, name };
                         generatorData.userData = userData;

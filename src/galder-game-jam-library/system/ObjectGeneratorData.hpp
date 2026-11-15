@@ -19,6 +19,7 @@ namespace ggj
         bool isTrigger{};
         bool isPlayer{};
         bool isKinematic{};
+        bool isProjectilePassthroughAllowed{}; ///< Wall that projectiles fly through (`allow_projectile_passthrough`).
         std::string sprite{};
         raylib::Vector2 spriteSize{};
         UserData userData{};

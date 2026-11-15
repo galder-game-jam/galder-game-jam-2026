@@ -16,10 +16,12 @@ namespace ggj
      */
     struct CollisionCategory
     {
-        static constexpr uint16_t DEFAULT = 0x0001; ///< Box2D's default category.
-        static constexpr uint16_t TERRAIN = 0x0002; ///< Solid static map objects (walls).
-        static constexpr uint16_t BOMB = 0x0004;    ///< King Claude's bombs: collide with terrain only.
-        static constexpr uint16_t THROWN = 0x0008;  ///< Things the butcher throws (cleavers, spiders): sensors that only notice terrain.
+        static constexpr uint16_t DEFAULT = 0x0001;                     ///< Box2D's default category.
+        static constexpr uint16_t TERRAIN = 0x0002;                     ///< Solid static map objects (walls).
+        static constexpr uint16_t BOMB = 0x0004;                        ///< King Claude's bombs: collide with terrain only.
+        static constexpr uint16_t THROWN = 0x0008;                      ///< Things the butcher throws (cleavers, spiders): sensors that only notice terrain.
+        static constexpr uint16_t PROJECTILE = 0x0010;                  ///< Player projectiles (mage balls). Not DEFAULT, so walls can opt out of them.
+        static constexpr uint16_t ANY_PROJECTILE = PROJECTILE | THROWN; ///< Everything that flies over a projectile-passthrough wall.
 
         /*!
          * Whether any fixture of @p body is tagged as terrain (a solid wall).
@@ -66,6 +68,23 @@ namespace ggj
             {
                 b2Filter filter = fixture->GetFilterData();
                 filter.categoryBits = DEFAULT | TERRAIN;
+                fixture->SetFilterData(filter);
+            }
+        }
+
+        /*!
+         * Lets every projectile (player shots and the butcher's cleavers and spiders) fly through
+         * @p body, while it stays a wall for everything else. The filter stops Box2D from creating
+         * a contact at all, so the projectiles' own wall checks never see the body.
+         *
+         * @param body A map body with the `allow_projectile_passthrough` property
+         */
+        static void AllowProjectilePassthrough(b2Body& body)
+        {
+            for (b2Fixture* fixture = body.GetFixtureList(); fixture != nullptr; fixture = fixture->GetNext())
+            {
+                b2Filter filter = fixture->GetFilterData();
+                filter.maskBits = static_cast<uint16_t>(filter.maskBits & ~ANY_PROJECTILE);
                 fixture->SetFilterData(filter);
             }
         }

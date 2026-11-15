@@ -28,6 +28,7 @@ namespace ggj
 #include "../graphics/BloodSplatter.h"
 #include "../GalderGameJamLibrary.h"
 #include "ObjectGeneratorData.hpp"
+#include "CollisionCategory.hpp"
 #include "../data/PlayerStats.hpp"
 #include "../data/PlayerPersistentState.hpp"
 #include "../interfaces/manager/INetworkManager.h"
@@ -585,6 +586,7 @@ namespace ggj
         fd.shape = &circle;
         fd.density = 1.0f; //Density must be something to react to gravity.
         fd.friction = 1.0f;
+        fd.filter.categoryBits = CollisionCategory::PROJECTILE; // Mask stays "everything"; only passthrough walls filter it out.
 
         body->CreateFixture(&fd);
 
