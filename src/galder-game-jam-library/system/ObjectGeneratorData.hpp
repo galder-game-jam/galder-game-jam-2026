@@ -45,6 +45,13 @@ namespace ggj
         float rootMinSpikeDelay { 1.f };
         float rootMaxSpikeDelay { 2.f };
 
+        // The butcher's cleavers and spider (see ButcherConfig).
+        int cleaverCount { 10 };
+        int enragedCleaverCount { 16 };
+        int deathCleaverCount { 24 };
+        float cleaverSpeed { 220.f };
+        float spiderFlightTime { 0.9f };
+
         int layerIndex{};
         tson::Object obj{};
         tson::Vector2i pos{};

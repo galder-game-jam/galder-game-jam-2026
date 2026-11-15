@@ -104,6 +104,7 @@ namespace ggj
         EnemyClaudling = 351,
         EnemyBomb = 352,
         EnemyBombExplosion = 353,
+        EnemyCleaver = 354,
     };
 }
 #endif //GAME_DEV_TEMPLATE_TEXTURENAME_H

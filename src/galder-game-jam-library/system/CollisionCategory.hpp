@@ -19,6 +19,7 @@ namespace ggj
         static constexpr uint16_t DEFAULT = 0x0001; ///< Box2D's default category.
         static constexpr uint16_t TERRAIN = 0x0002; ///< Solid static map objects (walls).
         static constexpr uint16_t BOMB = 0x0004;    ///< King Claude's bombs: collide with terrain only.
+        static constexpr uint16_t THROWN = 0x0008;  ///< Things the butcher throws (cleavers, spiders): sensors that only notice terrain.
 
         /*!
          * Whether any fixture of @p body is tagged as terrain (a solid wall).
@@ -31,6 +32,23 @@ namespace ggj
             for (const b2Fixture* fixture = body.GetFixtureList(); fixture != nullptr; fixture = fixture->GetNext())
             {
                 if ((fixture->GetFilterData().categoryBits & TERRAIN) != 0)
+                    return true;
+            }
+            return false;
+        }
+
+        /*!
+         * Whether @p body currently overlaps a solid wall. Works for sensors too, which is how the
+         * butcher's thrown cleavers and spiders notice that they hit something.
+         *
+         * @param body Body to inspect
+         * @return True while any of its contacts is touching a terrain body
+         */
+        [[nodiscard]] static bool IsTouchingTerrain(const b2Body& body)
+        {
+            for (const b2ContactEdge* edge = body.GetContactList(); edge != nullptr; edge = edge->next)
+            {
+                if (edge->contact->IsTouching() && IsTerrain(*edge->other))
                     return true;
             }
             return false;

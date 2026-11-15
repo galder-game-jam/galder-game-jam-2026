@@ -5,6 +5,7 @@
 #include <algorithm>
 #include "Player.h"
 #include "../system/World.h"
+#include "../graphics/StunStars.hpp"
 
 namespace ggj
 {
@@ -18,6 +19,11 @@ namespace ggj
             PhysicsSprite::draw();
         if (m_world != nullptr)
             m_world->endPlayerPalette();
+        if (isStunned())
+        {
+            const raylib::Vector2 center = getVisualCenter();
+            DrawStunStars({ center.x, center.y - STUN_STARS_HEIGHT }, static_cast<float>(GetTime()));
+        }
         m_hitbox.draw();
     }
 
@@ -28,6 +34,9 @@ namespace ggj
 
         if (m_damageCooldown > 0.f)
             m_damageCooldown = std::max(0.f, m_damageCooldown - timeDelta);
+        if (m_stunTimer > 0.f)
+            m_stunTimer = std::max(0.f, m_stunTimer - timeDelta);
+        m_tint = isStunned() ? STUN_TINT : WHITE;
 
         const TalentEffects& talentFx = m_world->getPlayerTalentEffects(m_playerIndex);
         m_energy = std::min(getMaxEnergy(), m_energy + ENERGY_REGEN_PER_SECOND * talentFx.energyRegenMultiplier * timeDelta);
@@ -96,6 +105,7 @@ namespace ggj
                 m_isDead = false;
                 m_world->resetPlayerLives(m_playerIndex);
                 m_damageCooldown = 0.f;
+                m_stunTimer = 0.f;
                 m_energy = getMaxEnergy();
                 m_hitbox.setIsActive(true);
                 m_body->SetEnabled(true);
@@ -107,6 +117,14 @@ namespace ggj
         if (m_inDialog)
         {
             m_velocity = raylib::Vector2 { 0, 0 };
+            return;
+        }
+
+        // Stunned: frozen in place, and no talking or attacking either.
+        if (m_stunTimer > 0.f)
+        {
+            m_velocity = raylib::Vector2 { 0.f, 0.f };
+            setPlayerState(PlayerState::Idle);
             return;
         }
 
@@ -262,6 +280,19 @@ namespace ggj
             m_soundManager.playSound(SoundName::PlayerDeath);
             m_isDead = true;
         }
+    }
+
+    void Player::stun(float seconds)
+    {
+        if (m_isDead || m_stunTimer > 0.f || seconds <= 0.f)
+            return;
+
+        m_stunTimer = seconds;
+        // A swing in progress is cut short, otherwise its hitbox would stay live for the whole stun.
+        m_isAttacking = false;
+        m_attackCounter = 0;
+        m_hitbox.setIsActive(false);
+        m_soundManager.playSound(SoundName::PlayerHurt);
     }
 
     void Player::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact)

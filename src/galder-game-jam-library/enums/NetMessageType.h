@@ -38,6 +38,8 @@ namespace ggj
         EnemyDamaged,     ///< Client -> Server: the client hit a boss (objectId, damage); the host applies it.
         BombSpawned,      ///< Server -> Client: the boss threw a bomb (position, velocity, fuseTime).
         RootSpawned,       ///< Server -> Client: the treant threw a root (position = origin, target, flightTime, spikeDelay).
+        CleaverSpawned,    ///< Server -> Client: the butcher threw a cleaver (position, velocity).
+        SpiderSpawned,     ///< Server -> Client: the butcher threw a spider (position = origin, target, flightTime).
         Chat, ///< Either direction: a chat line. Carried by ChatMessage, not the Client/ServerMessage envelopes.
 
         // --- Host moderation ---

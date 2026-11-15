@@ -36,6 +36,8 @@ namespace ggj
 #include "../interfaces/graphics/ITintShader.h"
 #include "../data/CharacterColors.hpp"
 #include "../data/DialogSpot.hpp"
+#include "../data/CleaverSpawnEvent.hpp"
+#include "../data/SpiderSpawnEvent.hpp"
 #include <optional>
 #include <set>
 #include <vector>
@@ -105,6 +107,15 @@ namespace ggj
         [[nodiscard]] std::vector<uint32_t> getActivePlayerIds() const override;
         [[nodiscard]] uint32_t getLocalPlayerId() const override;
         [[nodiscard]] std::optional<raylib::Vector2> getPlayerPosition(uint32_t playerId) const override;
+
+        /*!
+         * Where a player is, as the point attacks should aim at (the centre of their sprite). Remote
+         * netplay peers are included.
+         *
+         * @param playerId Network player id
+         * @return The player's centre, or nothing when they are not in the session
+         */
+        [[nodiscard]] std::optional<raylib::Vector2> getPlayerCenter(uint32_t playerId) const;
 
         /*!
          * Whether this peer runs the enemies' decisions: offline or hosting. Clients only mirror
@@ -254,8 +265,54 @@ namespace ggj
          *
          * @param center Blast centre (pixels)
          * @param radius Blast radius (pixels)
+         * @return True if the local player was in range, whether or not the hit cost them a life
+         *         (they may be invulnerable after a recent hit)
          */
-        void damageLocalPlayerWithin(const raylib::Vector2& center, float radius);
+        bool damageLocalPlayerWithin(const raylib::Vector2& center, float radius);
+
+        /*!
+         * Stuns the local player if they are within @p radius of @p center. Remote players are
+         * stunned by their own peer's copy of the same thing.
+         *
+         * @param center Centre of the effect (pixels)
+         * @param radius Radius of the effect (pixels)
+         * @param seconds How long the stun lasts
+         * @return True if the local player was in range
+         */
+        bool stunLocalPlayerWithin(const raylib::Vector2& center, float radius, float seconds);
+
+        /*!
+         * Whether any player, local or remote, is within @p radius of @p center. Lets thrown objects
+         * react to a hit on a remote player too, even though only that player's own peer applies it.
+         *
+         * @param center Point to test around (pixels)
+         * @param radius Radius (pixels)
+         */
+        [[nodiscard]] bool isAnyPlayerWithin(const raylib::Vector2& center, float radius) const;
+
+        /*!
+         * Queues a ring of meat cleavers flying outwards from @p origin, evenly spaced in every
+         * direction. Spawned after the current update loop, like spawnBombs(). Host/offline only:
+         * clients create the host's cleavers when told to.
+         *
+         * @param origin Centre of the ring (pixels)
+         * @param count Number of cleavers
+         * @param startAngle Direction of the first cleaver (radians)
+         * @param speed Cleaver speed in pixels per second
+         * @param ringRadius Distance from @p origin each cleaver starts at (pixels)
+         */
+        void spawnCleaverRing(const raylib::Vector2& origin, int32_t count, float startAngle, float speed, float ringRadius);
+
+        /*!
+         * Queues a spider thrown from @p origin to land on @p target. It is created after this
+         * frame's update pass. Host/offline only: the host tells the clients, which each create their
+         * copy and only stun their own player.
+         *
+         * @param origin Where the spider is thrown from (pixels)
+         * @param target Where it lands (pixels)
+         * @param flightTime Seconds spent in the air
+         */
+        void spawnThrownSpider(const raylib::Vector2& origin, const raylib::Vector2& target, float flightTime);
 
         /*!
          * Queues a root thrown by the treant. It is created after this frame's update pass. Host/offline
@@ -338,6 +395,7 @@ namespace ggj
         void generatePowerUp(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateClaude(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateTreant(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
+        void generateButcher(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateClaudling(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         struct PendingClaudlingSpawn
@@ -355,6 +413,12 @@ namespace ggj
 
         /*! Creates a treant root (not a networked object and not counted as an enemy). */
         void doSpawnTreantRoot(const RootSpawnEvent& root);
+
+        /*! Creates a meat cleaver (not a networked object and not counted as an enemy). */
+        void doSpawnCleaver(const CleaverSpawnEvent& cleaver);
+
+        /*! Creates a thrown spider (not a networked object and not counted as an enemy). */
+        void doSpawnSpider(const SpiderSpawnEvent& spider);
         void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
@@ -438,6 +502,8 @@ namespace ggj
         std::vector<PendingClaudlingSpawn> m_pendingClaudlingSpawns;
         std::vector<BombSpawnEvent> m_pendingBombSpawns;
         std::vector<RootSpawnEvent> m_pendingRootSpawns;
+        std::vector<CleaverSpawnEvent> m_pendingCleaverSpawns;
+        std::vector<SpiderSpawnEvent> m_pendingSpiderSpawns;
 
         PhysicsObject* m_boss        { nullptr };
         std::string    m_bossName    {};

@@ -75,6 +75,10 @@ namespace ggj
         [[nodiscard]] std::vector<BombSpawnEvent> takeBombSpawns() override;
         void publishRootSpawned(const RootSpawnEvent& root) override;
         [[nodiscard]] std::vector<RootSpawnEvent> takeRootSpawns() override;
+        void publishCleaverSpawned(const CleaverSpawnEvent& cleaver) override;
+        [[nodiscard]] std::vector<CleaverSpawnEvent> takeCleaverSpawns() override;
+        void publishSpiderSpawned(const SpiderSpawnEvent& spider) override;
+        [[nodiscard]] std::vector<SpiderSpawnEvent> takeSpiderSpawns() override;
         void setLocalPlayerStats(const NetworkPlayerStats& stats) override { m_localStats = stats; }
         void setCurrentStage(int32_t stageIndex) override;
         [[nodiscard]] std::optional<int32_t> takeRequestedStage() override;
@@ -147,6 +151,8 @@ namespace ggj
         std::vector<ClaudlingSpawnEvent> m_claudlingSpawns;   ///< Client: host Claudling spawns awaiting the World.
         std::vector<BombSpawnEvent> m_bombSpawns;             ///< Client: host bomb throws awaiting the World.
         std::vector<RootSpawnEvent> m_rootSpawns;             ///< Client: host root throws awaiting the World.
+        std::vector<CleaverSpawnEvent> m_cleaverSpawns;       ///< Client: host cleaver throws awaiting the World.
+        std::vector<SpiderSpawnEvent> m_spiderSpawns;         ///< Client: host spider throws awaiting the World.
         static constexpr size_t MAX_QUEUED_WORLD_EVENTS = 256; ///< Guards against growth while no World drains.
         std::vector<ChatEntry> m_chatMessages;                 ///< Chat lines awaiting the chat box.
         static constexpr size_t MAX_QUEUED_CHAT_MESSAGES = 64; ///< Guards against growth while no chat box drains.

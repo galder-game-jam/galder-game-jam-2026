@@ -189,6 +189,12 @@ namespace ggj
                         }
                 };
 
+        // The butcher is a single 64x64 frame too; the pose is deformed procedurally (see ButcherEnemy::computePose).
+        m_animations[AnimationName::EnemyButcherIdle] = { raylib::Vector2(64, 64),
+                                                          {
+                                                              { raylib::Vector2(0, 0), 150 },
+                                                          } };
+
         m_animations[AnimationName::EnemyClaudlingIdle] =
                 {
                         raylib::Vector2(32, 32),
