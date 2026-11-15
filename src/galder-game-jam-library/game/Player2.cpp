@@ -6,6 +6,7 @@
 #include "Player2.h"
 #include "../system/World.h"
 #include "projectiles/MageBall.hpp"
+#include "../graphics/FrozenBlock.hpp"
 #include "../graphics/StunStars.hpp"
 
 namespace ggj
@@ -20,7 +21,9 @@ namespace ggj
             PhysicsSprite::draw();
         if (m_world != nullptr)
             m_world->endPlayerPalette();
-        if (isStunned())
+        if (m_isFrozen)
+            DrawFrozenBlock({ getVisualCenter().x, getVisualCenter().y + m_spriteSize.y / 2.f }, static_cast<float>(GetTime()));
+        else if (isStunned())
         {
             const raylib::Vector2 center = getVisualCenter();
             DrawStunStars({ center.x, center.y - STUN_STARS_HEIGHT }, static_cast<float>(GetTime()));
@@ -36,7 +39,9 @@ namespace ggj
             m_damageCooldown = std::max(0.f, m_damageCooldown - timeDelta);
         if (m_stunTimer > 0.f)
             m_stunTimer = std::max(0.f, m_stunTimer - timeDelta);
-        m_tint = isStunned() ? STUN_TINT : WHITE;
+        if (!isStunned())
+            m_isFrozen = false;
+        m_tint = isStunned() ? (m_isFrozen ? FREEZE_TINT : STUN_TINT) : WHITE;
 
         // The cap grows with level, so clamp every frame (and refill gradually, never instantly, on level-up).
         const TalentEffects& talentFx = m_world->getPlayerTalentEffects(m_playerIndex);
@@ -104,6 +109,7 @@ namespace ggj
                 m_world->resetPlayerLives(m_playerIndex);
                 m_damageCooldown = 0.f;
                 m_stunTimer = 0.f;
+                m_isFrozen = false;
                 m_mana = getMaxMana();
                 m_body->SetEnabled(true);
                 m_world->playPlayerSound(SoundName::PlayerRespawn);
@@ -282,6 +288,15 @@ namespace ggj
         m_isAttacking = false;
         m_attackCounter = 0;
         m_world->playPlayerSound(SoundName::PlayerHurt);
+    }
+
+    void Player2::freeze(float seconds)
+    {
+        if (m_isDead || m_stunTimer > 0.f || seconds <= 0.f)
+            return;
+
+        stun(seconds);
+        m_isFrozen = isStunned();
     }
 
     void Player2::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact)

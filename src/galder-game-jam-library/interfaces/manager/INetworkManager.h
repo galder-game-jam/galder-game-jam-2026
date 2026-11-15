@@ -20,6 +20,9 @@
 #include "../../data/RootSpawnEvent.hpp"
 #include "../../data/CleaverSpawnEvent.hpp"
 #include "../../data/SpiderSpawnEvent.hpp"
+#include "../../data/IceCircleSpawnEvent.hpp"
+#include "../../data/FireLineSpawnEvent.hpp"
+#include "../../data/CrystalSpawnEvent.hpp"
 #include "../../data/ChatEntry.hpp"
 #include "../../data/DiscoveredServer.hpp"
 #include "../../../gamedev-base/enums/ConnectionStatus.hpp"
@@ -202,6 +205,45 @@ namespace ggj
          * @return Spider spawns in arrival order
          */
         [[nodiscard]] virtual std::vector<SpiderSpawnEvent> takeSpiderSpawns() = 0;
+
+        /*!
+         * Server: tells every client that the mage conjured an ice circle. No-op when not hosting.
+         *
+         * @param circle Where it is, how large, and when it freezes
+         */
+        virtual void publishIceCircleSpawned(const IceCircleSpawnEvent& circle) = 0;
+        /*!
+         * Client: drains the ice circles the host conjured since the last call.
+         *
+         * @return Ice circle spawns in arrival order
+         */
+        [[nodiscard]] virtual std::vector<IceCircleSpawnEvent> takeIceCircleSpawns() = 0;
+
+        /*!
+         * Server: tells every client that the mage shot a line of fire. No-op when not hosting.
+         *
+         * @param fire Where it starts and ends, and its timing
+         */
+        virtual void publishFireLineSpawned(const FireLineSpawnEvent& fire) = 0;
+        /*!
+         * Client: drains the lines of fire the host shot since the last call.
+         *
+         * @return Fire line spawns in arrival order
+         */
+        [[nodiscard]] virtual std::vector<FireLineSpawnEvent> takeFireLineSpawns() = 0;
+
+        /*!
+         * Server: tells every client that the mage shot a crystal. No-op when not hosting.
+         *
+         * @param crystal Where it starts and how fast it flies
+         */
+        virtual void publishCrystalSpawned(const CrystalSpawnEvent& crystal) = 0;
+        /*!
+         * Client: drains the crystals the host shot since the last call.
+         *
+         * @return Crystal spawns in arrival order
+         */
+        [[nodiscard]] virtual std::vector<CrystalSpawnEvent> takeCrystalSpawns() = 0;
         /*! Feeds the local player's authoritative stats (lives, score, kills, level, resources) for outbound sync. */
         virtual void setLocalPlayerStats(const NetworkPlayerStats& stats) = 0;
         /*!

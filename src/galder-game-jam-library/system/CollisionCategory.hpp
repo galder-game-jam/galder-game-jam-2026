@@ -19,7 +19,7 @@ namespace ggj
         static constexpr uint16_t DEFAULT = 0x0001; ///< Box2D's default category.
         static constexpr uint16_t TERRAIN = 0x0002; ///< Solid static map objects (walls).
         static constexpr uint16_t BOMB = 0x0004;    ///< King Claude's bombs: collide with terrain only.
-        static constexpr uint16_t THROWN = 0x0008;  ///< Things the butcher throws (cleavers, spiders): sensors that only notice terrain.
+        static constexpr uint16_t THROWN = 0x0008;  ///< Things bosses throw (cleavers, spiders, crystals): sensors that only notice terrain. Floor decals use it with an empty mask.
 
         /*!
          * Whether any fixture of @p body is tagged as terrain (a solid wall).

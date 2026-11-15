@@ -49,6 +49,9 @@ namespace ggj
             case 8: // Butcher Boss level
                 track = MusicName::BossBattle3;
                 break;
+            case 9: // Mage Boss level
+                track = MusicName::BossBattle4;
+                break;
             case 99999: // Final diamond map
                 track = MusicName::Victory1;
                 break;
