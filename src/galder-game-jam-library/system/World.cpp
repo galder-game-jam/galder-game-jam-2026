@@ -13,6 +13,10 @@
 #include "../game/enemies/ButcherEnemy.h"
 #include "../game/enemies/MeatCleaver.h"
 #include "../game/enemies/ThrownSpider.h"
+#include "../game/enemies/MageBossEnemy.h"
+#include "../game/enemies/IceCircle.h"
+#include "../game/enemies/FireLine.h"
+#include "../game/enemies/CrystalShard.h"
 #include "../game/enemies/Claudling.h"
 #include "../game/enemies/Bomb.h"
 #include "CollisionCategory.hpp"
@@ -205,6 +209,18 @@ namespace ggj
                                 generatorData.cleaverSpeed = value.getValue<float>();
                             else if (key == "spider_flight_time")
                                 generatorData.spiderFlightTime = value.getValue<float>();
+                            else if (key == "ice_circle_min_count")
+                                generatorData.iceCircleMinCount = value.getValue<int>();
+                            else if (key == "ice_circle_max_count")
+                                generatorData.iceCircleMaxCount = value.getValue<int>();
+                            else if (key == "ice_circle_radius")
+                                generatorData.iceCircleRadius = value.getValue<float>();
+                            else if (key == "freeze_seconds")
+                                generatorData.freezeSeconds = value.getValue<float>();
+                            else if (key == "fire_burn_time")
+                                generatorData.fireBurnTime = value.getValue<float>();
+                            else if (key == "crystal_speed")
+                                generatorData.crystalSpeed = value.getValue<float>();
                         }
 
                         ObjectType objectType = (ObjectType)userdataObjectType;
@@ -681,6 +697,11 @@ namespace ggj
             generateButcher(name, body, generatorData);
             ++m_numberOfEnemies;
         }
+        else if (name == "mageboss")
+        {
+            generateMageBoss(name, body, generatorData);
+            ++m_numberOfEnemies;
+        }
         else
             generateGenericPhysicsObject(name, body, generatorData);
 
@@ -696,7 +717,7 @@ namespace ggj
         // Enemies and coins are synced over the network. They are generated in the same order on
         // every peer (same map + generators), so a per-spawn counter yields matching ids everywhere.
         if (name == "bat" || name == "snake" || name == "spider" || name == "thing" || name == "ghost" || name == "coin" || name == "claude" || name == "claudling" ||
-            name == "treant" || name == "butcher")
+            name == "treant" || name == "butcher" || name == "mageboss")
             registerNetworkObject(m_userDataManager.getUserData(body));
     }
 
@@ -987,6 +1008,12 @@ namespace ggj
                 doSpawnCleaver(cleaver);
             for (const SpiderSpawnEvent& spider : m_network->takeSpiderSpawns())
                 doSpawnSpider(spider);
+            for (const IceCircleSpawnEvent& circle : m_network->takeIceCircleSpawns())
+                doSpawnIceCircle(circle);
+            for (const FireLineSpawnEvent& fire : m_network->takeFireLineSpawns())
+                doSpawnFireLine(fire);
+            for (const CrystalSpawnEvent& crystal : m_network->takeCrystalSpawns())
+                doSpawnCrystal(crystal);
             for (const auto& [id, state] : m_network->enemyStates())
             {
                 auto found = m_networkObjects.find(id);
@@ -1612,6 +1639,30 @@ namespace ggj
         return true;
     }
 
+    bool World::freezeLocalPlayerWithin(const raylib::Vector2& center, float radius, float seconds)
+    {
+        if (m_player == nullptr)
+            return false;
+
+        if (!IceCircle::IsInside(center, radius, m_player->getVisualCenter()))
+            return false;
+
+        m_player->freeze(seconds);
+        return true;
+    }
+
+    bool World::damageLocalPlayerAlongSegment(const raylib::Vector2& start, const raylib::Vector2& end, float halfWidth)
+    {
+        if (m_player == nullptr)
+            return false;
+
+        if (FireLine::DistanceToSegment(m_player->getVisualCenter(), start, end) > halfWidth)
+            return false;
+
+        m_player->takeHit();
+        return true;
+    }
+
     bool World::isAnyPlayerWithin(const raylib::Vector2& center, float radius) const
     {
         const std::vector<raylib::Vector2> centers = getPlayerCenters();
@@ -1640,6 +1691,130 @@ namespace ggj
             return;
 
         m_pendingSpiderSpawns.push_back(SpiderSpawnEvent { origin, target, flightTime });
+    }
+
+    void World::spawnIceCircles(int32_t count, float radius, float minDelay, float maxDelay, float freezeSeconds)
+    {
+        if (!isEnemyAuthority() || count <= 0 || m_map == nullptr)
+            return;
+
+        const auto randomBetween = [](float min, float max)
+        {
+            constexpr int32_t STEPS = 10000;
+            return min + (max - min) * static_cast<float>(GetRandomValue(0, STEPS)) / static_cast<float>(STEPS);
+        };
+
+        const float mapWidth = static_cast<float>(m_map->getSize().x * m_map->getTileSize().x);
+        const float mapHeight = static_cast<float>(m_map->getSize().y * m_map->getTileSize().y);
+        // Keep the circles on the floor, not half inside the walls around the edge.
+        constexpr float WALL_MARGIN = 40.f;
+        const float inset = WALL_MARGIN + radius * 0.4f;
+        const float minX = inset;
+        const float maxX = std::max(minX, mapWidth - inset);
+        const float minY = inset;
+        const float maxY = std::max(minY, mapHeight - inset);
+
+        std::vector<raylib::Vector2> victims = getPlayerCenters();
+        // Everyone gets a fair chance of being the first one picked.
+        for (size_t i = victims.size(); i > 1; --i)
+            std::swap(victims[i - 1], victims[static_cast<size_t>(GetRandomValue(0, static_cast<int>(i) - 1))]);
+
+        for (int32_t i = 0; i < count; ++i)
+        {
+            raylib::Vector2 center {};
+            if (static_cast<size_t>(i) < victims.size())
+            {
+                // On a player, but not dead centre: they have to run, though not so far that they cannot make it.
+                const float angle = randomBetween(0.f, 2.f * std::numbers::pi_v<float>);
+                const float offset = randomBetween(radius * 0.2f, radius * 0.6f);
+                const raylib::Vector2& victim = victims[static_cast<size_t>(i)];
+                center = raylib::Vector2 { victim.x + std::cos(angle) * offset, victim.y + std::sin(angle) * offset };
+            }
+            else
+                center = raylib::Vector2 { randomBetween(minX, maxX), randomBetween(minY, maxY) };
+
+            center.x = std::clamp(center.x, minX, maxX);
+            center.y = std::clamp(center.y, minY, maxY);
+            m_pendingIceCircleSpawns.push_back(IceCircleSpawnEvent { center, radius, randomBetween(minDelay, maxDelay), freezeSeconds });
+        }
+    }
+
+    namespace
+    {
+        /*! Ray cast callback that finds the closest solid wall along a line. */
+        class WallRayCallback : public b2RayCastCallback
+        {
+            public:
+            float ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float fraction) override
+            {
+                // Only solid scenery stops the fire: players, enemies and triggers do not.
+                if (fixture->IsSensor() || (fixture->GetFilterData().categoryBits & CollisionCategory::TERRAIN) == 0)
+                    return -1.f;
+
+                m_hasHit = true;
+                m_point = point;
+                return fraction; // Keep looking, but only for something closer.
+            }
+
+            bool m_hasHit { false };
+            b2Vec2 m_point {};
+        };
+    } // namespace
+
+    raylib::Vector2 World::fireLineEnd(const raylib::Vector2& origin, float angle)
+    {
+        const float dirX = std::cos(angle);
+        const float dirY = std::sin(angle);
+
+        // The edge of the map: how far the line can go before it leaves it. Walls normally stop it first.
+        float distance = 0.f;
+        if (m_map != nullptr)
+        {
+            const float mapWidth = static_cast<float>(m_map->getSize().x * m_map->getTileSize().x);
+            const float mapHeight = static_cast<float>(m_map->getSize().y * m_map->getTileSize().y);
+            constexpr float INFINITE_DISTANCE = std::numeric_limits<float>::max();
+            const float toX = dirX > 0.f ? (mapWidth - origin.x) / dirX : (dirX < 0.f ? -origin.x / dirX : INFINITE_DISTANCE);
+            const float toY = dirY > 0.f ? (mapHeight - origin.y) / dirY : (dirY < 0.f ? -origin.y / dirY : INFINITE_DISTANCE);
+            distance = std::max(0.f, std::min(toX, toY));
+        }
+
+        // Wall check: stop at the first wall the line runs into.
+        WallRayCallback callback;
+        const b2Vec2 start = PhysicsObject::ConvertToB2Vec2(origin);
+        const b2Vec2 stop = PhysicsObject::ConvertToB2Vec2({ origin.x + dirX * distance, origin.y + dirY * distance });
+        if (distance > 0.f)
+            m_world.RayCast(&callback, start, stop);
+        if (callback.m_hasHit)
+            return PhysicsObject::ConvertToVector2(callback.m_point);
+
+        return { origin.x + dirX * distance, origin.y + dirY * distance };
+    }
+
+    void World::spawnFireLines(const raylib::Vector2& origin, const std::vector<float>& angles, float warningSeconds, float burnSeconds)
+    {
+        if (!isEnemyAuthority())
+            return;
+
+        for (const float angle : angles)
+            m_pendingFireLineSpawns.push_back(FireLineSpawnEvent { origin, fireLineEnd(origin, angle), warningSeconds, burnSeconds });
+    }
+
+    void World::spawnCrystalFan(const raylib::Vector2& origin, float aimAngle, int32_t count, float spreadDegrees, float speed)
+    {
+        if (!isEnemyAuthority())
+            return;
+
+        for (const CrystalSpawnEvent& crystal : CrystalShard::BuildFan(origin, aimAngle, count, spreadDegrees, speed))
+            m_pendingCrystalSpawns.push_back(crystal);
+    }
+
+    void World::spawnCrystalRing(const raylib::Vector2& origin, int32_t count, float startAngle, float speed, float ringRadius)
+    {
+        if (!isEnemyAuthority())
+            return;
+
+        for (const CrystalSpawnEvent& crystal : CrystalShard::BuildRing(origin, count, startAngle, speed, ringRadius))
+            m_pendingCrystalSpawns.push_back(crystal);
     }
 
     void World::flushPendingSpawns()
@@ -1684,6 +1859,30 @@ namespace ggj
                 m_network->publishSpiderSpawned(spider);
         }
         m_pendingSpiderSpawns.clear();
+
+        for (const IceCircleSpawnEvent& circle : m_pendingIceCircleSpawns)
+        {
+            doSpawnIceCircle(circle);
+            if (isHosting)
+                m_network->publishIceCircleSpawned(circle);
+        }
+        m_pendingIceCircleSpawns.clear();
+
+        for (const FireLineSpawnEvent& fire : m_pendingFireLineSpawns)
+        {
+            doSpawnFireLine(fire);
+            if (isHosting)
+                m_network->publishFireLineSpawned(fire);
+        }
+        m_pendingFireLineSpawns.clear();
+
+        for (const CrystalSpawnEvent& crystal : m_pendingCrystalSpawns)
+        {
+            doSpawnCrystal(crystal);
+            if (isHosting)
+                m_network->publishCrystalSpawned(crystal);
+        }
+        m_pendingCrystalSpawns.clear();
     }
 
     void World::spawnTreantRoot(const raylib::Vector2& origin, const raylib::Vector2& target, float flightTime, float spikeDelay)
@@ -1880,6 +2079,48 @@ namespace ggj
         m_userDataManager.addUserData(body, physicsObject);
     }
 
+    void World::doSpawnIceCircle(const IceCircleSpawnEvent& circle)
+    {
+        b2Body* body = IceCircle::CreateBody(m_world, circle);
+
+        const UserData userData { ObjectType::Trap, { 0.f, 0.f }, "", "", "ice_circle" };
+        PhysicsObject* physicsObject = createGroundObject<IceCircle>(body, userData, circle, this);
+        if (physicsObject == nullptr)
+        {
+            m_world.DestroyBody(body);
+            return;
+        }
+        m_userDataManager.addUserData(body, physicsObject);
+    }
+
+    void World::doSpawnFireLine(const FireLineSpawnEvent& fire)
+    {
+        b2Body* body = FireLine::CreateBody(m_world, fire);
+
+        const UserData userData { ObjectType::Trap, { 0.f, 0.f }, "", "", "fire_line" };
+        PhysicsObject* physicsObject = createGroundObject<FireLine>(body, userData, fire, this);
+        if (physicsObject == nullptr)
+        {
+            m_world.DestroyBody(body);
+            return;
+        }
+        m_userDataManager.addUserData(body, physicsObject);
+    }
+
+    void World::doSpawnCrystal(const CrystalSpawnEvent& crystal)
+    {
+        b2Body* body = CrystalShard::CreateBody(m_world, crystal);
+
+        const UserData userData { ObjectType::Trap, { 0.f, 0.f }, "", "", "crystal" };
+        PhysicsObject* physicsObject = createObject<CrystalShard>(body, userData, this);
+        if (physicsObject == nullptr)
+        {
+            m_world.DestroyBody(body);
+            return;
+        }
+        m_userDataManager.addUserData(body, physicsObject);
+    }
+
     uint32_t World::doSpawnClaudling(const PendingClaudlingSpawn& spawn)
     {
         const raylib::Vector2& position = spawn.position;
@@ -2013,6 +2254,38 @@ namespace ggj
                     generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, this, m_tintShader,
                     ButcherConfig { generatorData.cleaverCount, generatorData.enragedCleaverCount, generatorData.deathCleaverCount, generatorData.cleaverSpeed,
                                     generatorData.spiderFlightTime });
+                m_userDataManager.addUserData(body, physicsObject);
+                if (generatorData.isBoss && physicsObject != nullptr)
+                {
+                    m_boss = physicsObject;
+                    m_bossName = generatorData.bossName;
+                    m_bossMaxLives = generatorData.lives;
+                }
+            }
+        }
+    }
+
+    void World::generateMageBoss(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
+    {
+        TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
+        if (id != TextureName::None)
+        {
+            raylib::Texture* tex = m_textures.get(id);
+            if (tex != nullptr)
+            {
+                // The scholar sprite is a single 48x48 frame, regardless of the object's physics size.
+                const raylib::Rectangle r { 0.f, 0.f, 48.f, 48.f };
+
+                // sprite_size_x/y is the size the frame is scaled up to when drawn.
+                raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
+                if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
+                    spriteSize = raylib::Vector2(generatorData.spriteSize.x, generatorData.spriteSize.y);
+
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::MageBossEnemy>(
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
+                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, this, m_tintShader,
+                    MageBossConfig { generatorData.iceCircleMinCount, generatorData.iceCircleMaxCount, generatorData.iceCircleRadius, generatorData.freezeSeconds,
+                                     generatorData.fireBurnTime, generatorData.crystalSpeed });
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {

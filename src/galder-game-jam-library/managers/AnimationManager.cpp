@@ -195,6 +195,12 @@ namespace ggj
                                                               { raylib::Vector2(0, 0), 150 },
                                                           } };
 
+        // The mage boss is a single 48x48 frame (the scholar NPC); the pose is deformed procedurally (see MageBossEnemy::ComputePose).
+        m_animations[AnimationName::EnemyMageBossIdle] = { raylib::Vector2(48, 48),
+                                                           {
+                                                               { raylib::Vector2(0, 0), 150 },
+                                                           } };
+
         m_animations[AnimationName::EnemyClaudlingIdle] =
                 {
                         raylib::Vector2(32, 32),

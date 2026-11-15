@@ -54,6 +54,14 @@ namespace ggj
         float cleaverSpeed { 220.f };
         float spiderFlightTime { 0.9f };
 
+        // The mage boss's spells (see MageBossConfig).
+        int iceCircleMinCount { 2 };
+        int iceCircleMaxCount { 4 };
+        float iceCircleRadius { 80.f };
+        float freezeSeconds { 2.f };
+        float fireBurnTime { 1.4f };
+        float crystalSpeed { 260.f };
+
         int layerIndex{};
         tson::Object obj{};
         tson::Vector2i pos{};
