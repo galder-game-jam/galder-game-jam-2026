@@ -34,6 +34,16 @@ namespace ggj
         return 4.f * t * (1.f - t);
     }
 
+    bool TreantRoot::IsInsideSpikeArea(const raylib::Vector2& root, const raylib::Vector2& footMin, const raylib::Vector2& footMax)
+    {
+        // The point of the player's lower body closest to the root decides: if it is inside the ellipse, they overlap.
+        const float closestX = std::clamp(root.x, footMin.x, footMax.x);
+        const float closestY = std::clamp(root.y, footMin.y, footMax.y);
+        const float dx = (closestX - root.x) / HIT_RADIUS;
+        const float dy = (closestY - root.y) / (HIT_RADIUS * GROUND_SQUASH);
+        return dx * dx + dy * dy <= 1.f;
+    }
+
     float TreantRoot::SpikeFraction(float spikeElapsed)
     {
         if (spikeElapsed <= 0.f || spikeElapsed >= SPIKE_DURATION)
@@ -89,7 +99,7 @@ namespace ggj
 
         // Every peer runs its own copy and only hurts its own player, like bombs do.
         if (m_world != nullptr)
-            m_world->damageLocalPlayerWithin(m_target, HIT_RADIUS);
+            m_world->damageLocalPlayerOnRoot(m_target);
     }
 
     void TreantRoot::draw()
@@ -157,7 +167,7 @@ namespace ggj
             const float progress = m_spikeDelay > 0.f ? std::clamp(m_elapsed / m_spikeDelay, 0.f, 1.f) : 1.f;
             const float pulse = 0.5f + 0.5f * std::sin(m_elapsed * (6.f + 18.f * progress));
             const float alpha = 0.25f + 0.45f * progress + 0.3f * pulse * progress;
-            DrawEllipseLines(static_cast<int>(x), static_cast<int>(y), HIT_RADIUS, HIT_RADIUS * 0.6f, Fade(WARNING_COLOR, std::min(alpha, 1.f)));
+            DrawEllipseLines(static_cast<int>(x), static_cast<int>(y), HIT_RADIUS, HIT_RADIUS * GROUND_SQUASH, Fade(WARNING_COLOR, std::min(alpha, 1.f)));
         }
     }
 

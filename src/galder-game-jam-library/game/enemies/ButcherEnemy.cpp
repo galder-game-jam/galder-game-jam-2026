@@ -139,14 +139,9 @@ namespace ggj
         if (m_world == nullptr || !isAuthority())
             return;
 
-        // The victim left during the windup: pick someone else, or nobody is left to throw it at.
-        if (!targetPosition().has_value())
-            pickTarget();
-        const std::optional<raylib::Vector2> target = targetPosition();
-        if (!target.has_value())
-            return;
-
-        m_world->spawnThrownSpider(getPosition(), *target, m_config.spiderFlightTime);
+        // One spider per player, all thrown at once, each landing where its victim stands right now.
+        for (const raylib::Vector2& target : m_world->getPlayerCenters())
+            m_world->spawnThrownSpider(getPosition(), target, m_config.spiderFlightTime);
     }
 
     void ButcherEnemy::die()
@@ -169,8 +164,8 @@ namespace ggj
         const ButcherState previousState = m_state;
         m_state = newState;
 
-        // A fresh cycle picks who to chase; the spider windup picks its victim, so it is anyone, not just the last one chased.
-        if (isAuthority() && (newState == ButcherState::Walk || newState == ButcherState::SpiderWindup || !m_targetPlayerId.has_value()))
+        // A fresh cycle picks who to chase.
+        if (isAuthority() && (newState == ButcherState::Walk || !m_targetPlayerId.has_value()))
             pickTarget();
 
         switch (newState)

@@ -45,13 +45,17 @@ namespace ggj
     {
         public:
         TreantEnemy() = default;
+        /*!
+         * @param chargeSpeed Speed of a charge, in the same units as @p followSpeed (the map's charge_speed);
+         *                    zero or less means 3x @p followSpeed.
+         */
         TreantEnemy(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper, ggj::ISoundManager& soundManager, b2Body* body,
                     const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
                     int lives, float followSpeed, float knockback, IPlayer* player, World* world, ITintShader& tintShader, const TreantRootConfig& rootConfig,
-                    bool isVisible = true)
+                    float chargeSpeed = 0.f, bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager { animationManager }, m_mapper { mapper },
               m_soundManager { soundManager }, m_followSpeed { followSpeed }, m_knockback { knockback }, m_maxLives { lives }, m_player { player }, m_world { world },
-              m_tintShader { tintShader }, m_rootConfig { rootConfig }
+              m_tintShader { tintShader }, m_rootConfig { rootConfig }, m_chargeSpeed { chargeSpeed > 0.f ? chargeSpeed : followSpeed * CHARGE_SPEED_MULTIPLIER }
         {
             m_lives = lives;
             m_body->SetFixedRotation(true);
@@ -155,6 +159,7 @@ namespace ggj
         World* m_world { nullptr };
         ITintShader& m_tintShader;
         TreantRootConfig m_rootConfig;
+        float m_chargeSpeed { 0.f };                 ///< charge_speed from the map, in the same units as follow_speed; 3x follow_speed when unset. Enrage still speeds it up.
         std::optional<uint32_t> m_targetPlayerId {}; ///< Network player id being chased and charged; empty until picked.
         std::optional<uint32_t> m_remoteKillerId {}; ///< Client that landed the killing blow, when it was remote.
         PhysicsObject* m_killer { nullptr };         ///< Whoever landed the killing blow; credited once the death throes end.
@@ -196,12 +201,12 @@ namespace ggj
         static constexpr float ROOT_MAX_SCATTER = 220.f;
         static constexpr float ROOT_MIN_SPACING = 64.f; ///< Pixels between roots; a bit more than a root's diameter.
         static constexpr int32_t ROOT_PLACEMENT_ATTEMPTS = 12;
-        static constexpr float ROOT_AIMED_SCATTER = 20.f;    ///< The first root lands almost on the player.
+        static constexpr float ROOT_AIMED_SCATTER = 20.f; ///< The first root lands almost on the player.
         static constexpr float WINDUP_DURATION = 0.9f;
         static constexpr float ENRAGED_WINDUP_DURATION = 0.55f;
         static constexpr float CHARGE_DURATION = 0.8f;
         static constexpr float RECOVER_DURATION = 1.4f;
-        static constexpr float CHARGE_SPEED_MULTIPLIER = 3.f;
+        static constexpr float CHARGE_SPEED_MULTIPLIER = 3.f; ///< Charge speed relative to follow_speed when the map sets no charge_speed.
         static constexpr float ENRAGED_SPEED_MULTIPLIER = 1.5f;
         static constexpr float CHARGE_KNOCKBACK_MULTIPLIER = 1.5f;
         static constexpr float WALK_STEPS_PER_SECOND = 2.f;

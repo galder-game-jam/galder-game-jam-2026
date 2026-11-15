@@ -299,7 +299,7 @@ namespace ggj
 
             case TreantState::Charge:
             {
-                const float speed = m_followSpeed * CHARGE_SPEED_MULTIPLIER * speedMultiplier;
+                const float speed = m_chargeSpeed * speedMultiplier;
                 velocity = { m_chargeDirection.x * speed, m_chargeDirection.y * speed };
                 if (canAdvance)
                     setState(m_chargesLeft > 0 ? TreantState::Windup : TreantState::Recover);

@@ -189,6 +189,8 @@ namespace ggj
                                 generatorData.bombSpawnIdleStateTime = value.getValue<float>();
                             else if (key == "bomb_spawn_count")
                                 generatorData.bombSpawnCount = value.getValue<int>();
+                            else if (key == "charge_speed")
+                                generatorData.chargeSpeed = value.getValue<float>();
                             else if (key == "root_count")
                                 generatorData.rootCount = value.getValue<int>();
                             else if (key == "enraged_root_count")
@@ -1101,6 +1103,7 @@ namespace ggj
                 const bool isCircle = body->GetFixtureList()->GetShape()->GetType() == b2Shape::e_circle;
                 m_playerSpriteOrigin = raylib::Vector2 { spriteSize.x / 2.f, isCircle ? spriteSize.y - physicsSize.y : spriteSize.y - physicsSize.y / 2.f };
                 m_playerSpriteHeight = spriteSize.y;
+                m_playerBodyHalfWidth = isCircle ? physicsSize.x : physicsSize.x / 2.f; // A circle's size is already the radius (see above).
                 m_rogueTexture = tex;
                 m_wizardTexture = m_textures.get(TextureName::WizardPlayer);
 
@@ -1634,6 +1637,24 @@ namespace ggj
         const float dx = playerCenter.x - center.x;
         const float dy = playerCenter.y - center.y;
         if (dx * dx + dy * dy > radius * radius)
+            return false;
+
+        m_player->takeHit();
+        return true;
+    }
+
+    bool World::damageLocalPlayerOnRoot(const raylib::Vector2& root)
+    {
+        if (m_player == nullptr)
+            return false;
+
+        // The lower half of the player's body: from the middle of the body (getPosition()) down to the
+        // bottom of the sprite, which is about 15 px lower and where the feet are drawn.
+        const raylib::Vector2 body = m_player->getPosition();
+        const raylib::Vector2 visualCenter = m_player->getVisualCenter();
+        const raylib::Vector2 footMin { body.x - m_playerBodyHalfWidth, body.y };
+        const raylib::Vector2 footMax { body.x + m_playerBodyHalfWidth, visualCenter.y + m_playerSpriteHeight / 2.f };
+        if (!TreantRoot::IsInsideSpikeArea(root, footMin, footMax))
             return false;
 
         m_player->takeHit();
@@ -2237,7 +2258,8 @@ namespace ggj
                     spriteSize, r, tex, generatorData.userData, generatorData.lives,
                     generatorData.followSpeed, generatorData.knockback, m_player, this, m_tintShader,
                     TreantRootConfig { generatorData.rootCount, generatorData.enragedRootCount, generatorData.deathRootCount,
-                                       SpikeDelayRange { generatorData.rootMinSpikeDelay, generatorData.rootMaxSpikeDelay } });
+                                       SpikeDelayRange { generatorData.rootMinSpikeDelay, generatorData.rootMaxSpikeDelay } },
+                    generatorData.chargeSpeed);
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {
