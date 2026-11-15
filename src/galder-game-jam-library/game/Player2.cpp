@@ -22,7 +22,7 @@ namespace ggj
         if (m_world != nullptr)
             m_world->endPlayerPalette();
         if (m_isFrozen)
-            DrawFrozenBlock(getVisualCenter(), static_cast<float>(GetTime()));
+            DrawFrozenBlock({ getVisualCenter().x, getVisualCenter().y + m_spriteSize.y / 2.f }, static_cast<float>(GetTime()));
         else if (isStunned())
         {
             const raylib::Vector2 center = getVisualCenter();

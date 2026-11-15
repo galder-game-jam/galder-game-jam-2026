@@ -10,17 +10,22 @@ namespace ggj
      * Draws a translucent block of ice around a frozen character, with a glint sweeping across it.
      * Call while drawing in world space, after the character itself.
      *
-     * @param center Middle of the character's body, in world pixels
+     * The block is anchored at the feet rather than the middle of the sprite frame: the characters
+     * are small figures standing at the bottom of a much larger frame, so a block centred on the
+     * frame would leave their legs sticking out.
+     *
+     * @param feet Bottom middle of the character's sprite frame, in world pixels
      * @param time Any steadily increasing time in seconds; drives the glint
      */
-    inline void DrawFrozenBlock(const raylib::Vector2& center, float time)
+    inline void DrawFrozenBlock(const raylib::Vector2& feet, float time)
     {
-        constexpr float BLOCK_WIDTH = 34.f;
-        constexpr float BLOCK_HEIGHT = 46.f;
+        constexpr float BLOCK_WIDTH = 46.f;   ///< A little wider than the 38-39 px figures.
+        constexpr float BLOCK_HEIGHT = 42.f;  ///< A little taller than the 33-34 px figures.
+        constexpr float BLOCK_OVERHANG = 3.f; ///< How far the block reaches below the feet, so the soles are covered too.
         constexpr ::Color ICE_FILL { 160, 220, 255, 255 };
         constexpr ::Color ICE_EDGE { 225, 245, 255, 255 };
 
-        const ::Rectangle block { center.x - BLOCK_WIDTH / 2.f, center.y - BLOCK_HEIGHT / 2.f, BLOCK_WIDTH, BLOCK_HEIGHT };
+        const ::Rectangle block { feet.x - BLOCK_WIDTH / 2.f, feet.y + BLOCK_OVERHANG - BLOCK_HEIGHT, BLOCK_WIDTH, BLOCK_HEIGHT };
         DrawRectangleRounded(block, 0.3f, 6, Fade(ICE_FILL, 0.45f));
         DrawRectangleRoundedLines(block, 0.3f, 6, Fade(ICE_EDGE, 0.9f));
 
