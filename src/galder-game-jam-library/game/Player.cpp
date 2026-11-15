@@ -197,6 +197,11 @@ namespace ggj
             m_attackCounter = 0;
             m_soundManager.playSound(SoundName::PlayerAttack);
         }
+        else if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking)
+        {
+            m_world->spawnAbilityNotReadyText(getPosition());
+            m_soundManager.playSound(SoundName::AbilityNotReady);
+        }
 
 #ifdef GAME_DEV_DEBUG
         if (m_inputManager.keyPressed(KeyboardKey::Minus))

@@ -196,6 +196,11 @@ namespace ggj
             m_attackCounter = 0;
             shootMageBall();
         }
+        else if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking)
+        {
+            m_world->spawnAbilityNotReadyText(getPosition());
+            m_soundManager.playSound(SoundName::AbilityNotReady);
+        }
 
         //Toggle player rotate. Fun!
         if (m_inputManager.keyPressed(KeyboardKey::Enter) || m_inputManager.keyPressed(KeyboardKey::V))

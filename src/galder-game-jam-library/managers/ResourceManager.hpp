@@ -159,6 +159,7 @@ namespace ggj
         add(ggj::ResourceName::SoundPortalOpen, "audio/sfx/portal_open.wav");
         add(ggj::ResourceName::SoundExtraLife,   "audio/sfx/extra_life.wav");
         add(ggj::ResourceName::SoundWizardShoot, "audio/sfx/wizard_shoot.wav");
+        add(ggj::ResourceName::SoundAbilityNotReady, "audio/sfx/ability_not_ready.wav");
 
         add(ggj::ResourceName::MusicForest1, "audio/music/forest1.mp3");
         add(ggj::ResourceName::MusicForest2, "audio/music/forest2.mp3");
