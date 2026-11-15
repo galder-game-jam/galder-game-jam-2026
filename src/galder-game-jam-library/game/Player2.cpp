@@ -6,6 +6,7 @@
 #include "Player2.h"
 #include "../system/World.h"
 #include "projectiles/MageBall.hpp"
+#include "../graphics/FrozenBlock.hpp"
 #include "../graphics/StunStars.hpp"
 
 namespace ggj
@@ -20,7 +21,9 @@ namespace ggj
             PhysicsSprite::draw();
         if (m_world != nullptr)
             m_world->endPlayerPalette();
-        if (isStunned())
+        if (m_isFrozen)
+            DrawFrozenBlock({ getVisualCenter().x, getVisualCenter().y + m_spriteSize.y / 2.f }, static_cast<float>(GetTime()));
+        else if (isStunned())
         {
             const raylib::Vector2 center = getVisualCenter();
             DrawStunStars({ center.x, center.y - STUN_STARS_HEIGHT }, static_cast<float>(GetTime()));
@@ -36,7 +39,9 @@ namespace ggj
             m_damageCooldown = std::max(0.f, m_damageCooldown - timeDelta);
         if (m_stunTimer > 0.f)
             m_stunTimer = std::max(0.f, m_stunTimer - timeDelta);
-        m_tint = isStunned() ? STUN_TINT : WHITE;
+        if (!isStunned())
+            m_isFrozen = false;
+        m_tint = isStunned() ? (m_isFrozen ? FREEZE_TINT : STUN_TINT) : WHITE;
 
         // The cap grows with level, so clamp every frame (and refill gradually, never instantly, on level-up).
         const TalentEffects& talentFx = m_world->getPlayerTalentEffects(m_playerIndex);
@@ -49,7 +54,7 @@ namespace ggj
         if (!m_isDead && m_world->tickPlayerLifeRegen(m_playerIndex, timeDelta))
         {
             m_world->spawnFloatingText(getPosition());
-            m_soundManager.playSound(SoundName::ExtraLife);
+            m_world->playPlayerSound(SoundName::ExtraLife);
         }
 
         if (m_isDead)
@@ -104,9 +109,10 @@ namespace ggj
                 m_world->resetPlayerLives(m_playerIndex);
                 m_damageCooldown = 0.f;
                 m_stunTimer = 0.f;
+                m_isFrozen = false;
                 m_mana = getMaxMana();
                 m_body->SetEnabled(true);
-                m_soundManager.playSound(SoundName::PlayerRespawn);
+                m_world->playPlayerSound(SoundName::PlayerRespawn);
             }
             else
                 return;
@@ -196,6 +202,11 @@ namespace ggj
             m_attackCounter = 0;
             shootMageBall();
         }
+        else if (m_inputManager.keyPressed(kb.attack) && !m_isAttacking)
+        {
+            m_world->spawnAbilityNotReadyText(getPosition());
+            m_soundManager.playSound(SoundName::AbilityNotReady);
+        }
 
         //Toggle player rotate. Fun!
         if (m_inputManager.keyPressed(KeyboardKey::Enter) || m_inputManager.keyPressed(KeyboardKey::V))
@@ -254,7 +265,7 @@ namespace ggj
         if (m_world->getPlayerScore(m_playerIndex) != 0)
             m_world->addPlayerScore(m_playerIndex, -1);
 
-        m_soundManager.playSound(SoundName::PlayerHurt);
+        m_world->playPlayerSound(SoundName::PlayerHurt);
         m_world->decrementPlayerLives(m_playerIndex);
 
         const bool isKill = m_world->getPlayerLives(m_playerIndex) <= 0;
@@ -262,7 +273,7 @@ namespace ggj
 
         if (isKill)
         {
-            m_soundManager.playSound(SoundName::PlayerDeath);
+            m_world->playPlayerSound(SoundName::PlayerDeath);
             m_isDead = true;
         }
     }
@@ -276,7 +287,16 @@ namespace ggj
         // A cast in progress is cut short so the wizard is not still "attacking" the moment the stun ends.
         m_isAttacking = false;
         m_attackCounter = 0;
-        m_soundManager.playSound(SoundName::PlayerHurt);
+        m_world->playPlayerSound(SoundName::PlayerHurt);
+    }
+
+    void Player2::freeze(float seconds)
+    {
+        if (m_isDead || m_stunTimer > 0.f || seconds <= 0.f)
+            return;
+
+        stun(seconds);
+        m_isFrozen = isStunned();
     }
 
     void Player2::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact)
@@ -369,7 +389,7 @@ namespace ggj
 
     void Player2::shootMageBall()
     {
-        m_soundManager.playSound(SoundName::WizardShoot);
+        m_world->playPlayerSound(SoundName::WizardShoot);
         const float BASE_PROJ_SPEED = 14.f;
         const float projSpeed = BASE_PROJ_SPEED * m_world->getPlayerTalentEffects(m_playerIndex).projectileSpeedMultiplier;
         const Vector2 dir = Vector2Normalize({ m_lastMoveDirection.x, m_lastMoveDirection.y });

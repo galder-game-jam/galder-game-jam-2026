@@ -23,6 +23,10 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         game/enemies/ButcherEnemy.cpp game/enemies/ButcherEnemy.h
         game/enemies/MeatCleaver.cpp game/enemies/MeatCleaver.h
         game/enemies/ThrownSpider.cpp game/enemies/ThrownSpider.h
+        game/enemies/MageBossEnemy.cpp game/enemies/MageBossEnemy.h
+        game/enemies/IceCircle.cpp game/enemies/IceCircle.h
+        game/enemies/FireLine.cpp game/enemies/FireLine.h
+        game/enemies/CrystalShard.cpp game/enemies/CrystalShard.h
         game/interactables/PowerUp.cpp game/interactables/PowerUp.h game/Hitbox.hpp
         data/PlayerNetworkData.hpp
         data/ServerNetworkData.hpp
@@ -43,7 +47,12 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         data/ButcherConfig.hpp
         data/CleaverSpawnEvent.hpp
         data/SpiderSpawnEvent.hpp
+        data/MageBossConfig.hpp
+        data/IceCircleSpawnEvent.hpp
+        data/FireLineSpawnEvent.hpp
+        data/CrystalSpawnEvent.hpp
         graphics/StunStars.hpp
+        graphics/FrozenBlock.hpp
         interfaces/game/IPlayerLocator.h
         enums/NetMessageType.h
         enums/NetworkRole.h

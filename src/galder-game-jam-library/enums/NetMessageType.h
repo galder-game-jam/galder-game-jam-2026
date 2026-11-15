@@ -40,6 +40,10 @@ namespace ggj
         RootSpawned,       ///< Server -> Client: the treant threw a root (position = origin, target, flightTime, spikeDelay).
         CleaverSpawned,    ///< Server -> Client: the butcher threw a cleaver (position, velocity).
         SpiderSpawned,     ///< Server -> Client: the butcher threw a spider (position = origin, target, flightTime).
+        IceCircleSpawned,  ///< Server -> Client: the mage conjured an ice circle (position = centre, radius, delay, duration = freeze time).
+        FireLineSpawned,   ///< Server -> Client: the mage shot a line of fire (position = origin, target = end, delay = warning time, duration = burn time, speed = ignite speed).
+        CrystalSpawned,    ///< Server -> Client: the mage shot a crystal (position, velocity).
+        SoundPlayed,       ///< Either direction: a player triggered a sound effect the others should hear too (objectId = SoundName).
         Chat, ///< Either direction: a chat line. Carried by ChatMessage, not the Client/ServerMessage envelopes.
 
         // --- Host moderation ---

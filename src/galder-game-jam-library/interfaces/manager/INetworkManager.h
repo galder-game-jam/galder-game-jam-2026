@@ -13,12 +13,16 @@
 #include "../../data/ConnectedPlayer.hpp"
 #include "../../data/EnemyNetworkState.hpp"
 #include "../../data/ProjectileEvent.hpp"
+#include "../../data/SoundEvent.hpp"
 #include "../../data/ClaudlingSpawnEvent.hpp"
 #include "../../data/EnemyDamageEvent.hpp"
 #include "../../data/BombSpawnEvent.hpp"
 #include "../../data/RootSpawnEvent.hpp"
 #include "../../data/CleaverSpawnEvent.hpp"
 #include "../../data/SpiderSpawnEvent.hpp"
+#include "../../data/IceCircleSpawnEvent.hpp"
+#include "../../data/FireLineSpawnEvent.hpp"
+#include "../../data/CrystalSpawnEvent.hpp"
 #include "../../data/ChatEntry.hpp"
 #include "../../data/DiscoveredServer.hpp"
 #include "../../../gamedev-base/enums/ConnectionStatus.hpp"
@@ -201,6 +205,45 @@ namespace ggj
          * @return Spider spawns in arrival order
          */
         [[nodiscard]] virtual std::vector<SpiderSpawnEvent> takeSpiderSpawns() = 0;
+
+        /*!
+         * Server: tells every client that the mage conjured an ice circle. No-op when not hosting.
+         *
+         * @param circle Where it is, how large, and when it freezes
+         */
+        virtual void publishIceCircleSpawned(const IceCircleSpawnEvent& circle) = 0;
+        /*!
+         * Client: drains the ice circles the host conjured since the last call.
+         *
+         * @return Ice circle spawns in arrival order
+         */
+        [[nodiscard]] virtual std::vector<IceCircleSpawnEvent> takeIceCircleSpawns() = 0;
+
+        /*!
+         * Server: tells every client that the mage shot a line of fire. No-op when not hosting.
+         *
+         * @param fire Where it starts and ends, and its timing
+         */
+        virtual void publishFireLineSpawned(const FireLineSpawnEvent& fire) = 0;
+        /*!
+         * Client: drains the lines of fire the host shot since the last call.
+         *
+         * @return Fire line spawns in arrival order
+         */
+        [[nodiscard]] virtual std::vector<FireLineSpawnEvent> takeFireLineSpawns() = 0;
+
+        /*!
+         * Server: tells every client that the mage shot a crystal. No-op when not hosting.
+         *
+         * @param crystal Where it starts and how fast it flies
+         */
+        virtual void publishCrystalSpawned(const CrystalSpawnEvent& crystal) = 0;
+        /*!
+         * Client: drains the crystals the host shot since the last call.
+         *
+         * @return Crystal spawns in arrival order
+         */
+        [[nodiscard]] virtual std::vector<CrystalSpawnEvent> takeCrystalSpawns() = 0;
         /*! Feeds the local player's authoritative stats (lives, score, kills, level, resources) for outbound sync. */
         virtual void setLocalPlayerStats(const NetworkPlayerStats& stats) = 0;
         /*!
@@ -251,6 +294,19 @@ namespace ggj
          * @return Fired/impact events in arrival order
          */
         [[nodiscard]] virtual std::vector<ProjectileEvent> takeProjectileEvents() = 0;
+        /*!
+         * Tells the other peers that the local player triggered a sound they should hear too.
+         * Sounds that are not isNetworkedSound() are ignored.
+         *
+         * @param sound The sound the local player just played
+         */
+        virtual void notifyLocalSound(SoundName sound) = 0;
+        /*!
+         * Drains sounds triggered by remote peers received since the last call.
+         *
+         * @return Sound events in arrival order
+         */
+        [[nodiscard]] virtual std::vector<SoundEvent> takeSoundEvents() = 0;
         /*! Object ids the server has declared gone (collected coins / dead enemies). */
         [[nodiscard]] virtual const std::set<uint32_t>& removedObjectIds() const = 0;
 

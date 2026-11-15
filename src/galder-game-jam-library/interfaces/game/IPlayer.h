@@ -80,7 +80,15 @@ namespace ggj
              */
             virtual void stun(float seconds) = 0;
 
-            /*! @return True while the player is stunned. */
+            /*!
+             * Freezes the player in a block of ice: a stun that looks like ice instead of dizziness.
+             * Like stun(), it does nothing to a dead or an already stunned player.
+             *
+             * @param seconds How long the freeze lasts
+             */
+            virtual void freeze(float seconds) = 0;
+
+            /*! @return True while the player is stunned, frozen or not. */
             [[nodiscard]] virtual bool isStunned() const = 0;
     };
 } // namespace ggj

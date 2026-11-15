@@ -79,6 +79,12 @@ namespace ggj
         [[nodiscard]] std::vector<CleaverSpawnEvent> takeCleaverSpawns() override;
         void publishSpiderSpawned(const SpiderSpawnEvent& spider) override;
         [[nodiscard]] std::vector<SpiderSpawnEvent> takeSpiderSpawns() override;
+        void publishIceCircleSpawned(const IceCircleSpawnEvent& circle) override;
+        [[nodiscard]] std::vector<IceCircleSpawnEvent> takeIceCircleSpawns() override;
+        void publishFireLineSpawned(const FireLineSpawnEvent& fire) override;
+        [[nodiscard]] std::vector<FireLineSpawnEvent> takeFireLineSpawns() override;
+        void publishCrystalSpawned(const CrystalSpawnEvent& crystal) override;
+        [[nodiscard]] std::vector<CrystalSpawnEvent> takeCrystalSpawns() override;
         void setLocalPlayerStats(const NetworkPlayerStats& stats) override { m_localStats = stats; }
         void setCurrentStage(int32_t stageIndex) override;
         [[nodiscard]] std::optional<int32_t> takeRequestedStage() override;
@@ -88,6 +94,8 @@ namespace ggj
         void notifyLocalProjectileFired(uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity) override;
         void notifyLocalProjectileImpact(uint32_t projectileId, const raylib::Vector2& position) override;
         [[nodiscard]] std::vector<ProjectileEvent> takeProjectileEvents() override;
+        void notifyLocalSound(SoundName sound) override;
+        [[nodiscard]] std::vector<SoundEvent> takeSoundEvents() override;
         [[nodiscard]] const std::set<uint32_t>& removedObjectIds() const override { return m_removedObjectIds; }
 
         [[nodiscard]] std::vector<ConnectedPlayer> connectedPlayers() const override;
@@ -118,6 +126,8 @@ namespace ggj
         void sendProjectileEvent(NetMessageType type, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity);
         /*! Queues a chat line for takeChatMessages(), dropping the oldest when nobody drains. */
         void queueChatMessage(const ChatMessage& message);
+        /*! Queues a remote sound for takeSoundEvents(); ignores ids that are not networked sounds. */
+        void queueSoundEvent(uint32_t ownerId, uint32_t soundId);
         void queueProjectileEvent(NetMessageType type, uint32_t ownerId, uint32_t projectileId, const raylib::Vector2& position, const raylib::Vector2& velocity);
 
         ILogger& m_logger;
@@ -145,6 +155,8 @@ namespace ggj
         std::map<uint32_t, EnemyNetworkState> m_enemyStates;  ///< Client: latest enemy position + flip.
         std::vector<ProjectileEvent> m_projectileEvents;       ///< Remote projectile events awaiting the World.
         static constexpr size_t MAX_QUEUED_PROJECTILE_EVENTS = 256; ///< Guards against growth while no World drains.
+        std::vector<SoundEvent> m_soundEvents;                 ///< Remote sound events awaiting the World.
+        static constexpr size_t MAX_QUEUED_SOUND_EVENTS = 64;  ///< Guards against growth while no World drains.
         std::set<uint32_t> m_removedObjectIds;                ///< Authoritative removed object ids.
         std::set<uint32_t> m_locallyCreditedKills;            ///< Client: removed enemies the host credited to us.
         std::vector<EnemyDamageEvent> m_enemyDamageEvents;    ///< Server: client boss hits awaiting the World.
@@ -153,6 +165,9 @@ namespace ggj
         std::vector<RootSpawnEvent> m_rootSpawns;             ///< Client: host root throws awaiting the World.
         std::vector<CleaverSpawnEvent> m_cleaverSpawns;       ///< Client: host cleaver throws awaiting the World.
         std::vector<SpiderSpawnEvent> m_spiderSpawns;         ///< Client: host spider throws awaiting the World.
+        std::vector<IceCircleSpawnEvent> m_iceCircleSpawns;   ///< Client: host ice circles awaiting the World.
+        std::vector<FireLineSpawnEvent> m_fireLineSpawns;     ///< Client: host lines of fire awaiting the World.
+        std::vector<CrystalSpawnEvent> m_crystalSpawns;       ///< Client: host crystals awaiting the World.
         static constexpr size_t MAX_QUEUED_WORLD_EVENTS = 256; ///< Guards against growth while no World drains.
         std::vector<ChatEntry> m_chatMessages;                 ///< Chat lines awaiting the chat box.
         static constexpr size_t MAX_QUEUED_CHAT_MESSAGES = 64; ///< Guards against growth while no chat box drains.

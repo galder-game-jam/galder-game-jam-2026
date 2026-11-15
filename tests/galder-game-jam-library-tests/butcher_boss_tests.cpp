@@ -191,7 +191,7 @@ TEST_CASE("ThrownSpider - legs flail through every frame of the strip and wrap a
     REQUIRE(ThrownSpider::FrameIndex(-1.f) == 0);
 }
 
-TEST_CASE("ThrownSpider - splats against an obstacle between the butcher and the player", "[butcher]")
+TEST_CASE("ThrownSpider - flies over an obstacle between the butcher and the player", "[butcher]")
 {
     b2World world { { 0.f, 0.f } };
     b2Body* pillar = createBox(world, b2_staticBody, { 4.f, 0.f }, { 0.5f, 1.f });
@@ -201,8 +201,8 @@ TEST_CASE("ThrownSpider - splats against an obstacle between the butcher and the
     const SpiderSpawnEvent spawn { { 0.f, 0.f }, { 8.f * PhysicsObject::PPM, 0.f }, 1.f };
     b2Body* spider = ThrownSpider::CreateBody(world, spawn);
 
-    REQUIRE(touchesTerrainWithin(world, *spider, 1.f));
-    REQUIRE(spider->GetPosition().x < 4.f);
+    REQUIRE_FALSE(touchesTerrainWithin(world, *spider, 1.f));
+    REQUIRE(spider->GetPosition().x > 7.f); // Sailed past the pillar towards its target.
 }
 
 TEST_CASE("ButcherConfig - clamps nonsense map values", "[butcher]")

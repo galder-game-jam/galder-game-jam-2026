@@ -74,6 +74,7 @@ namespace ggj
         void beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact) override;
         void takeHit() override;
         void stun(float seconds) override;
+        void freeze(float seconds) override;
         [[nodiscard]] bool isStunned() const override { return m_stunTimer > 0.f; }
         void update(float timeDelta) override;
         void draw() override;
@@ -101,8 +102,10 @@ namespace ggj
         static constexpr float DAMAGE_COOLDOWN_SECONDS = 2.f; ///< Invulnerability window after taking damage
         static constexpr float DAMAGE_BLINK_INTERVAL = 0.1f;  ///< Sprite blink half-period while invulnerable
         float m_damageCooldown { 0.f };                       ///< Seconds of invulnerability left
+        bool m_isFrozen { false };                            ///< The current stun is a freeze: drawn as ice, not dizziness
         float m_stunTimer { 0.f };                            ///< Seconds of stun left; the player can neither move nor attack
         static constexpr ::Color STUN_TINT { 190, 255, 150, 255 }; ///< Sickly green: the spider's venom
+        static constexpr ::Color FREEZE_TINT { 150, 210, 255, 255 }; ///< Icy blue: the mage's frost
         static constexpr float STUN_STARS_HEIGHT = 20.f;           ///< How far above the sprite's centre the dizzy stars circle (pixels)
         raylib::Vector2 m_lastMoveDirection { 1.f, 0.f }; ///< Last non-zero input direction, used for projectile aim
 

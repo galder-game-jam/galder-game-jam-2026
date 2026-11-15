@@ -26,8 +26,35 @@ namespace ggj
         PlayerRespawn = 16,   ///< Death scream reversed, played when the player respawns.
         PortalOpen = 17,      ///< Played when all enemies are cleared and the portal activates.
         ExtraLife = 18,       ///< 1-up chime played when the player gains an extra life.
-        WizardShoot = 19      ///< Magic zap played when the wizard fires a mage ball.
+        WizardShoot = 19,     ///< Magic zap played when the wizard fires a mage ball.
+        AbilityNotReady = 20  ///< Error buzz played when an attack is attempted without enough resources.
     };
+
+    /*!
+     * Whether a sound is broadcast to the other netplay peers when the local player triggers it.
+     * Doubles as the receive-side whitelist, so a peer cannot make us play arbitrary sounds.
+     * Self-feedback (AbilityNotReady) and world sounds the peers already trigger from synced
+     * state (coins, enemy deaths, portals) are deliberately excluded.
+     *
+     * @param id Sound to test
+     * @return true if the sound is relayed to other players
+     */
+    [[nodiscard]] constexpr bool isNetworkedSound(SoundName id)
+    {
+        switch (id)
+        {
+            case SoundName::PlayerAttack:
+            case SoundName::WizardShoot:
+            case SoundName::PlayerHurt:
+            case SoundName::PlayerDeath:
+            case SoundName::PlayerRespawn:
+            case SoundName::LevelUp:
+            case SoundName::ExtraLife:
+                return true;
+            default:
+                return false;
+        }
+    }
 } // namespace ggj
 
 #endif // GALDER_GAME_JAM_2026_SOUNDNAME_H

@@ -167,8 +167,12 @@ namespace ggj
         m_rootSpawns.clear();
         m_cleaverSpawns.clear();
         m_spiderSpawns.clear();
+        m_iceCircleSpawns.clear();
+        m_fireLineSpawns.clear();
+        m_crystalSpawns.clear();
         m_spawnedClaudlings.clear();
         m_projectileEvents.clear();
+        m_soundEvents.clear();
         m_isPortalEntered = false;
         m_hasPendingRemotePortalEntry = false;
     }
@@ -331,6 +335,22 @@ namespace ggj
                     relay.objectId = message.objectId;
                     relay.position = message.position;
                     relay.velocity = message.velocity;
+                    m_server->broadcast(relay);
+                    break;
+                }
+                case NetMessageType::SoundPlayed:
+                {
+                    auto it = m_connectionToPlayerId.find(connection);
+                    if (it == m_connectionToPlayerId.end() || message.stageIndex != m_currentStage || message.objectId > std::numeric_limits<uint16_t>::max() ||
+                        !isNetworkedSound(static_cast<SoundName>(message.objectId)))
+                        break;
+
+                    queueSoundEvent(it->second, message.objectId);
+
+                    ServerMessage relay {};
+                    relay.type = NetMessageType::SoundPlayed;
+                    relay.playerId = it->second;
+                    relay.objectId = message.objectId;
                     m_server->broadcast(relay);
                     break;
                 }
@@ -559,6 +579,18 @@ namespace ggj
                     if (m_spiderSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
                         m_spiderSpawns.push_back(SpiderSpawnEvent { message.position, message.target, message.flightTime });
                     break;
+                case NetMessageType::IceCircleSpawned:
+                    if (m_iceCircleSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
+                        m_iceCircleSpawns.push_back(IceCircleSpawnEvent { message.position, message.radius, message.delay, message.duration });
+                    break;
+                case NetMessageType::FireLineSpawned:
+                    if (m_fireLineSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
+                        m_fireLineSpawns.push_back(FireLineSpawnEvent { message.position, message.target, message.delay, message.duration, message.speed });
+                    break;
+                case NetMessageType::CrystalSpawned:
+                    if (m_crystalSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
+                        m_crystalSpawns.push_back(CrystalSpawnEvent { message.position, message.velocity });
+                    break;
                 case NetMessageType::ClaudlingSpawned:
                     if (m_claudlingSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
                         m_claudlingSpawns.push_back(ClaudlingSpawnEvent { message.objectId, message.targetPlayerId, message.position, message.followSpeed, message.knockback });
@@ -571,6 +603,11 @@ namespace ggj
                     // The server relays to everyone, including the shooter; skip our own.
                     if (message.playerId != m_localPlayerId)
                         queueProjectileEvent(message.type, message.playerId, message.objectId, message.position, message.velocity);
+                    break;
+                case NetMessageType::SoundPlayed:
+                    // The server relays to everyone, including the sender; ours already played locally.
+                    if (message.playerId != m_localPlayerId)
+                        queueSoundEvent(message.playerId, message.objectId);
                     break;
                 default:
                     break;
@@ -888,6 +925,71 @@ namespace ggj
         return spiders;
     }
 
+    void NetworkManager::publishIceCircleSpawned(const IceCircleSpawnEvent& circle)
+    {
+        if (m_role != NetworkRole::Server || !m_server)
+            return;
+
+        // Not kept for late joiners: a circle is gone within a couple of seconds.
+        ServerMessage message {};
+        message.type = NetMessageType::IceCircleSpawned;
+        message.position = circle.center;
+        message.radius = circle.radius;
+        message.delay = circle.delay;
+        message.duration = circle.freezeSeconds;
+        m_server->broadcast(message);
+    }
+
+    std::vector<IceCircleSpawnEvent> NetworkManager::takeIceCircleSpawns()
+    {
+        std::vector<IceCircleSpawnEvent> circles;
+        circles.swap(m_iceCircleSpawns);
+        return circles;
+    }
+
+    void NetworkManager::publishFireLineSpawned(const FireLineSpawnEvent& fire)
+    {
+        if (m_role != NetworkRole::Server || !m_server)
+            return;
+
+        // Not kept for late joiners: a line of fire is gone within a few seconds.
+        ServerMessage message {};
+        message.type = NetMessageType::FireLineSpawned;
+        message.position = fire.origin;
+        message.target = fire.end;
+        message.delay = fire.warningSeconds;
+        message.duration = fire.burnSeconds;
+        message.speed = fire.igniteSpeed;
+        m_server->broadcast(message);
+    }
+
+    std::vector<FireLineSpawnEvent> NetworkManager::takeFireLineSpawns()
+    {
+        std::vector<FireLineSpawnEvent> lines;
+        lines.swap(m_fireLineSpawns);
+        return lines;
+    }
+
+    void NetworkManager::publishCrystalSpawned(const CrystalSpawnEvent& crystal)
+    {
+        if (m_role != NetworkRole::Server || !m_server)
+            return;
+
+        // Not kept for late joiners: a crystal is gone within a few seconds.
+        ServerMessage message {};
+        message.type = NetMessageType::CrystalSpawned;
+        message.position = crystal.position;
+        message.velocity = crystal.velocity;
+        m_server->broadcast(message);
+    }
+
+    std::vector<CrystalSpawnEvent> NetworkManager::takeCrystalSpawns()
+    {
+        std::vector<CrystalSpawnEvent> crystals;
+        crystals.swap(m_crystalSpawns);
+        return crystals;
+    }
+
     void NetworkManager::sendWorldStateTo(HSteamNetConnection connection)
     {
         // Claudlings the boss already spawned: the late joiner's map never had them, so without
@@ -948,6 +1050,50 @@ namespace ggj
         std::vector<ProjectileEvent> events;
         events.swap(m_projectileEvents);
         return events;
+    }
+
+    void NetworkManager::notifyLocalSound(SoundName sound)
+    {
+        if (!isNetworkedSound(sound))
+            return;
+
+        if (m_role == NetworkRole::Server && m_server)
+        {
+            ServerMessage message {};
+            message.type = NetMessageType::SoundPlayed;
+            message.playerId = HOST_PLAYER_ID;
+            message.objectId = static_cast<uint32_t>(sound);
+            m_server->broadcast(message);
+        }
+        else if (m_role == NetworkRole::Client && m_client && m_client->status() == ConnectionStatus::Connected)
+        {
+            ClientMessage message {};
+            message.type = NetMessageType::SoundPlayed;
+            message.playerId = m_localPlayerId;
+            message.objectId = static_cast<uint32_t>(sound);
+            message.stageIndex = m_currentStage;
+            m_client->sendToServer(message);
+        }
+    }
+
+    std::vector<SoundEvent> NetworkManager::takeSoundEvents()
+    {
+        std::vector<SoundEvent> events;
+        events.swap(m_soundEvents);
+        return events;
+    }
+
+    void NetworkManager::queueSoundEvent(uint32_t ownerId, uint32_t soundId)
+    {
+        if (m_soundEvents.size() >= MAX_QUEUED_SOUND_EVENTS)
+            return;
+
+        // Untrusted input: only play sounds that are meant to be networked.
+        const SoundName sound = static_cast<SoundName>(soundId);
+        if (soundId > std::numeric_limits<uint16_t>::max() || !isNetworkedSound(sound))
+            return;
+
+        m_soundEvents.push_back(SoundEvent { ownerId, sound });
     }
 
     void NetworkManager::sendChatMessage(const std::string& text)

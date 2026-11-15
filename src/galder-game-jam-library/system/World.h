@@ -39,6 +39,9 @@ namespace ggj
 #include "../data/DialogSpot.hpp"
 #include "../data/CleaverSpawnEvent.hpp"
 #include "../data/SpiderSpawnEvent.hpp"
+#include "../data/IceCircleSpawnEvent.hpp"
+#include "../data/FireLineSpawnEvent.hpp"
+#include "../data/CrystalSpawnEvent.hpp"
 #include "../data/QuestProgress.hpp"
 #include <optional>
 #include <set>
@@ -241,6 +244,14 @@ namespace ggj
         void registerLocalProjectile(Projectile* projectile);
 
         /*!
+         * Plays a sound the local player caused and, in netplay, has the other peers play it too.
+         * Use this instead of ISoundManager::playSound() for player actions (attack, hurt, ...).
+         *
+         * @param sound The sound to play
+         */
+        void playPlayerSound(SoundName sound);
+
+        /*!
          * Queues one Claudling per active player, each chasing its own player, to be spawned
          * around @p position after the current update loop finishes. Must be queued (not spawned
          * immediately) because calling createGameObject during layer iteration would invalidate
@@ -277,6 +288,16 @@ namespace ggj
         bool damageLocalPlayerWithin(const raylib::Vector2& center, float radius);
 
         /*!
+         * Hurts the local player if the lower half of their body (middle of the body down to the feet) touches a spiking treant root (see
+         * TreantRoot::IsInsideSpikeArea()). Unlike damageLocalPlayerWithin() this ignores how tall
+         * the player sprite is, so stepping on the root with your feet hurts and standing clearly beside it does not.
+         *
+         * @param root Where the root lies on the ground (pixels)
+         * @return True if the local player was on the root, whether or not the hit cost them a life
+         */
+        bool damageLocalPlayerOnRoot(const raylib::Vector2& root);
+
+        /*!
          * Stuns the local player if they are within @p radius of @p center. Remote players are
          * stunned by their own peer's copy of the same thing.
          *
@@ -295,6 +316,77 @@ namespace ggj
          * @param radius Radius (pixels)
          */
         [[nodiscard]] bool isAnyPlayerWithin(const raylib::Vector2& center, float radius) const;
+
+        /*!
+         * Freezes the local player if they are within @p radius of @p center. Remote players are
+         * frozen by their own peer's copy of the same thing.
+         *
+         * @param center Centre of the effect (pixels)
+         * @param radius Radius of the effect (pixels)
+         * @param seconds How long the freeze lasts
+         * @return True if the local player was in range
+         */
+        bool freezeLocalPlayerWithin(const raylib::Vector2& center, float radius, float seconds);
+
+        /*!
+         * Hurts the local player if they are within @p halfWidth of the line from @p start to @p end,
+         * as if an enemy touched them. Remote players are hurt by their own peer's copy of the same thing.
+         *
+         * @param start One end of the line (pixels)
+         * @param end The other end of the line (pixels)
+         * @param halfWidth How far either side of the line hurts (pixels)
+         * @return True if the local player was in range
+         */
+        bool damageLocalPlayerAlongSegment(const raylib::Vector2& start, const raylib::Vector2& end, float halfWidth);
+
+        /*!
+         * Queues ice circles for the mage: the first ones land on players (so the spell is a real
+         * threat), the rest anywhere on the map. Each circle freezes whoever is still inside after its
+         * own random delay. Spawned after the current update loop. Host/offline only: clients create
+         * the host's circles when told to.
+         *
+         * @param count Number of circles
+         * @param radius Radius of each circle (pixels)
+         * @param minDelay Shortest time before a circle freezes (seconds)
+         * @param maxDelay Longest time before a circle freezes (seconds)
+         * @param freezeSeconds How long a frozen player stays frozen
+         */
+        void spawnIceCircles(int32_t count, float radius, float minDelay, float maxDelay, float freezeSeconds);
+
+        /*!
+         * Queues lines of fire from @p origin, one per angle, each running in a straight line until
+         * it meets a wall or the edge of the map. Host/offline only: the host tells the clients, which
+         * each create their copy and only hurt their own player.
+         *
+         * @param origin Where every line starts (pixels)
+         * @param angles Direction of each line (radians)
+         * @param warningSeconds Telegraph time before they ignite
+         * @param burnSeconds How long they burn once ignited
+         * @param igniteSpeed How fast the flames race along each line (pixels per second)
+         */
+        void spawnFireLines(const raylib::Vector2& origin, const std::vector<float>& angles, float warningSeconds, float burnSeconds, float igniteSpeed);
+
+        /*!
+         * Queues a fan of pink crystals shot from @p origin. Host/offline only.
+         *
+         * @param origin Where the crystals leave from (pixels)
+         * @param aimAngle Direction of the middle of the fan (radians)
+         * @param count Number of crystals
+         * @param spreadDegrees Total width of the fan
+         * @param speed Crystal speed in pixels per second
+         */
+        void spawnCrystalFan(const raylib::Vector2& origin, float aimAngle, int32_t count, float spreadDegrees, float speed);
+
+        /*!
+         * Queues a ring of pink crystals flying outwards from @p origin in every direction. Host/offline only.
+         *
+         * @param origin Centre of the ring (pixels)
+         * @param count Number of crystals
+         * @param startAngle Direction of the first crystal (radians)
+         * @param speed Crystal speed in pixels per second
+         * @param ringRadius Distance from @p origin each crystal starts at (pixels)
+         */
+        void spawnCrystalRing(const raylib::Vector2& origin, int32_t count, float startAngle, float speed, float ringRadius);
 
         /*!
          * Queues a ring of meat cleavers flying outwards from @p origin, evenly spaced in every
@@ -367,6 +459,9 @@ namespace ggj
         /*! Spawns a floating yellow "+1" coin label in world space above the given position. */
         void spawnCoinFloatingText(raylib::Vector2 pos);
 
+        /*! Spawns a floating red "Ability not ready" label in world space above the given position. */
+        void spawnAbilityNotReadyText(raylib::Vector2 pos);
+
         /*!
          * Finds the NPC closest to the given point that is within its own interaction radius.
          *
@@ -388,6 +483,8 @@ namespace ggj
         static constexpr float FLOATING_TEXT_FONT_SIZE = 12.f;
 
         template <typename T, typename... Args> T* createObject(Args&&... args);
+        /*! Like createObject(), but in the layer drawn underneath the characters (falls back to the objects layer), for decals on the floor. */
+        template <typename T, typename... Args> T* createGroundObject(Args&&... args);
         //Generator logic
         void generatePhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generatePlayer(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
@@ -402,6 +499,7 @@ namespace ggj
         void generateClaude(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateTreant(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateButcher(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
+        void generateMageBoss(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateClaudling(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         void generateGenericPhysicsObject(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData);
         struct PendingClaudlingSpawn
@@ -425,6 +523,24 @@ namespace ggj
 
         /*! Creates a thrown spider (not a networked object and not counted as an enemy). */
         void doSpawnSpider(const SpiderSpawnEvent& spider);
+
+        /*! Creates an ice circle on the floor (not a networked object and not counted as an enemy). */
+        void doSpawnIceCircle(const IceCircleSpawnEvent& circle);
+
+        /*! Creates a line of fire on the floor (not a networked object and not counted as an enemy). */
+        void doSpawnFireLine(const FireLineSpawnEvent& fire);
+
+        /*! Creates a pink crystal (not a networked object and not counted as an enemy). */
+        void doSpawnCrystal(const CrystalSpawnEvent& crystal);
+
+        /*!
+         * Where a line of fire from @p origin ends: the first wall it meets, or the edge of the map.
+         *
+         * @param origin Where the line starts (pixels)
+         * @param angle Direction of the line (radians)
+         * @return The end of the line (pixels)
+         */
+        [[nodiscard]] raylib::Vector2 fireLineEnd(const raylib::Vector2& origin, float angle);
         void flushPendingSpawns();
         void destroyMarkedObjects();
         void drawRemotePlayers();
@@ -434,6 +550,8 @@ namespace ggj
         void syncLocalProjectiles();
         /*! Spawns/explodes/advances the visual-only projectiles fired by remote peers. */
         void updateRemoteProjectiles(float timeDelta);
+        /*! Plays the sound effects the remote peers triggered since the last frame. */
+        void playRemoteSounds();
         void drawRemoteProjectiles();
 
         /*!
@@ -513,6 +631,9 @@ namespace ggj
         std::vector<RootSpawnEvent> m_pendingRootSpawns;
         std::vector<CleaverSpawnEvent> m_pendingCleaverSpawns;
         std::vector<SpiderSpawnEvent> m_pendingSpiderSpawns;
+        std::vector<IceCircleSpawnEvent> m_pendingIceCircleSpawns;
+        std::vector<FireLineSpawnEvent> m_pendingFireLineSpawns;
+        std::vector<CrystalSpawnEvent> m_pendingCrystalSpawns;
 
         PhysicsObject* m_boss        { nullptr };
         std::string    m_bossName    {};
@@ -533,6 +654,7 @@ namespace ggj
         raylib::Texture* m_wizardTexture { nullptr };
         raylib::Vector2 m_playerSpriteOrigin {};
         float m_playerSpriteHeight { 0.0f };
+        float m_playerBodyHalfWidth { 0.0f }; ///< Half the width of the local player's physics body (pixels).
 
         /*! A projectile fired by the local player, tracked so its impact can be reported once. */
         struct LocalProjectile
@@ -608,6 +730,18 @@ namespace ggj
         T* obj = createObject<T>(m_animationManager, m_mapper, body, size, size, rect, tex, userData, velocity, this, timeToLive, isVisible);
         m_userDataManager.addUserData(body, obj);
         return obj;
+    }
+
+    template <typename T, typename... Args> T* World::createGroundObject(Args&&... args)
+    {
+        for (auto& layer : m_layers)
+        {
+            if (layer.second.getName() == "background_objects")
+            {
+                return layer.second.createGameObject<T>(args...);
+            }
+        }
+        return createObject<T>(args...);
     }
 
     template <typename T, typename... Args> T* World::createObject(Args&&... args)

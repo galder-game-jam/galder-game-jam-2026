@@ -263,14 +263,19 @@
                          "value":"Elder Treant"
                         }, 
                         {
+                         "name":"charge_speed",
+                         "type":"float",
+                         "value":25
+                        }, 
+                        {
                          "name":"death_root_count",
                          "type":"int",
-                         "value":100
+                         "value":200
                         }, 
                         {
                          "name":"enraged_root_count",
                          "type":"int",
-                         "value":15
+                         "value":40
                         }, 
                         {
                          "name":"follow_speed",
@@ -305,7 +310,7 @@
                         {
                          "name":"root_count",
                          "type":"int",
-                         "value":10
+                         "value":20
                         }, 
                         {
                          "name":"root_max_spike_delay",

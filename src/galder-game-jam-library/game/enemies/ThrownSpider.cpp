@@ -33,7 +33,7 @@ namespace ggj
         fd.density = 1.0f;
         fd.isSensor = true; // Never shoves anything; the splat is decided in update().
         fd.filter.categoryBits = CollisionCategory::THROWN;
-        fd.filter.maskBits = CollisionCategory::TERRAIN;
+        fd.filter.maskBits = 0; // It is lobbed through the air, so it flies over walls and obstacles.
         body->CreateFixture(&fd);
 
         const raylib::Vector2 velocity = LaunchVelocity(spawn);
@@ -77,8 +77,8 @@ namespace ggj
             return;
         }
 
-        // Splats against the first wall or obstacle, or on the floor where it lands.
-        if (CollisionCategory::IsTouchingTerrain(*m_body) || m_elapsed >= m_flightTime)
+        // Flies over everything and only splats on the floor where it lands.
+        if (m_elapsed >= m_flightTime)
             splat();
     }
 
