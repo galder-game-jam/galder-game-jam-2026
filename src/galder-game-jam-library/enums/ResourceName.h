@@ -151,6 +151,7 @@ namespace ggj
         SoundPortalOpen = 616,
         SoundExtraLife = 617,
         SoundWizardShoot = 618,
+        SoundAbilityNotReady = 619,
 
         MusicForest1 = 700,
         MusicForest2 = 701,

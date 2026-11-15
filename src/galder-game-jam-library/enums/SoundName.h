@@ -26,7 +26,8 @@ namespace ggj
         PlayerRespawn = 16,   ///< Death scream reversed, played when the player respawns.
         PortalOpen = 17,      ///< Played when all enemies are cleared and the portal activates.
         ExtraLife = 18,       ///< 1-up chime played when the player gains an extra life.
-        WizardShoot = 19      ///< Magic zap played when the wizard fires a mage ball.
+        WizardShoot = 19,     ///< Magic zap played when the wizard fires a mage ball.
+        AbilityNotReady = 20  ///< Error buzz played when an attack is attempted without enough resources.
     };
 } // namespace ggj
 

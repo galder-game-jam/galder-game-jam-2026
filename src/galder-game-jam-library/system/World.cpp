@@ -380,6 +380,15 @@ namespace ggj
         m_floatingTexts.push_back(e);
     }
 
+    void World::spawnAbilityNotReadyText(raylib::Vector2 pos)
+    {
+        FloatingTextEntry e;
+        e.position = raylib::Vector2 { pos.x - 38.f, pos.y - 28.f };
+        e.text  = "Ability not ready";
+        e.color = Color { 230, 50, 50, 255 };
+        m_floatingTexts.push_back(e);
+    }
+
     void World::draw()
     {
         m_window.ClearBackground(m_backgroundColor);

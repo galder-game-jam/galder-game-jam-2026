@@ -366,6 +366,9 @@ namespace ggj
         /*! Spawns a floating yellow "+1" coin label in world space above the given position. */
         void spawnCoinFloatingText(raylib::Vector2 pos);
 
+        /*! Spawns a floating red "Ability not ready" label in world space above the given position. */
+        void spawnAbilityNotReadyText(raylib::Vector2 pos);
+
         /*!
          * Finds the NPC closest to the given point that is within its own interaction radius.
          *
