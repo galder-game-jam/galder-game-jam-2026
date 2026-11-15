@@ -5,6 +5,7 @@
 #ifndef GAME_DEV_TEMPLATE_OBJECTGENERATORDATA_HPP
 #define GAME_DEV_TEMPLATE_OBJECTGENERATORDATA_HPP
 
+#include <optional>
 #include <string>
 #include "raylib-cpp.hpp"
 #include "UserData.hpp"
@@ -29,7 +30,7 @@ namespace ggj
         float followSpeed { 0.f };
         float followRange { 0.f }; ///< Ghost: pixels within which it starts following a player.
         bool isFacingLeft { false }; ///< Bat: faces left (true) or right (false) whichever way it flies.
-        float knockback   { 0.f };
+        std::optional<float> knockback {}; ///< Only set when the map gives `knockback`; then it replaces the enemy's default, 0 included.
         float idleTime    { 2.5f }; ///< King Claude: base seconds spent in each state before rolling the next.
 
         bool        isBoss   { false };

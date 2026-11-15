@@ -23,14 +23,17 @@ namespace ggj
     class Ghost : public PhysicsSprite
     {
         public:
+            /*! Impulse pushing a player away on contact when the map gives no `knockback`. */
+            static constexpr float DEFAULT_KNOCKBACK = 50.f;
+
             Ghost() = default;
             Ghost(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &animationManager, IMapper &mapper, ggj::ISoundManager &soundManager, b2Body *body,
             const raylib::Vector2 &physicsSize,
             const raylib::Vector2 &spriteSize,
             const raylib::Rectangle &drawingRect, raylib::Texture * texture, const UserData &userData, float followRange, float followSpeed, IPlayerLocator* players,
-            int lives = 1, bool isVisible = true)
+            float knockback, int lives = 1, bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager {animationManager}, m_mapper{mapper},
-              m_soundManager {soundManager}, m_followRange{followRange}, m_followSpeed{followSpeed}, m_players{players}
+              m_soundManager {soundManager}, m_followRange{followRange}, m_followSpeed{followSpeed}, m_knockback{knockback}, m_players{players}
             {
                 m_lives = lives;
                 // The map only gives a 16x16 box at the feet; cover the visible cloud-mate instead.
@@ -65,6 +68,7 @@ namespace ggj
             Animation m_animation;
             float m_followRange { 0.f }; ///< Pixels.
             float m_followSpeed { 0.f };
+            float m_knockback { DEFAULT_KNOCKBACK };
             IPlayerLocator* m_players { nullptr };
             std::optional<uint32_t> m_targetPlayerId {}; ///< Network player id being followed.
     };

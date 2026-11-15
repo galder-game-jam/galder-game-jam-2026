@@ -42,20 +42,20 @@ namespace ggj
             if(m_velocity.x != 0.f)
             {
                 if(m_velocity.x < 0.f && playerVelocity.x < 0.f)
-                    body->ApplyLinearImpulseToCenter({50.f, 0.f}, true);
+                    body->ApplyLinearImpulseToCenter({m_knockback, 0.f}, true);
                 else if(m_velocity.x > 0.f && playerVelocity.x > 0.f)
-                    body->ApplyLinearImpulseToCenter({-50.f, 0.f}, true);
+                    body->ApplyLinearImpulseToCenter({-m_knockback, 0.f}, true);
                 else
-                    body->ApplyLinearImpulseToCenter({m_velocity.x < 0.f ? -50.f : 50.f, 0.f}, true);
+                    body->ApplyLinearImpulseToCenter({m_velocity.x < 0.f ? -m_knockback : m_knockback, 0.f}, true);
             }
             if(m_velocity.y != 0.f)
             {
                 if(m_velocity.y < 0.f && playerVelocity.y < 0.f)
-                    body->ApplyLinearImpulseToCenter({0.f, 50.f}, true);
+                    body->ApplyLinearImpulseToCenter({0.f, m_knockback}, true);
                 else if(m_velocity.y > 0.f && playerVelocity.y > 0.f)
-                    body->ApplyLinearImpulseToCenter({0.f, -50.f}, true);
+                    body->ApplyLinearImpulseToCenter({0.f, -m_knockback}, true);
                 else
-                    body->ApplyLinearImpulseToCenter({0.f, m_velocity.y < 0.f ? -50.f : 50.f}, true);
+                    body->ApplyLinearImpulseToCenter({0.f, m_velocity.y < 0.f ? -m_knockback : m_knockback}, true);
             }
         }
         else if(userDataB->getObjectType() == ObjectType::Projectile)

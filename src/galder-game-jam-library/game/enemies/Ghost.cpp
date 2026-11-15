@@ -44,11 +44,10 @@ namespace ggj
         if(userDataB->getObjectType() == ObjectType::Player)
         {
             // The ghost can come from any direction, so push the player straight away from it.
-            static constexpr float KNOCKBACK_IMPULSE = 50.f;
             const raylib::Vector2 away = b->getPosition() - getPosition();
             const float length = away.Length();
             if (length > 0.001f)
-                b->getBody()->ApplyLinearImpulseToCenter({ away.x / length * KNOCKBACK_IMPULSE, away.y / length * KNOCKBACK_IMPULSE }, true);
+                b->getBody()->ApplyLinearImpulseToCenter({ away.x / length * m_knockback, away.y / length * m_knockback }, true);
         }
         else if(userDataB->getObjectType() == ObjectType::Projectile)
         {

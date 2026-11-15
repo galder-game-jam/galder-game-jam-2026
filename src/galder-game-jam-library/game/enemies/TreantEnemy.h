@@ -44,6 +44,9 @@ namespace ggj
     class TreantEnemy : public PhysicsSprite
     {
         public:
+            /*! Impulse pushing a player away on contact when the map gives no `knockback`. */
+            static constexpr float DEFAULT_KNOCKBACK = 0.f;
+
         TreantEnemy() = default;
         TreantEnemy(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName>& animationManager, IMapper& mapper, ggj::ISoundManager& soundManager, b2Body* body,
                     const raylib::Vector2& physicsSize, const raylib::Vector2& spriteSize, const raylib::Rectangle& drawingRect, raylib::Texture* texture, const UserData& userData,
