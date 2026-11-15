@@ -52,6 +52,14 @@ namespace ggj
         {
             m_portalTimer = m_map->get<int>("portal_timer");
         }
+        if (m_map->getProp("require_all_monsters_killed") != nullptr)
+        {
+            m_isAllEnemiesRequired = m_map->get<bool>("require_all_monsters_killed");
+        }
+        if (m_map->getProp("require_all_coins_collected") != nullptr)
+        {
+            m_isAllCoinsRequired = m_map->get<bool>("require_all_coins_collected");
+        }
         m_cameraDefault = m_camera.target;
 
         int32_t layerIndex = 0;
@@ -157,6 +165,10 @@ namespace ggj
                                 generatorData.lives = value.getValue<int>();
                             else if (key == "follow_speed")
                                 generatorData.followSpeed = value.getValue<float>();
+                            else if (key == "follow_range")
+                                generatorData.followRange = value.getValue<float>();
+                            else if (key == "face_left")
+                                generatorData.isFacingLeft = value.getValue<bool>();
                             else if (key == "knockback")
                                 generatorData.knockback = value.getValue<float>();
                             else if (key == "is_boss")
@@ -1071,7 +1083,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Bat>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity, generatorData.lives);
+                    generatorData.userData, generatorData.velocity, generatorData.isFacingLeft, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -1178,6 +1190,8 @@ namespace ggj
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
                     generatorData.userData, generatorData.velocity);
                 m_userDataManager.addUserData(body, physicsObject);
+                if (physicsObject != nullptr)
+                    ++m_numberOfCoins;
             }
         }
     }
@@ -1266,7 +1280,7 @@ namespace ggj
 
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::Ghost>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
-                    generatorData.userData, generatorData.velocity, generatorData.lives);
+                    generatorData.userData, generatorData.followRange, generatorData.followSpeed, this, generatorData.lives);
                 m_userDataManager.addUserData(body, physicsObject);
             }
         }
@@ -1351,6 +1365,31 @@ namespace ggj
         return std::max(0, m_numberOfEnemies
                                - (m_player->getUserData()->enemiesKilled)
                                - m_networkRemovedEnemyCount);
+    }
+
+    int World::getNumberOfCoinsLeft() const
+    {
+        // Every coin is a network object, also offline. Picked-up coins are destroyed, and coins a
+        // peer picked up are removed from the registry, so counting the living ones covers both.
+        int coinsLeft = 0;
+        for (const auto& [id, obj] : m_networkObjects)
+        {
+            if (obj->getUserData()->getObjectType() == ObjectType::Coin && !obj->shouldBeDestroyed())
+                ++coinsLeft;
+        }
+        return coinsLeft;
+    }
+
+    QuestProgress World::getQuestProgress() const
+    {
+        QuestProgress progress {};
+        progress.isAllEnemiesRequired = m_isAllEnemiesRequired;
+        progress.isAllCoinsRequired = m_isAllCoinsRequired;
+        progress.enemiesTotal = m_numberOfEnemies;
+        progress.enemiesLeft = getNumberOfEnemiesLeft();
+        progress.coinsTotal = m_numberOfCoins;
+        progress.coinsLeft = getNumberOfCoinsLeft();
+        return progress;
     }
 
     std::string World::getLeadingPlayer() const

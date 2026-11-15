@@ -15,7 +15,7 @@ namespace ggj
             //         teleport();
             //     }
             // }
-            if (m_world->getNumberOfEnemiesLeft() == 0 && enter())
+            if (m_world->getQuestProgress().isComplete() && enter())
                 m_world->notifyLocalPortalEntered();
         }
     }
@@ -31,7 +31,7 @@ namespace ggj
         //     if(m_activationTimer > m_activationTimeInSeconds)
         //         activate();
         // }
-        if(!m_hasActivated && m_world->getNumberOfEnemiesLeft() == 0)
+        if(!m_hasActivated && m_world->getQuestProgress().isComplete())
         {
             m_hasActivated = true;
             activate();

@@ -196,14 +196,24 @@ namespace ggj
             }
         }
 
-        int enemies = m_currentWorld->getEnemies();
-        int enemiesLeft = m_currentWorld->getNumberOfEnemiesLeft();
+        const QuestProgress quest = m_currentWorld->getQuestProgress();
+        const bool isOpen = quest.isComplete();
 
-        int enemiesKilled = enemies - enemiesLeft;
-        bool isOpen = enemiesKilled == enemies;
-
+        // Only the goals this map requires get a line; the portal status always sits on the last line.
+        static constexpr float LINE_HEIGHT = 20.0f;
+        float lineY = offset.y + 27;
         m_font->DrawText(TextFormat("Quest Log"), raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 7 }, FONT_SIZE, 0, tinted(YELLOW));
-        m_font->DrawText(TextFormat("Kill enemies %i/%i", enemiesKilled, enemies), raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 27 }, FONT_SIZE, 0, tinted(BLACK));
+        if (quest.isAllEnemiesRequired)
+        {
+            m_font->DrawText(TextFormat("Kill enemies %i/%i", quest.enemiesKilled(), quest.enemiesTotal), raylib::Vector2 { offset.x + TILE_UNIT, lineY }, FONT_SIZE, 0,
+                             tinted(quest.enemiesLeft <= 0 ? DARKGREEN : BLACK));
+            lineY += LINE_HEIGHT;
+        }
+        if (quest.isAllCoinsRequired)
+        {
+            m_font->DrawText(TextFormat("Collect coins %i/%i", quest.coinsCollected(), quest.coinsTotal), raylib::Vector2 { offset.x + TILE_UNIT, lineY }, FONT_SIZE, 0,
+                             tinted(quest.coinsLeft <= 0 ? DARKGREEN : BLACK));
+        }
         m_font->DrawText(TextFormat("Portal is %s", isOpen ? "open" : "closed"), raylib::Vector2 { offset.x + TILE_UNIT, offset.y + 67 }, FONT_SIZE, 0, tinted(isOpen ? GREEN : RED));
     }
 

@@ -21,7 +21,7 @@ namespace ggj
             Bat(ggj::IAnimationManager<ggj::Animation, ggj::AnimationName> &animationManager, IMapper &mapper, ggj::ISoundManager &soundManager, b2Body *body,
             const raylib::Vector2 &physicsSize,
             const raylib::Vector2 &spriteSize,
-            const raylib::Rectangle &drawingRect, raylib::Texture * texture, const UserData &userData, const raylib::Vector2 &velocity, int lives = 1, bool isVisible = true)
+            const raylib::Rectangle &drawingRect, raylib::Texture * texture, const UserData &userData, const raylib::Vector2 &velocity, bool isFacingLeft, int lives = 1, bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager {animationManager}, m_mapper{mapper},
               m_soundManager {soundManager}, m_velocity{velocity}
             {
@@ -32,7 +32,8 @@ namespace ggj
                 m_body->SetFixedRotation(true);
                 m_animation = m_animationManager.getAnimation(AnimationName::EnemyBatMove);
                 m_body->SetLinearVelocity({m_velocity.x, m_velocity.y});
-                m_flip = m_velocity.x < 0.f;
+                // Map property face_left: the bat keeps this facing however it flies or turns.
+                m_flip = isFacingLeft;
             }
             void move(const raylib::Vector2 &toMove) override;
 
@@ -42,6 +43,12 @@ namespace ggj
 
         private:
             void turn();
+            /*!
+             * Sends the enemy along @p direction at its current speed (enemy_turn_up/down/left/right).
+             *
+             * @param direction Unit direction from EnemyTurn::DirectionFromCommand()
+             */
+            void turnTowards(const raylib::Vector2& direction);
 
             float m_turnTimer{0.f};
             float m_turnTriggerValue{3.f};
