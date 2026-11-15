@@ -19,10 +19,16 @@ namespace ggj
             { "Eyes", { { 0x0c, 0x98, 0xd6, 255 }, { 0x1c, 0x38, 0x45, 255 } } },
         };
 
-        // #dfcdbf is left out of the beard on purpose: the book and staff use it too.
+        // The book and staff share their wood and page colours in the sprite, so they are one slot each
+        // instead of separate ones: the palette swap matches exact colours and can't tell them apart.
+        // The first four slots are also the ones the portrait masks know about (see MaskRecolor).
         const std::vector<PaletteSlot> WIZARD_SLOTS {
             { "Clothes", { { 0x93, 0x2d, 0x8b, 255 }, { 0x5f, 0x2e, 0x5c, 255 }, { 0x43, 0x23, 0x41, 255 }, { 0x26, 0x1a, 0x26, 255 } } },
             { "Beard & hair", { { 0xfd, 0xfd, 0xfd, 255 }, { 0xcb, 0xc3, 0xbc, 255 }, { 0x7c, 0x6c, 0x5e, 255 } } },
+            // The orb's white sparkle (#f5faff) is left out so it stays a highlight.
+            { "Staff tip", { { 0x58, 0xa8, 0xf2, 255 }, { 0x16, 0x60, 0xa5, 255 }, { 0x10, 0x37, 0x5b, 255 } } },
+            { "Staff & book", { { 0xf4, 0xa5, 0x68, 255 }, { 0xb5, 0x73, 0x3f, 255 }, { 0x7a, 0x4b, 0x27, 255 } } },
+            { "Book pages & staff wrap", { { 0xdf, 0xcd, 0xbf, 255 }, { 0x8a, 0x6a, 0x55, 255 }, { 0x62, 0x45, 0x37, 255 } } },
         };
 
         const std::vector<PaletteSlot> NO_SLOTS {};

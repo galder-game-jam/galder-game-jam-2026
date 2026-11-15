@@ -1,6 +1,7 @@
 #include "OptionsScreen.h"
 
 #include "imgui.h"
+#include "ImGuiPlacement.hpp"
 #include "raylib.h"
 
 namespace ggj
@@ -16,6 +17,7 @@ namespace ggj
         m_rebindingAction = -1;
         m_localOptions = m_options.getAudioOptions();
         m_localHudOptions = m_options.getHudOptions();
+        m_localGraphicsOptions = m_options.getGraphicsOptions();
         m_localKeybindingOptions = m_options.getKeybindingOptions();
     }
 
@@ -32,13 +34,9 @@ namespace ggj
         if (!m_isVisible)
             return;
 
-        const ImVec2 size { 360.0f, 540.0f };
-        ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowPos(
-            { SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f },
-            ImGuiCond_FirstUseEver,
-            { 0.5f, 0.5f });
+        imgui::prepareWindow({ 360.0f, 540.0f }, imgui::Anchor::Center);
         ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse);
+        imgui::keepWindowOnScreen();
 
         ImGui::TextUnformatted("UI Scale");
         ImGui::Separator();
@@ -95,6 +93,13 @@ namespace ggj
         hudChanged |= ImGui::Checkbox("Show Inventory##hud", &m_localHudOptions.showInventory);
         if (hudChanged)
             m_options.setHudOptions(m_localHudOptions);
+
+        ImGui::Spacing();
+        ImGui::TextUnformatted("Graphics");
+        ImGui::Separator();
+        if (ImGui::SliderInt("Blood##graphics", &m_localGraphicsOptions.bloodAmount, GraphicsOptions::MIN_BLOOD_AMOUNT, GraphicsOptions::MAX_BLOOD_AMOUNT,
+                             m_localGraphicsOptions.bloodAmount == GraphicsOptions::MAX_BLOOD_AMOUNT ? "%d (gorefest)" : "%d"))
+            m_options.setGraphicsOptions(m_localGraphicsOptions);
 
         ImGui::Spacing();
         ImGui::TextUnformatted("Keybindings");

@@ -1,5 +1,6 @@
 #include "OptionsManager.h"
 #include "tileson.hpp"
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
@@ -49,6 +50,10 @@ namespace ggj
                 m_hudOptions.showInventory = hud["showInventory"].bool_value();
         }
 
+        const json11::Json& graphics = root["graphics"];
+        if (graphics.is_object() && graphics["bloodAmount"].is_number())
+            m_graphicsOptions.bloodAmount = std::clamp(graphics["bloodAmount"].int_value(), GraphicsOptions::MIN_BLOOD_AMOUNT, GraphicsOptions::MAX_BLOOD_AMOUNT);
+
         const json11::Json& kb = root["keybindings"];
         if (kb.is_object())
         {
@@ -90,6 +95,9 @@ namespace ggj
                 { "showMinimap",  m_hudOptions.showMinimap },
                 { "showQuestLog",  m_hudOptions.showQuestLog },
                 { "showInventory", m_hudOptions.showInventory }
+            }},
+            { "graphics", json11::Json::object {
+                { "bloodAmount", m_graphicsOptions.bloodAmount }
             }},
             { "keybindings", json11::Json::object {
                 { "moveUp",    static_cast<int>(m_keybindingOptions.moveUp) },

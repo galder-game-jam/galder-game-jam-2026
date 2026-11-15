@@ -8,7 +8,9 @@
 #include "raylib-cpp.hpp"
 #include "../../gamedev-base/GameDevBase.h"
 #include <functional>
+#include <type_traits>
 #include <utility>
+#include "../graphics/PhysicsObject.h"
 
 namespace ggj
 {
@@ -25,6 +27,13 @@ namespace ggj
 
             template <typename T, typename... Args>
             T * createGameObject(Args &&... args);
+
+            /*!
+             * Sets where physics objects created in this layer from now on bleed.
+             *
+             * @param emitter Blood system; must outlive the layer's objects
+             */
+            void setBloodEmitter(IBloodEmitter* emitter) { m_bloodEmitter = emitter; }
 
             void update(float timeDelta);
             void draw();
@@ -45,6 +54,7 @@ namespace ggj
             int32_t m_layer {};
             std::string m_name{};
             bool m_disableUpdate {};
+            IBloodEmitter* m_bloodEmitter { nullptr };
             std::vector<std::unique_ptr<ggj::IGameObject<raylib::Vector2>>> m_gameObjects;
     };
 
@@ -57,6 +67,8 @@ namespace ggj
 
         m_gameObjects[index]->setLayer(m_layer);
         T* obj = static_cast<T*>(m_gameObjects[index].get());
+        if constexpr (std::is_base_of_v<PhysicsObject, T>)
+            obj->setBloodEmitter(m_bloodEmitter);
 
         return obj;
     }

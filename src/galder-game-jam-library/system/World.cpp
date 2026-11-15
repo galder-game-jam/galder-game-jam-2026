@@ -65,7 +65,10 @@ namespace ggj
             if (layer.getType() == tson::LayerType::TileLayer)
             {
                 if (m_layers.count(layerIndex) == 0)
+                {
                     m_layers[layerIndex] = { layerIndex, true, layer.getName() }; //Tiles are only for drawing and will not be updated
+                    m_layers[layerIndex].setBloodEmitter(&m_blood);
+                }
 
                 for (auto& tileObject : layer.getTileObjects())
                 {
@@ -89,7 +92,10 @@ namespace ggj
             else if (layer.getType() == tson::LayerType::ObjectGroup)
             {
                 if (m_layers.count(layerIndex) == 0)
+                {
                     m_layers[layerIndex] = { layerIndex, false, layer.getName() }; //Objects will have their positions updated!
+                    m_layers[layerIndex].setBloodEmitter(&m_blood);
+                }
 
                 for (auto& obj : layer.getObjects())
                 {
@@ -278,6 +284,7 @@ namespace ggj
             layer.second.update(timeDelta);
         }
 
+        m_blood.update(timeDelta);
         m_hud.update(timeDelta);
         m_dialog.update(timeDelta);
         updateRemotePlayerSprites(timeDelta);
@@ -364,12 +371,22 @@ namespace ggj
     {
         m_window.ClearBackground(m_backgroundColor);
         m_camera.BeginMode();
+        // Stains lie on the ground: under the characters, over the floor tiles.
+        bool hasDrawnStains = false;
         for (auto& layer : m_layers)
         {
+            if (!hasDrawnStains && !layer.second.isTileLayer())
+            {
+                m_blood.drawStains();
+                hasDrawnStains = true;
+            }
             layer.second.draw();
         }
+        if (!hasDrawnStains)
+            m_blood.drawStains();
         drawRemotePlayers();
         drawRemoteProjectiles();
+        m_blood.drawDroplets();
 
         const Font& worldFont = (m_font != nullptr) ? static_cast<const Font&>(*m_font) : GetFontDefault();
         for (const FloatingTextEntry& e : m_floatingTexts)
@@ -414,6 +431,16 @@ namespace ggj
             }
             if (sprite.animation.isValid())
                 sprite.animation.update(timeDelta);
+
+            // Every peer sees the same blood: the owner bleeds locally on a hit, and the lives
+            // it syncs tell everyone else. Not on first sight, or a late joiner would "get hurt".
+            if (!isNew && remote.lives < sprite.lives)
+            {
+                // Same formula as Player::getVisualCenter(), so the blood comes out of the body.
+                const raylib::Vector2 visualCenter { remote.position.x, remote.position.y - m_playerSpriteOrigin.y + m_playerSpriteHeight / 2.f };
+                m_blood.emitBlood(visualCenter, { 0.f, 0.f }, remote.lives <= 0 ? KILL_BLOOD_STRENGTH : 1.f);
+            }
+            sprite.lives = remote.lives;
         }
     }
 
@@ -765,6 +792,17 @@ namespace ggj
         return markers;
     }
 
+    std::vector<const RemotePlayer*> World::getRemotePartyMembers() const
+    {
+        std::vector<const RemotePlayer*> members;
+        if (m_network == nullptr || !m_network->isActive())
+            return members;
+
+        for (const auto& [playerId, remote] : m_network->remotePlayers())
+            members.push_back(&remote);
+        return members;
+    }
+
     std::vector<MinimapMarker> World::getEnemyMarkers() const
     {
         std::vector<MinimapMarker> markers;
@@ -830,7 +868,18 @@ namespace ggj
 
         // Feed the local player's authoritative stats out for syncing.
         if (m_player != nullptr)
-            m_network->setLocalPlayerStats(m_player->getLives(), m_player->getScore(), m_player->getEnemiesKilled());
+        {
+            NetworkPlayerStats stats {};
+            stats.lives = m_player->getLives();
+            stats.score = m_player->getScore();
+            stats.kills = m_player->getEnemiesKilled();
+            stats.level = m_player->getLevel();
+            stats.mana = m_player->getMana();
+            stats.maxMana = m_player->getMaxMana();
+            stats.energy = m_player->getEnergy();
+            stats.maxEnergy = m_player->getMaxEnergy();
+            m_network->setLocalPlayerStats(stats);
+        }
 
         // 1. Apply authoritative removals from the network (objects others destroyed).
         for (uint32_t id : m_network->removedObjectIds())
@@ -842,6 +891,10 @@ namespace ggj
                 // In netplay the host kills the boss for everyone, so this is where each peer sees it die.
                 if (found->second == m_boss)
                     m_soundManager.playSound(SoundName::EnemyDie);
+                // Ordinary enemies die in one hit, so the removal is the only sign that someone
+                // killed this one. The boss already bled when its synced lives dropped.
+                else if (isEnemy)
+                    m_blood.emitBlood(found->second->getPosition(), { 0.f, 0.f }, KILL_BLOOD_STRENGTH);
                 found->second->destroy();
                 m_reportedDestroyed.insert(id);
                 m_networkObjects.erase(found);
@@ -1382,6 +1435,28 @@ namespace ggj
             stats.talentPoints    = talentPoints;
             stats.computedEffects = computeTalentEffects(state);
         }
+    }
+
+    bool World::tickPlayerLifeRegen(int32_t playerIndex, float timeDelta)
+    {
+        if (m_playerStats.count(playerIndex) == 0)
+            return false;
+
+        PlayerStats& stats = m_playerStats[playerIndex];
+        const TalentEffects& fx = stats.computedEffects;
+        if (fx.lifeRegenIntervalSeconds <= 0.f || stats.lives <= 0 || stats.lives >= fx.lifeRegenCap)
+        {
+            stats.lifeRegenTimer = 0.f;
+            return false;
+        }
+
+        stats.lifeRegenTimer += timeDelta;
+        if (stats.lifeRegenTimer < fx.lifeRegenIntervalSeconds)
+            return false;
+
+        stats.lifeRegenTimer = 0.f;
+        ++stats.lives;
+        return true;
     }
 
     void World::spawnClaudlings(raylib::Vector2 position, float followSpeed, float knockback)

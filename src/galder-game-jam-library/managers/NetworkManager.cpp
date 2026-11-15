@@ -142,13 +142,13 @@ namespace ggj
         m_serverName.clear();
         m_cachedLocalIp.clear();
         m_cachedPublicIp.clear();
-        m_localLives = 0;
-        m_localScore = 0;
-        m_localKills = 0;
+        m_localStats = NetworkPlayerStats {};
         m_remotePlayers.clear();
         m_connectionToPlayerId.clear();
         m_nextPlayerId = HOST_PLAYER_ID + 1;
         m_hasSentJoinRequest = false;
+        m_wasKicked = false;
+        m_kickReason.clear();
         m_currentStage = NO_STAGE;
         m_requestedStage.reset();
         m_chatMessages.clear();
@@ -422,9 +422,14 @@ namespace ggj
         hostState.position = m_localPosition;
         hostState.animationState = static_cast<uint8_t>(m_localPlayerState);
         hostState.facingLeft = m_isLocalFacingLeft;
-        hostState.lives = m_localLives;
-        hostState.score = m_localScore;
-        hostState.kills = m_localKills;
+        hostState.lives = m_localStats.lives;
+        hostState.score = m_localStats.score;
+        hostState.kills = m_localStats.kills;
+        hostState.level = m_localStats.level;
+        hostState.mana = m_localStats.mana;
+        hostState.maxMana = m_localStats.maxMana;
+        hostState.energy = m_localStats.energy;
+        hostState.maxEnergy = m_localStats.maxEnergy;
         m_server->broadcast(hostState);
 
         for (const auto& [playerId, remote] : m_remotePlayers)
@@ -442,6 +447,11 @@ namespace ggj
             state.lives = remote.lives;
             state.score = remote.score;
             state.kills = remote.kills;
+            state.level = remote.level;
+            state.mana = remote.mana;
+            state.maxMana = remote.maxMana;
+            state.energy = remote.energy;
+            state.maxEnergy = remote.maxEnergy;
             m_server->broadcast(state);
         }
 
@@ -481,9 +491,14 @@ namespace ggj
             state.position = m_localPosition;
             state.animationState = static_cast<uint8_t>(m_localPlayerState);
             state.facingLeft = m_isLocalFacingLeft;
-            state.lives = m_localLives;
-            state.score = m_localScore;
-            state.kills = m_localKills;
+            state.lives = m_localStats.lives;
+            state.score = m_localStats.score;
+            state.kills = m_localStats.kills;
+            state.level = m_localStats.level;
+            state.mana = m_localStats.mana;
+            state.maxMana = m_localStats.maxMana;
+            state.energy = m_localStats.energy;
+            state.maxEnergy = m_localStats.maxEnergy;
             state.stageIndex = m_currentStage;
             m_client->sendToServer(state);
         }
@@ -555,6 +570,14 @@ namespace ggj
         // The host relays to everyone, including the sender; ours is already queued.
         for (const ChatMessage& chat : m_client->takeInboundChat())
         {
+            if (chat.type == NetMessageType::Kicked)
+            {
+                m_wasKicked = true;
+                m_kickReason = chat.text;
+                m_logger.information(m_kickReason.empty() ? "Kicked by the host" : fmt::format("Kicked by the host: {0}", m_kickReason));
+                continue;
+            }
+
             if (chat.playerId != m_localPlayerId)
                 queueChatMessage(chat);
         }
@@ -579,6 +602,11 @@ namespace ggj
         remote.lives = message.lives;
         remote.score = message.score;
         remote.kills = message.kills;
+        remote.level = message.level;
+        remote.mana = message.mana;
+        remote.maxMana = message.maxMana;
+        remote.energy = message.energy;
+        remote.maxEnergy = message.maxEnergy;
 
         // First time we see this player, snap rather than interpolate from origin.
         if (remote.position.x == 0.0f && remote.position.y == 0.0f)
@@ -602,6 +630,11 @@ namespace ggj
         remote.lives = message.lives;
         remote.score = message.score;
         remote.kills = message.kills;
+        remote.level = message.level;
+        remote.mana = message.mana;
+        remote.maxMana = message.maxMana;
+        remote.energy = message.energy;
+        remote.maxEnergy = message.maxEnergy;
 
         if (remote.position.x == 0.0f && remote.position.y == 0.0f)
             remote.position = message.position;
@@ -618,9 +651,9 @@ namespace ggj
         host.name = m_localName;
         host.isHost = true;
         host.position = m_localPosition;
-        host.lives = m_localLives;
-        host.score = m_localScore;
-        host.kills = m_localKills;
+        host.lives = m_localStats.lives;
+        host.score = m_localStats.score;
+        host.kills = m_localStats.kills;
         host.pingMs = -1;
         host.localIp = m_cachedLocalIp;
         host.publicIp = m_cachedPublicIp;
@@ -653,6 +686,34 @@ namespace ggj
             result.push_back(player);
         }
         return result;
+    }
+
+    bool NetworkManager::kickPlayer(uint32_t playerId, const std::string& reason)
+    {
+        if (m_role != NetworkRole::Server || !m_server || playerId == HOST_PLAYER_ID)
+            return false;
+
+        const auto it = std::find_if(m_connectionToPlayerId.begin(), m_connectionToPlayerId.end(), [playerId](const auto& entry) { return entry.second == playerId; });
+        if (it == m_connectionToPlayerId.end())
+            return false;
+
+        ChatMessage notice {};
+        notice.type = NetMessageType::Kicked;
+        notice.playerId = playerId;
+        ChatText::CopyUtf8Truncated(notice.text, std::min(sizeof(notice.text), MAX_KICK_REASON_BYTES + 1), reason);
+        if (!m_server->kickClient(it->first, notice))
+            return false;
+
+        // The connection is closed on our side, so no disconnect event will arrive: do the same cleanup as a drop.
+        m_remotePlayers.erase(playerId);
+        m_connectionToPlayerId.erase(it);
+
+        ServerMessage left {};
+        left.type = NetMessageType::PlayerLeft;
+        left.playerId = playerId;
+        m_server->broadcast(left);
+        m_logger.information(reason.empty() ? fmt::format("Player id {0} was kicked", playerId) : fmt::format("Player id {0} was kicked: {1}", playerId, reason));
+        return true;
     }
 
     void NetworkManager::publishEnemyState(uint32_t objectId, const EnemyNetworkState& state)

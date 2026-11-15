@@ -8,6 +8,7 @@
 
     #include "rlImGui.h"
     #include "imgui.h"
+#include "../system/ImGuiPlacement.hpp"
     #include "raylib.h"
     #include <cstdint>
     #include <string>
@@ -44,6 +45,7 @@ namespace ggj
         bool awardCoin      { false }; ///< Consumer adds one coin to player 0's score and resets to false.
         bool gainLife       { false }; ///< Consumer grants one extra life to player 0 and resets to false.
         bool loseLife       { false }; ///< Consumer removes one life from player 0 and resets to false.
+        bool unlockAllTalents { false }; ///< Consumer unlocks every talent of player 0's class, ignoring level and prerequisites, and resets to false.
     };
 
     /*!
@@ -85,8 +87,9 @@ namespace ggj
                     m_rebindingAction = -1;
                 }
             }
-            ImGui::SetNextWindowSize({ 300, 660 }, ImGuiCond_FirstUseEver);
+            imgui::prepareWindow({ 300, 660 }, imgui::Anchor::TopLeft);
             ImGui::Begin("Debug Menu");
+            imgui::keepWindowOnScreen();
 
             ImGui::Text("UI Scale");
             ImGui::Separator();
@@ -149,6 +152,9 @@ namespace ggj
                 ImGui::SameLine();
                 if (ImGui::Button("-1 Life"))
                     state.loseLife = true;
+
+                if (ImGui::Button("Unlock All Talents"))
+                    state.unlockAllTalents = true;
             }
             else
             {

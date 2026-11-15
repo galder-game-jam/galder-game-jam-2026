@@ -58,6 +58,8 @@ namespace ggj
         [[nodiscard]] std::string publicIpAddress() const override { return m_cachedPublicIp; }
         [[nodiscard]] int32_t pingToServer() const override;
         [[nodiscard]] bool hasLostConnection() const override;
+        [[nodiscard]] bool wasKicked() const override { return m_wasKicked; }
+        [[nodiscard]] const std::string& kickReason() const override { return m_kickReason; }
         [[nodiscard]] bool hasEverConnected() const override { return m_hasSentJoinRequest; }
         [[nodiscard]] const std::map<uint32_t, RemotePlayer>& remotePlayers() const override { return m_remotePlayers; }
 
@@ -73,12 +75,7 @@ namespace ggj
         [[nodiscard]] std::vector<BombSpawnEvent> takeBombSpawns() override;
         void publishRootSpawned(const RootSpawnEvent& root) override;
         [[nodiscard]] std::vector<RootSpawnEvent> takeRootSpawns() override;
-        void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) override
-        {
-            m_localLives = lives;
-            m_localScore = score;
-            m_localKills = kills;
-        }
+        void setLocalPlayerStats(const NetworkPlayerStats& stats) override { m_localStats = stats; }
         void setCurrentStage(int32_t stageIndex) override;
         [[nodiscard]] std::optional<int32_t> takeRequestedStage() override;
         void notifyLocalPortalEntered() override;
@@ -90,6 +87,7 @@ namespace ggj
         [[nodiscard]] const std::set<uint32_t>& removedObjectIds() const override { return m_removedObjectIds; }
 
         [[nodiscard]] std::vector<ConnectedPlayer> connectedPlayers() const override;
+        bool kickPlayer(uint32_t playerId, const std::string& reason) override;
 
         void sendChatMessage(const std::string& text) override;
         [[nodiscard]] std::vector<ChatEntry> takeChatMessages() override;
@@ -135,9 +133,7 @@ namespace ggj
         raylib::Vector2 m_localPosition {};
         PlayerState m_localPlayerState { PlayerState::Idle };
         bool m_isLocalFacingLeft { false };
-        int32_t m_localLives { 0 };
-        int32_t m_localScore { 0 };
-        int32_t m_localKills { 0 };
+        NetworkPlayerStats m_localStats {};
 
         std::map<uint32_t, RemotePlayer> m_remotePlayers;
 
@@ -170,6 +166,8 @@ namespace ggj
 
         // Client-only bookkeeping
         bool m_hasSentJoinRequest { false };
+        bool m_wasKicked { false }; ///< The host sent us a Kicked message.
+        std::string m_kickReason {}; ///< Reason that came with it; empty if none.
 
         // LAN discovery / advertising
         LanBeacon m_beacon;

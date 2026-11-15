@@ -55,6 +55,7 @@ namespace ggj
             // already marked for destruction before it is actually removed.
             if (shouldBeDestroyed())
                 return;
+            emitBloodFrom(*p, KILL_BLOOD_STRENGTH);
             m_soundManager.playSound(SoundName::EnemyDie);
             destroy();
             p->getOwner()->getUserData()->enemiesKilled++;

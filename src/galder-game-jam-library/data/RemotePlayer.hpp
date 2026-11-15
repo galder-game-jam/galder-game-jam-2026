@@ -37,6 +37,11 @@ namespace ggj
         int32_t lives { 0 };
         int32_t score { 0 };
         int32_t kills { 0 };
+        int32_t level { 1 };
+        float mana { 0.f };      ///< Raw mana; maxMana is 0 for characters without mana.
+        float maxMana { 0.f };
+        float energy { 0.f };    ///< Raw energy; maxEnergy is 0 for characters without energy.
+        float maxEnergy { 0.f };
 
         std::string localIp {};  ///< Client's LAN IP, populated from JoinRequest.
         std::string publicIp {}; ///< Client's public IP, populated from JoinRequest.

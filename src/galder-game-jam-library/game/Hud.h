@@ -13,6 +13,7 @@
 #include "../interfaces/manager/IOptionsManager.h"
 #include "../interfaces/graphics/IMaskRecolorShader.h"
 #include "../data/CharacterColors.hpp"
+#include "../data/RemotePlayer.hpp"
 
 namespace ggj
 {
@@ -50,8 +51,28 @@ namespace ggj
 
         private:
             void drawQuestLog(raylib::Vector2 offset, int width, int height) const;
-            void DrawResourceBar(const float counter, raylib::Rectangle rectResource, raylib::Rectangle rectEnd, float barNo) const;
+            /*!
+             * Draws one row of resource bars (hearts, mana or energy) next to a portrait.
+             *
+             * @param counter Bar segments to fill (at most 10); the fraction draws a partly filled last bar
+             * @param rectResource Source rectangle of a single bar in the HUD texture
+             * @param rectEnd Source rectangle of the end cap drawn after the last bar
+             * @param barNo Row index below the portrait's top edge (0 = life, 1 = mana, 2 = energy)
+             * @param portraitOrigin Top-left corner of the portrait frame
+             * @param scale Draw scale; 1 for the player's own portrait, less for party members
+             */
+            void drawResourceBar(float counter, raylib::Rectangle rectResource, raylib::Rectangle rectEnd, float barNo,
+                                 raylib::Vector2 portraitOrigin, float scale) const;
             void drawPlayerPortrait() const;
+            /*! Draws a downscaled portrait with life/mana/energy for every other player, stacked below the player's own. */
+            void drawPartyBars() const;
+            /*!
+             * Draws one party member's row: name, recoloured portrait, resource bars and level badge.
+             *
+             * @param member The remote player to show
+             * @param origin Top-left corner of the row
+             */
+            void drawPartyMember(const RemotePlayer& member, raylib::Vector2 origin) const;
             void drawBar(raylib::Vector2 offset, int middleParts) const;
             void drawPlayerPositionBar(raylib::Vector2 offset) const;
             void drawBossBar() const;
@@ -70,6 +91,10 @@ namespace ggj
             raylib::Texture *m_playerPortraitTexture {nullptr};
             raylib::Texture *m_playerPortraitMaskTexture {nullptr}; ///< Marks the recolourable parts of the portrait.
             MaskRecolor m_playerPortraitRecolor {}; ///< Resolved from the picked colours; nothing recoloured by default.
+            raylib::Texture *m_roguePortraitTexture {nullptr};   ///< Party members' portraits, picked by their character.
+            raylib::Texture *m_roguePortraitMaskTexture {nullptr};
+            raylib::Texture *m_wizardPortraitTexture {nullptr};
+            raylib::Texture *m_wizardPortraitMaskTexture {nullptr};
 
             raylib::Font *m_font = nullptr;
 
@@ -90,13 +115,16 @@ namespace ggj
             const float TILE_UNIT = 16.0f;
             const int FONT_SIZE = 15;
 
-            float m_health{};
-            float m_mana{};                      ///< Mana in bars (fractional while regenerating)
+            float m_health{};                    ///< Life in bar segments (one per life, at most 10)
+            float m_mana{};                      ///< Mana in bar segments (0-10, fractional while regenerating)
             bool m_hasManaBar{};                 ///< False for characters without mana (the Rogue)
-            static constexpr float MANA_PER_BAR = 20.0f; ///< Level 1 cap of 200 mana fills 10 bars; later levels add partial bars
-            float m_energy{};                    ///< Energy in bars (fractional while regenerating)
+            float m_energy{};                    ///< Energy in bar segments (0-10, fractional while regenerating)
             bool m_hasEnergyBar{};               ///< False for characters without energy (the Wizard)
-            static constexpr float ENERGY_PER_BAR = 10.0f;
+
+            static constexpr float PARTY_SCALE = 0.5f;          ///< Party portraits are drawn at half the size of the player's own.
+            static constexpr float PARTY_NAME_HEIGHT = 13.0f;   ///< Room above each party portrait for the name.
+            static constexpr float PARTY_ROW_GAP = 4.0f;        ///< Space between two party rows.
+            static constexpr int PARTY_FONT_SIZE = 12;
 
             raylib::Vector2 m_playerPortraitOffset{};
             raylib::Vector2 m_portraitOffset{};

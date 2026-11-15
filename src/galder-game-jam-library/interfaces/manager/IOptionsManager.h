@@ -2,6 +2,7 @@
 #define GALDER_GAME_JAM_2026_IOPTIONSMANAGER_H
 
 #include "../../data/AudioOptions.hpp"
+#include "../../data/GraphicsOptions.hpp"
 #include "../../data/HudOptions.hpp"
 #include "../../data/KeybindingOptions.hpp"
 
@@ -51,6 +52,18 @@ namespace ggj
              * @param options New HUD settings to apply.
              */
             virtual void setHudOptions(const HudOptions& options) = 0;
+
+            /*!
+             * Returns the visual effect options parsed from the "graphics" object.
+             */
+            [[nodiscard]] virtual const GraphicsOptions& getGraphicsOptions() const = 0;
+
+            /*!
+             * Replaces the in-memory graphics options without writing to disk.
+             * Call saveAudioOptions() to persist the change.
+             * @param options New graphics settings to apply.
+             */
+            virtual void setGraphicsOptions(const GraphicsOptions& options) = 0;
 
             /*!
              * Returns the keybinding options parsed from the "keybindings" object.

@@ -5,6 +5,7 @@
 #include "NetplayScreen.h"
 
 #include "imgui.h"
+#include "ImGuiPlacement.hpp"
 #include "fmt/format.h"
 
 #include <cstring>
@@ -58,10 +59,9 @@ namespace ggj
         if (!m_isVisible)
             return;
 
-        const ImVec2 size { 400.0f, 380.0f };
-        ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowPos({ SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f }, ImGuiCond_FirstUseEver, { 0.5f, 0.5f });
+        imgui::prepareWindow({ 400.0f, 380.0f }, imgui::Anchor::Center);
         ImGui::Begin("Netplay", nullptr, ImGuiWindowFlags_NoCollapse);
+        imgui::keepWindowOnScreen();
 
         // Sampled before the widgets run: ImGui uses Esc to cancel a text edit, so if a field is being
         // edited the first Esc should only cancel that edit rather than leave the screen.

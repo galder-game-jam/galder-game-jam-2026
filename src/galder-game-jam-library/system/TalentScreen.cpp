@@ -64,6 +64,34 @@ namespace ggj
         return "AVAILABLE";
     }
 
+    std::vector<std::string> TalentScreen::wrapText(const std::string& text, float maxWidth) const
+    {
+        std::vector<std::string> lines;
+        std::string current;
+        size_t pos = 0;
+        while (pos < text.size())
+        {
+            size_t end = text.find(' ', pos);
+            if (end == std::string::npos)
+                end = text.size();
+            const std::string word = text.substr(pos, end - pos);
+            pos = end + 1;
+
+            const std::string candidate = current.empty() ? word : current + " " + word;
+            const Vector2 size = MeasureTextEx(*m_font, candidate.c_str(), static_cast<float>(SMALL_FONT_SIZE), 0);
+            if (size.x > maxWidth && !current.empty())
+            {
+                lines.push_back(current);
+                current = word;
+            }
+            else
+                current = candidate;
+        }
+        if (!current.empty())
+            lines.push_back(current);
+        return lines;
+    }
+
     void TalentScreen::reset()
     {
         m_selectedIndex = 0;
@@ -201,16 +229,20 @@ namespace ggj
         if (!m_characterTalents.empty())
         {
             const TalentDef& sel = *m_characterTalents[m_selectedIndex];
-            const float descY = PANEL_Y + PANEL_H - 80.0f;
+            const float descY = PANEL_Y + PANEL_H - 100.0f;
 
             DrawLine(
                 static_cast<int>(PANEL_X + 14),  static_cast<int>(descY - 6),
                 static_cast<int>(PANEL_X + PANEL_W - 14), static_cast<int>(descY - 6),
                 DARKGRAY);
 
-            m_font->DrawText(std::string(sel.description),
-                { PANEL_X + 20.0f, descY },
-                static_cast<float>(SMALL_FONT_SIZE), 0, LIGHTGRAY);
+            const std::vector<std::string> lines = wrapText(std::string(sel.description), PANEL_W - 40.0f);
+            for (int line = 0; line < static_cast<int>(lines.size()) && line < DESC_MAX_LINES; ++line)
+            {
+                m_font->DrawText(lines[line],
+                    { PANEL_X + 20.0f, descY + static_cast<float>(line) * DESC_LINE_HEIGHT },
+                    static_cast<float>(SMALL_FONT_SIZE), 0, LIGHTGRAY);
+            }
         }
 
         // Footer

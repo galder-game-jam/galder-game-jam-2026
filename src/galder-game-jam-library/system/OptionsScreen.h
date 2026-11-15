@@ -49,6 +49,7 @@ namespace ggj
             raylib::Texture* m_backgroundTexture { nullptr };
             AudioOptions      m_localOptions {};
             HudOptions        m_localHudOptions {};
+            GraphicsOptions   m_localGraphicsOptions {};
             KeybindingOptions m_localKeybindingOptions {};
 
             int m_rebindingAction { -1 }; ///< Index of the action being rebound, or -1 when idle.

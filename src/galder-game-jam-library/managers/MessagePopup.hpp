@@ -64,7 +64,10 @@ namespace ggj
             ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, { 0.5f, 0.5f });
             if (ImGui::BeginPopupModal(m_title.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
             {
+                // Long messages (e.g. a kick reason typed by the host) must wrap instead of widening the popup.
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * WRAP_WIDTH_IN_EMS);
                 ImGui::TextUnformatted(m_message.c_str());
+                ImGui::PopTextWrapPos();
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Spacing();
@@ -75,6 +78,7 @@ namespace ggj
         }
 
         private:
+        static constexpr float WRAP_WIDTH_IN_EMS = 30.0f; ///< Message text wraps at this many font heights.
         std::string m_title {};
         std::string m_message {};
         bool m_isOpen { false };

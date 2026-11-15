@@ -7,6 +7,7 @@
 
 #include "../../enums/NetworkRole.h"
 #include "../../enums/PlayerPickedCharacter.h"
+#include "../../data/NetworkPlayerStats.hpp"
 #include "../../data/RemotePlayer.hpp"
 #include "../../data/CharacterColors.hpp"
 #include "../../data/ConnectedPlayer.hpp"
@@ -41,6 +42,7 @@ namespace ggj
         public:
         static constexpr uint16_t DEFAULT_PORT = 13338;
         static constexpr uint32_t HOST_PLAYER_ID = 0;
+        static constexpr size_t MAX_KICK_REASON_BYTES = 200; ///< Longest kick reason (UTF-8 bytes) sent to a kicked player.
         static constexpr uint32_t NO_PLAYER_ID = std::numeric_limits<uint32_t>::max(); ///< No player / not assigned yet.
 
         virtual ~INetworkManager() = default;
@@ -81,6 +83,10 @@ namespace ggj
 
         /*! Client: the connection failed or was closed by the host. Cleared by shutdown(). */
         [[nodiscard]] virtual bool hasLostConnection() const = 0;
+        /*! Client: the host removed the local player from the session. Cleared by shutdown(). */
+        [[nodiscard]] virtual bool wasKicked() const = 0;
+        /*! Client: the reason the host gave when kicking us; empty if none. Cleared by shutdown(). */
+        [[nodiscard]] virtual const std::string& kickReason() const = 0;
         /*! Client: the connection was established at some point (tells a dropped session from a failed connect). */
         [[nodiscard]] virtual bool hasEverConnected() const = 0;
 
@@ -167,8 +173,8 @@ namespace ggj
          * @return Root spawns in arrival order
          */
         [[nodiscard]] virtual std::vector<RootSpawnEvent> takeRootSpawns() = 0;
-        /*! Feeds the local player's authoritative stats (lives/score/kills) for outbound sync. */
-        virtual void setLocalPlayerStats(int32_t lives, int32_t score, int32_t kills) = 0;
+        /*! Feeds the local player's authoritative stats (lives, score, kills, level, resources) for outbound sync. */
+        virtual void setLocalPlayerStats(const NetworkPlayerStats& stats) = 0;
         /*!
          * Tells the network which stage the local peer is on. Call whenever the stage changes.
          * Changing stage clears the per-world synced state (object ids restart on every map), and
@@ -222,6 +228,17 @@ namespace ggj
 
         /*! Host's view of all connected players (host + clients) for the ServerInfo window. Empty off-server. */
         [[nodiscard]] virtual std::vector<ConnectedPlayer> connectedPlayers() const = 0;
+
+        /*!
+         * Host only: removes a client from the session. The client is told it was kicked, its
+         * connection is closed and every other peer is told the player left. Nothing stops the
+         * client from joining again.
+         *
+         * @param playerId Id of the client to remove
+         * @param reason   Optional free text shown to the kicked player (empty for none); cut short to MAX_KICK_REASON_BYTES
+         * @return         false if we are not hosting, or no client has that id (the host cannot be kicked)
+         */
+        virtual bool kickPlayer(uint32_t playerId, const std::string& reason) = 0;
 
         // --- Chat ---
 

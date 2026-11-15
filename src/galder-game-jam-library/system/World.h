@@ -25,6 +25,7 @@ namespace ggj
 #include "../game/Minimap.h"
 #include "../enums/KeyboardKey.h"
 #include "../graphics/PhysicsObject.h"
+#include "../graphics/BloodSplatter.h"
 #include "../GalderGameJamLibrary.h"
 #include "ObjectGeneratorData.hpp"
 #include "../data/PlayerStats.hpp"
@@ -91,6 +92,13 @@ namespace ggj
         void setNetworkManager(INetworkManager* network) { m_network = network; }
         /*! Minimap dots for every remote netplay peer (visual centre + name colour). Empty offline. */
         [[nodiscard]] std::vector<MinimapMarker> getRemotePlayerMarkers() const;
+        /*!
+         * The other players in the session, for the HUD party bars.
+         *
+         * @return Pointers into the network manager's state, valid until the next network update.
+         *         Ordered by player id; empty outside netplay.
+         */
+        [[nodiscard]] std::vector<const RemotePlayer*> getRemotePartyMembers() const;
         /*! Minimap dots for every living enemy in the world (world-pixel position). */
         [[nodiscard]] std::vector<MinimapMarker> getEnemyMarkers() const;
         /*! Minimap dots for every NPC the player can talk to (world-pixel position). */
@@ -199,6 +207,17 @@ namespace ggj
          * Called by WorldManager after the talent screen closes.
          */
         void updatePlayerTalentState(int32_t playerIndex, const TalentState& state, int talentPoints);
+
+        /*!
+         * Advances the slow health-regeneration talents and grants a life when the interval elapses.
+         * The clock only runs while the player is alive and below the regeneration cap, so it never
+         * stacks with extra lives from other sources.
+         *
+         * @param playerIndex Player to tick
+         * @param timeDelta   Time since last frame in seconds
+         * @return            true if a life was regenerated this call
+         */
+        [[nodiscard]] bool tickPlayerLifeRegen(int32_t playerIndex, float timeDelta);
 
         template <typename T> T* createProjectile(TextureName texture, raylib::Vector2 size, raylib::Vector2 pos, Vector2 velocity, float timeToLive);
 
@@ -420,6 +439,7 @@ namespace ggj
         std::map<int32_t, PlayerStats> m_playerStats;
 
         std::vector<FloatingTextEntry> m_floatingTexts;
+        BloodSplatter m_blood { m_optionsManager };
         raylib::Font* m_font { nullptr };
         std::vector<DialogSpot> m_dialogSpots;
 
@@ -438,6 +458,7 @@ namespace ggj
         {
             PlayerState state { PlayerState::Idle };
             Animation animation {};
+            int32_t lives { 0 }; ///< Lives seen last frame; a drop means the peer was hurt.
         };
         std::map<uint32_t, RemotePlayerSprite> m_remotePlayerSprites; ///< By network player id.
         // Local player sprite setup, captured in generatePlayer() so remote peers draw identically.

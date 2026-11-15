@@ -6,6 +6,7 @@
 #define GALDER_GAME_JAM_2026_PROJECT_CLIENTINFOMENU_HPP
 
 #include "imgui.h"
+#include "../system/ImGuiPlacement.hpp"
 #include "../interfaces/manager/INetworkManager.h"
 #include "raylib-cpp.hpp"
 
@@ -27,8 +28,9 @@ namespace ggj
                   int32_t localLives,
                   int32_t localScore)
         {
-            ImGui::SetNextWindowSize({ 480, 300 }, ImGuiCond_FirstUseEver);
+            imgui::prepareWindow({ 480, 300 }, imgui::Anchor::BottomRight);
             ImGui::Begin("Client Info");
+            imgui::keepWindowOnScreen();
 
             ImGui::Text("Connected to: %s", network.serverName().c_str());
 
