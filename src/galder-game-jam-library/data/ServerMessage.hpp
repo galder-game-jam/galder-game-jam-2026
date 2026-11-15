@@ -70,6 +70,7 @@ namespace ggj
         float spikeDelay { 0.f };  ///< RootSpawned: seconds between landing and spiking.
         float radius { 0.f };      ///< IceCircleSpawned: radius of the circle (pixels).
         float delay { 0.f };       ///< IceCircleSpawned: seconds until it freezes. FireLineSpawned: seconds of warning before it ignites.
+        float speed { 0.f };       ///< FireLineSpawned: how fast the flames race along the line (pixels per second).
         float duration { 0.f };    ///< IceCircleSpawned: seconds a frozen player stays frozen. FireLineSpawned: seconds it burns.
 
         int32_t stageIndex { 0 }; ///< JoinAccept / StageChanged: the host's stage. PortalEntered: stage of that portal.

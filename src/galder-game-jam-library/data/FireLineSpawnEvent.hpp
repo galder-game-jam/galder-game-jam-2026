@@ -15,6 +15,7 @@ namespace ggj
         raylib::Vector2 end {};       ///< Where it stops: the first wall, or the edge of the map (pixels).
         float warningSeconds { 0.f }; ///< Seconds of telegraph before it ignites.
         float burnSeconds { 0.f };    ///< Seconds it burns once ignited.
+    float igniteSpeed { 0.f };    ///< How fast the flames race along the line once it ignites (pixels per second).
     };
 } // namespace ggj
 

@@ -51,30 +51,99 @@ namespace
     }
 } // namespace
 
-TEST_CASE("MageBossConfig - clamps nonsense map values", "[mage]")
+namespace
 {
-    const MageBossConfig config { 0, -3, 0.f, -1.f, 0.f, 0.f };
+    /*! A config with a fixed number of ice circles, for the roll tests. */
+    MageBossConfig withIceCircles(const int32_t minCount, const int32_t maxCount)
+    {
+        MageBossConfig config;
+        config.minIceCircles = minCount;
+        config.maxIceCircles = maxCount;
+        return config.sanitized();
+    }
+} // namespace
+
+TEST_CASE("MageBossConfig - sanitizing pulls nonsense map values into a playable range", "[mage]")
+{
+    MageBossConfig nonsense;
+    nonsense.minIceCircles = 0;
+    nonsense.maxIceCircles = -3;
+    nonsense.iceCircleRadius = 0.f;
+    nonsense.iceMinDelay = -1.f;
+    nonsense.iceMaxDelay = -2.f;
+    nonsense.freezeSeconds = -1.f;
+    nonsense.fireWarningSeconds = -1.f;
+    nonsense.enragedFireWarningSeconds = -1.f;
+    nonsense.fireBurnSeconds = 0.f;
+    nonsense.fireSpeed = 0.f;
+    nonsense.crystalsPerBurst = 0;
+    nonsense.enragedCrystalsPerBurst = -4;
+    nonsense.crystalSpeed = 0.f;
+    nonsense.crystalBurstInterval = 0.f;
+
+    const MageBossConfig config = nonsense.sanitized();
     REQUIRE(config.minIceCircles >= 1);
     REQUIRE(config.maxIceCircles >= config.minIceCircles);
     REQUIRE(config.iceCircleRadius > 0.f);
+    REQUIRE(config.iceMinDelay >= 0.f);
+    REQUIRE(config.iceMaxDelay >= config.iceMinDelay);
     REQUIRE(config.freezeSeconds > 0.f);
+    REQUIRE(config.fireWarningSeconds >= 0.f);
+    REQUIRE(config.enragedFireWarningSeconds >= 0.f);
     REQUIRE(config.fireBurnSeconds > 0.f);
+    REQUIRE(config.fireSpeed > 0.f);
+    REQUIRE(config.crystalsPerBurst >= 1);
+    REQUIRE(config.enragedCrystalsPerBurst >= 1);
     REQUIRE(config.crystalSpeed > 0.f);
+    REQUIRE(config.crystalBurstInterval > 0.f);
 }
 
 TEST_CASE("MageBossConfig - a maximum below the minimum is lifted to it", "[mage]")
 {
-    const MageBossConfig config { 3, 1, 80.f, 2.f, 1.f, 200.f };
-    REQUIRE(config.minIceCircles == 3);
-    REQUIRE(config.maxIceCircles == 3);
+    MageBossConfig config;
+    config.minIceCircles = 3;
+    config.maxIceCircles = 1;
+    config.iceMinDelay = 0.8f;
+    config.iceMaxDelay = 0.2f;
+
+    const MageBossConfig sanitized = config.sanitized();
+    REQUIRE(sanitized.minIceCircles == 3);
+    REQUIRE(sanitized.maxIceCircles == 3);
+    REQUIRE(sanitized.iceMinDelay == Approx(0.8f));
+    REQUIRE(sanitized.iceMaxDelay == Approx(0.8f));
 }
 
-TEST_CASE("MageBossConfig - defaults give two to four circles", "[mage]")
+TEST_CASE("MageBossConfig - sensible values pass through sanitizing untouched", "[mage]")
+{
+    MageBossConfig config;
+    config.minIceCircles = 1;
+    config.maxIceCircles = 6;
+    config.iceMinDelay = 0.3f;
+    config.iceMaxDelay = 1.5f;
+    config.fireSpeed = 900.f;
+    config.crystalsPerBurst = 9;
+    config.crystalBurstInterval = 0.2f;
+
+    const MageBossConfig sanitized = config.sanitized();
+    REQUIRE(sanitized.minIceCircles == 1);
+    REQUIRE(sanitized.maxIceCircles == 6);
+    REQUIRE(sanitized.iceMinDelay == Approx(0.3f));
+    REQUIRE(sanitized.iceMaxDelay == Approx(1.5f));
+    REQUIRE(sanitized.fireSpeed == Approx(900.f));
+    REQUIRE(sanitized.crystalsPerBurst == 9);
+    REQUIRE(sanitized.crystalBurstInterval == Approx(0.2f));
+}
+
+TEST_CASE("MageBossConfig - defaults give two to four circles with a half to one second delay", "[mage]")
 {
     const MageBossConfig config;
     REQUIRE(config.minIceCircles == 2);
     REQUIRE(config.maxIceCircles == 4);
+    REQUIRE(config.iceMinDelay == Approx(0.5f));
+    REQUIRE(config.iceMaxDelay == Approx(1.0f));
     REQUIRE(config.iceCircleRadius > 0.f);
+    REQUIRE(config.enragedFireWarningSeconds < config.fireWarningSeconds);
+    REQUIRE(config.enragedCrystalsPerBurst > config.crystalsPerBurst);
 }
 
 TEST_CASE("MageBossEnemy - rolls two, three or four ice circles, evenly", "[mage]")
@@ -92,7 +161,7 @@ TEST_CASE("MageBossEnemy - rolls two, three or four ice circles, evenly", "[mage
 
 TEST_CASE("MageBossEnemy - a single-count range always rolls that count", "[mage]")
 {
-    const MageBossConfig config { 3, 3, 80.f, 2.f, 1.f, 200.f };
+    const MageBossConfig config = withIceCircles(3, 3);
     for (const float roll : { 0.f, 0.5f, 1.f })
         REQUIRE(MageBossEnemy::RollIceCircleCount(config, roll) == 3);
 }
@@ -203,13 +272,6 @@ TEST_CASE("MageBossEnemy - state count matches the enum so network states are ra
     REQUIRE(MAGE_STATE_COUNT == static_cast<uint8_t>(MageState::Dying) + 1);
 }
 
-TEST_CASE("MageBossEnemy - the ice cast outlasts the slowest circle", "[mage]")
-{
-    // The cast is what holds him in place; the slowest circle must have sprung shut by the time he moves on.
-    REQUIRE(MageBossEnemy::ICE_MIN_DELAY == Approx(0.5f));
-    REQUIRE(MageBossEnemy::ICE_MAX_DELAY == Approx(1.0f));
-}
-
 TEST_CASE("IceCircle - inside means within the radius, edge included", "[mage]")
 {
     const raylib::Vector2 center { 100.f, 100.f };
@@ -273,13 +335,21 @@ TEST_CASE("FireLine - works in every direction", "[mage]")
 
 TEST_CASE("FireLine - the flames race out from the mage and then stop at the end", "[mage]")
 {
-    REQUIRE(FireLine::IgnitedFraction(0.f, 500.f) == Approx(0.f));
-    REQUIRE(FireLine::IgnitedFraction(-1.f, 500.f) == Approx(0.f));
-    REQUIRE(FireLine::IgnitedFraction(0.1f, 500.f) > 0.f);
-    REQUIRE(FireLine::IgnitedFraction(0.1f, 500.f) < 1.f);
-    REQUIRE(FireLine::IgnitedFraction(0.1f, 500.f) < FireLine::IgnitedFraction(0.2f, 500.f));
-    REQUIRE(FireLine::IgnitedFraction(10.f, 500.f) == Approx(1.f));
-    REQUIRE(FireLine::IgnitedFraction(0.5f, 0.f) == Approx(1.f)); // A line without length is lit at once.
+    constexpr float SPEED = 1800.f;
+    REQUIRE(FireLine::IgnitedFraction(0.f, 500.f, SPEED) == Approx(0.f));
+    REQUIRE(FireLine::IgnitedFraction(-1.f, 500.f, SPEED) == Approx(0.f));
+    REQUIRE(FireLine::IgnitedFraction(0.1f, 500.f, SPEED) > 0.f);
+    REQUIRE(FireLine::IgnitedFraction(0.1f, 500.f, SPEED) < 1.f);
+    REQUIRE(FireLine::IgnitedFraction(0.1f, 500.f, SPEED) < FireLine::IgnitedFraction(0.2f, 500.f, SPEED));
+    REQUIRE(FireLine::IgnitedFraction(10.f, 500.f, SPEED) == Approx(1.f));
+    REQUIRE(FireLine::IgnitedFraction(0.5f, 0.f, SPEED) == Approx(1.f)); // A line without length is lit at once.
+}
+
+TEST_CASE("FireLine - faster flames reach the end sooner", "[mage]")
+{
+    REQUIRE(FireLine::IgnitedFraction(0.1f, 500.f, 1000.f) > FireLine::IgnitedFraction(0.1f, 500.f, 500.f));
+    REQUIRE(FireLine::IgnitedFraction(0.1f, 500.f, 2500.f) == Approx(0.5f));
+    REQUIRE(FireLine::IgnitedFraction(1.f, 500.f, 500.f) == Approx(1.f));
 }
 
 TEST_CASE("FireLine - its body notices nothing", "[mage]")
@@ -288,7 +358,7 @@ TEST_CASE("FireLine - its body notices nothing", "[mage]")
     b2Body* wall = createBox(world, b2_staticBody, { 0.f, 0.f }, { 2.f, 2.f });
     CollisionCategory::MarkAsTerrain(*wall);
 
-    b2Body* fire = FireLine::CreateBody(world, FireLineSpawnEvent { { 0.f, 0.f }, { 300.f, 0.f }, 1.f, 1.4f });
+    b2Body* fire = FireLine::CreateBody(world, FireLineSpawnEvent { { 0.f, 0.f }, { 300.f, 0.f }, 1.f, 1.4f, 1800.f });
 
     REQUIRE_FALSE(touchesTerrainWithin(world, *fire, 0.5f));
 }

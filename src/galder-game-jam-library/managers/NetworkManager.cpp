@@ -585,7 +585,7 @@ namespace ggj
                     break;
                 case NetMessageType::FireLineSpawned:
                     if (m_fireLineSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
-                        m_fireLineSpawns.push_back(FireLineSpawnEvent { message.position, message.target, message.delay, message.duration });
+                        m_fireLineSpawns.push_back(FireLineSpawnEvent { message.position, message.target, message.delay, message.duration, message.speed });
                     break;
                 case NetMessageType::CrystalSpawned:
                     if (m_crystalSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
@@ -959,6 +959,7 @@ namespace ggj
         message.target = fire.end;
         message.delay = fire.warningSeconds;
         message.duration = fire.burnSeconds;
+        message.speed = fire.igniteSpeed;
         m_server->broadcast(message);
     }
 

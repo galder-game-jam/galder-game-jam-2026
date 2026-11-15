@@ -8,6 +8,7 @@
 #include <string>
 #include "raylib-cpp.hpp"
 #include "UserData.hpp"
+#include "../data/MageBossConfig.hpp"
 #include "tileson.hpp"
 
 namespace ggj
@@ -54,13 +55,7 @@ namespace ggj
         float cleaverSpeed { 220.f };
         float spiderFlightTime { 0.9f };
 
-        // The mage boss's spells (see MageBossConfig).
-        int iceCircleMinCount { 2 };
-        int iceCircleMaxCount { 4 };
-        float iceCircleRadius { 80.f };
-        float freezeSeconds { 2.f };
-        float fireBurnTime { 1.4f };
-        float crystalSpeed { 260.f };
+        MageBossConfig mageBoss {}; ///< The mage boss's spells; every key is read straight into it.
 
         int layerIndex{};
         tson::Object obj{};

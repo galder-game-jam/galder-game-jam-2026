@@ -351,8 +351,9 @@ namespace ggj
          * @param angles Direction of each line (radians)
          * @param warningSeconds Telegraph time before they ignite
          * @param burnSeconds How long they burn once ignited
+         * @param igniteSpeed How fast the flames race along each line (pixels per second)
          */
-        void spawnFireLines(const raylib::Vector2& origin, const std::vector<float>& angles, float warningSeconds, float burnSeconds);
+        void spawnFireLines(const raylib::Vector2& origin, const std::vector<float>& angles, float warningSeconds, float burnSeconds, float igniteSpeed);
 
         /*!
          * Queues a fan of pink crystals shot from @p origin. Host/offline only.

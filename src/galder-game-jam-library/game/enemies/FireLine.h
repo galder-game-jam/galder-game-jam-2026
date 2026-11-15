@@ -18,7 +18,6 @@ namespace ggj
     {
         public:
         static constexpr float WIDTH = 30.f;          ///< Thickness of the fire (pixels); half of it either side of the line hurts.
-        static constexpr float IGNITE_SPEED = 1800.f; ///< How fast the flames race away from the mage (pixels per second).
         static constexpr float FADE_DURATION = 0.35f; ///< Seconds the fire takes to die down once it stops burning.
 
         /*!
@@ -46,9 +45,10 @@ namespace ggj
          *
          * @param burnElapsed Seconds since the fire ignited; zero or less before that
          * @param length Length of the line (pixels)
+         * @param speed How fast the flames race along the line (pixels per second)
          * @return 0 before ignition, 1 once the flames reached the end
          */
-        [[nodiscard]] static float IgnitedFraction(float burnElapsed, float length);
+        [[nodiscard]] static float IgnitedFraction(float burnElapsed, float length, float speed);
 
         /*!
          * @param body Body from CreateBody()

@@ -87,6 +87,11 @@ namespace ggj
         return m_stateDuration > 0.f ? 1.f - std::max(0.f, m_stateTimer) / m_stateDuration : 1.f;
     }
 
+    float MageBossEnemy::crystalBurstInterval() const
+    {
+        return m_config.crystalBurstInterval * (isEnraged() ? ENRAGED_BURST_INTERVAL_FACTOR : 1.f);
+    }
+
     MageState MageBossEnemy::ChooseAttack(float roll, bool isEnraged)
     {
         const float iceChance = isEnraged ? ENRAGED_ICE_ATTACK_CHANCE : ICE_ATTACK_CHANCE;
@@ -165,7 +170,7 @@ namespace ggj
             return;
 
         const int32_t count = RollIceCircleCount(m_config, randomRange(0.f, 1.f));
-        m_world->spawnIceCircles(count, m_config.iceCircleRadius, ICE_MIN_DELAY, ICE_MAX_DELAY, m_config.freezeSeconds);
+        m_world->spawnIceCircles(count, m_config.iceCircleRadius, m_config.iceMinDelay, m_config.iceMaxDelay, m_config.freezeSeconds);
     }
 
     void MageBossEnemy::castFire(float warningSeconds)
@@ -175,7 +180,7 @@ namespace ggj
 
         const std::vector<float> angles = FireLineAngles(randomRange(0.f, TWO_PI), FireLineCount(isEnraged()));
         // The fire starts from the middle of where the mage stands, which is also where he is rooted to.
-        m_world->spawnFireLines(getPosition(), angles, warningSeconds, m_config.fireBurnSeconds);
+        m_world->spawnFireLines(getPosition(), angles, warningSeconds, m_config.fireBurnSeconds, m_config.fireSpeed);
     }
 
     void MageBossEnemy::fireCrystalBurst()
@@ -192,7 +197,7 @@ namespace ggj
 
         const raylib::Vector2 myPos = getPosition();
         const float aimAngle = std::atan2(target->y - myPos.y, target->x - myPos.x);
-        const int32_t count = isEnraged() ? ENRAGED_CRYSTALS_PER_BURST : CRYSTALS_PER_BURST;
+        const int32_t count = isEnraged() ? m_config.enragedCrystalsPerBurst : m_config.crystalsPerBurst;
         m_world->spawnCrystalFan(myPos, aimAngle, count, CRYSTAL_SPREAD_DEGREES, m_config.crystalSpeed);
     }
 
@@ -231,14 +236,14 @@ namespace ggj
                 break;
             case MageState::IceCast:
                 // The circles appear right away: they are their own telegraph, and the mage hovers until they have sprung.
-                m_stateTimer = isEnraged() ? ENRAGED_ICE_CAST_DURATION : ICE_CAST_DURATION;
+                m_stateTimer = m_config.iceMaxDelay + ICE_CAST_LINGER;
                 m_tint = ICE_FLASH;
                 castIce();
                 break;
             case MageState::FireCast:
             {
                 // The lines appear right away as outlines and ignite when the warning ends.
-                const float warning = isEnraged() ? ENRAGED_FIRE_WARNING_DURATION : FIRE_WARNING_DURATION;
+                const float warning = isEnraged() ? m_config.enragedFireWarningSeconds : m_config.fireWarningSeconds;
                 m_stateTimer = warning + FIRE_CAST_AFTERGLOW;
                 m_tint = FIRE_FLASH;
                 castFire(warning);
@@ -251,7 +256,7 @@ namespace ggj
             case MageState::CrystalBursts:
                 m_burstsLeft = CRYSTAL_BURSTS;
                 m_burstTimer = 0.f; // The first burst goes off right away.
-                m_stateTimer = static_cast<float>(CRYSTAL_BURSTS) * (isEnraged() ? ENRAGED_CRYSTAL_BURST_INTERVAL : CRYSTAL_BURST_INTERVAL) + CRYSTAL_FINAL_LINGER;
+                m_stateTimer = static_cast<float>(CRYSTAL_BURSTS) * crystalBurstInterval() + CRYSTAL_FINAL_LINGER;
                 m_tint = CRYSTAL_FLASH;
                 break;
             case MageState::Recover:
@@ -351,7 +356,7 @@ namespace ggj
                 {
                     fireCrystalBurst();
                     --m_burstsLeft;
-                    m_burstTimer = isEnraged() ? ENRAGED_CRYSTAL_BURST_INTERVAL : CRYSTAL_BURST_INTERVAL;
+                    m_burstTimer = crystalBurstInterval();
                 }
                 if (canAdvance)
                     setState(MageState::Recover);

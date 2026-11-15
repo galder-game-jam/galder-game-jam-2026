@@ -59,7 +59,7 @@ namespace ggj
                       bool isVisible = true)
             : PhysicsSprite(body, physicsSize, spriteSize, drawingRect, texture, userData, isVisible), m_animationManager { animationManager }, m_mapper { mapper },
               m_soundManager { soundManager }, m_followSpeed { followSpeed }, m_knockback { knockback }, m_maxLives { lives }, m_world { world }, m_tintShader { tintShader },
-              m_config { config }
+              m_config { config.sanitized() }
         {
             m_lives = lives;
             m_body->SetFixedRotation(true);
@@ -136,10 +136,6 @@ namespace ggj
         static constexpr int32_t FIRE_LINES = 4;         ///< Lines of fire per cast.
         static constexpr int32_t ENRAGED_FIRE_LINES = 8; ///< Lines of fire per cast once enraged.
         static constexpr int32_t CRYSTAL_BURSTS = 3;     ///< Bursts of crystals per cast.
-        static constexpr int32_t CRYSTALS_PER_BURST = 5; ///< Crystals in each burst.
-        static constexpr int32_t ENRAGED_CRYSTALS_PER_BURST = 7;
-        static constexpr float ICE_MIN_DELAY = 0.5f; ///< Shortest time from an ice circle appearing to it freezing.
-        static constexpr float ICE_MAX_DELAY = 1.0f; ///< Longest time from an ice circle appearing to it freezing.
 
         private:
         /*!
@@ -173,6 +169,8 @@ namespace ggj
         void faceTowards(const raylib::Vector2& direction);
         [[nodiscard]] bool isEnraged() const { return m_lives * 2 <= m_maxLives; }
         [[nodiscard]] float getStateProgress() const;
+        /*! Seconds between crystal bursts: from the config, shorter once enraged. */
+        [[nodiscard]] float crystalBurstInterval() const;
         /*! Uniform random float in [min, max]. */
         [[nodiscard]] static float randomRange(float min, float max);
 
@@ -216,17 +214,13 @@ namespace ggj
         static constexpr float WALK_MIN_DURATION = 1.2f;
         static constexpr float WALK_MAX_DURATION = 2.2f;
         static constexpr float ENRAGED_SPEED_MULTIPLIER = 1.3f;
-        static constexpr float ICE_CAST_DURATION = 1.25f; ///< Longer than ICE_MAX_DELAY so the last circle has sprung shut before he moves on.
-        static constexpr float ENRAGED_ICE_CAST_DURATION = 1.15f;
-        static constexpr float FIRE_WARNING_DURATION = 1.0f; ///< Telegraph of the fire lines; also how long he charges before they ignite.
-        static constexpr float ENRAGED_FIRE_WARNING_DURATION = 0.75f;
+        static constexpr float ICE_CAST_LINGER = 0.25f;     ///< How long he hovers after the slowest circle has sprung shut (the circles' own delay comes from the config).
         static constexpr float FIRE_CAST_AFTERGLOW = 0.35f; ///< He stays rooted a moment after the fire ignites, so the origin is not a safe place to run through.
         static constexpr float CRYSTAL_WINDUP_DURATION = 0.9f;
         static constexpr float ENRAGED_CRYSTAL_WINDUP_DURATION = 0.6f;
-        static constexpr float CRYSTAL_BURST_INTERVAL = 0.55f;
-        static constexpr float ENRAGED_CRYSTAL_BURST_INTERVAL = 0.42f;
-        static constexpr float CRYSTAL_SPREAD_DEGREES = 26.f; ///< Width of the fan each burst is shot in.
-        static constexpr float CRYSTAL_FINAL_LINGER = 0.4f;   ///< Time after the last burst before he recovers.
+        static constexpr float ENRAGED_BURST_INTERVAL_FACTOR = 0.75f; ///< Enraged he fires his bursts this much closer together.
+        static constexpr float CRYSTAL_SPREAD_DEGREES = 26.f;         ///< Width of the fan each burst is shot in.
+        static constexpr float CRYSTAL_FINAL_LINGER = 0.4f;           ///< Time after the last burst before he recovers.
         static constexpr float RECOVER_DURATION = 0.5f;
         static constexpr float DYING_DURATION = 2.2f;
         static constexpr int32_t DEATH_CRYSTAL_COUNT = 20; ///< Crystals in the ring he dies in.

@@ -210,17 +210,33 @@ namespace ggj
                             else if (key == "spider_flight_time")
                                 generatorData.spiderFlightTime = value.getValue<float>();
                             else if (key == "ice_circle_min_count")
-                                generatorData.iceCircleMinCount = value.getValue<int>();
+                                generatorData.mageBoss.minIceCircles = value.getValue<int>();
                             else if (key == "ice_circle_max_count")
-                                generatorData.iceCircleMaxCount = value.getValue<int>();
+                                generatorData.mageBoss.maxIceCircles = value.getValue<int>();
                             else if (key == "ice_circle_radius")
-                                generatorData.iceCircleRadius = value.getValue<float>();
+                                generatorData.mageBoss.iceCircleRadius = value.getValue<float>();
+                            else if (key == "ice_min_delay")
+                                generatorData.mageBoss.iceMinDelay = value.getValue<float>();
+                            else if (key == "ice_max_delay")
+                                generatorData.mageBoss.iceMaxDelay = value.getValue<float>();
                             else if (key == "freeze_seconds")
-                                generatorData.freezeSeconds = value.getValue<float>();
+                                generatorData.mageBoss.freezeSeconds = value.getValue<float>();
+                            else if (key == "fire_warning_time")
+                                generatorData.mageBoss.fireWarningSeconds = value.getValue<float>();
+                            else if (key == "enraged_fire_warning_time")
+                                generatorData.mageBoss.enragedFireWarningSeconds = value.getValue<float>();
                             else if (key == "fire_burn_time")
-                                generatorData.fireBurnTime = value.getValue<float>();
+                                generatorData.mageBoss.fireBurnSeconds = value.getValue<float>();
+                            else if (key == "fire_speed")
+                                generatorData.mageBoss.fireSpeed = value.getValue<float>();
+                            else if (key == "crystal_count")
+                                generatorData.mageBoss.crystalsPerBurst = value.getValue<int>();
+                            else if (key == "enraged_crystal_count")
+                                generatorData.mageBoss.enragedCrystalsPerBurst = value.getValue<int>();
                             else if (key == "crystal_speed")
-                                generatorData.crystalSpeed = value.getValue<float>();
+                                generatorData.mageBoss.crystalSpeed = value.getValue<float>();
+                            else if (key == "crystal_burst_interval")
+                                generatorData.mageBoss.crystalBurstInterval = value.getValue<float>();
                         }
 
                         ObjectType objectType = (ObjectType)userdataObjectType;
@@ -1790,13 +1806,13 @@ namespace ggj
         return { origin.x + dirX * distance, origin.y + dirY * distance };
     }
 
-    void World::spawnFireLines(const raylib::Vector2& origin, const std::vector<float>& angles, float warningSeconds, float burnSeconds)
+    void World::spawnFireLines(const raylib::Vector2& origin, const std::vector<float>& angles, float warningSeconds, float burnSeconds, float igniteSpeed)
     {
         if (!isEnemyAuthority())
             return;
 
         for (const float angle : angles)
-            m_pendingFireLineSpawns.push_back(FireLineSpawnEvent { origin, fireLineEnd(origin, angle), warningSeconds, burnSeconds });
+            m_pendingFireLineSpawns.push_back(FireLineSpawnEvent { origin, fireLineEnd(origin, angle), warningSeconds, burnSeconds, igniteSpeed });
     }
 
     void World::spawnCrystalFan(const raylib::Vector2& origin, float aimAngle, int32_t count, float spreadDegrees, float speed)
@@ -2284,8 +2300,7 @@ namespace ggj
                 PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::MageBossEnemy>(
                     m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
                     generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, this, m_tintShader,
-                    MageBossConfig { generatorData.iceCircleMinCount, generatorData.iceCircleMaxCount, generatorData.iceCircleRadius, generatorData.freezeSeconds,
-                                     generatorData.fireBurnTime, generatorData.crystalSpeed });
+                    generatorData.mageBoss.sanitized());
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {

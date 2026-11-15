@@ -47,13 +47,13 @@ namespace ggj
         return std::sqrt(dx * dx + dy * dy);
     }
 
-    float FireLine::IgnitedFraction(float burnElapsed, float length)
+    float FireLine::IgnitedFraction(float burnElapsed, float length, float speed)
     {
         if (burnElapsed <= 0.f)
             return 0.f;
         if (length <= 0.f)
             return 1.f;
-        return std::clamp(burnElapsed * IGNITE_SPEED / length, 0.f, 1.f);
+        return std::clamp(burnElapsed * speed / length, 0.f, 1.f);
     }
 
     FireLine::FireLine(b2Body* body, const UserData& userData, const FireLineSpawnEvent& spawn, World* world)
@@ -90,7 +90,7 @@ namespace ggj
         if (isBurning() && !m_hasHitLocalPlayer && m_world != nullptr)
         {
             // Only the part the flames have reached so far burns, so running ahead of the front is safe.
-            const float reach = IgnitedFraction(m_elapsed - m_spawn.warningSeconds, length());
+            const float reach = IgnitedFraction(m_elapsed - m_spawn.warningSeconds, length(), m_spawn.igniteSpeed);
             const raylib::Vector2 front { m_spawn.origin.x + (m_spawn.end.x - m_spawn.origin.x) * reach, m_spawn.origin.y + (m_spawn.end.y - m_spawn.origin.y) * reach };
             // Every peer runs its own copy and only hurts its own player, like bombs do.
             if (m_world->damageLocalPlayerAlongSegment(m_spawn.origin, front, WIDTH / 2.f))
@@ -126,7 +126,7 @@ namespace ggj
         }
 
         const float burnElapsed = m_elapsed - m_spawn.warningSeconds;
-        const float reach = IgnitedFraction(burnElapsed, lineLength);
+        const float reach = IgnitedFraction(burnElapsed, lineLength, m_spawn.igniteSpeed);
         const float burnEnd = m_spawn.burnSeconds;
         // The fire dies down over its last moments, and again at the end of its life.
         const float intensity = burnElapsed < burnEnd ? 1.f : std::clamp(1.f - (burnElapsed - burnEnd) / FADE_DURATION, 0.f, 1.f);
