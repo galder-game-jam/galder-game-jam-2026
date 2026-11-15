@@ -28,29 +28,29 @@ namespace ggj
             case 1: // Forest level #1
                 track = MusicName::Forest1;
                 break;
-            case 2: // Dungeon level #1
-                track = MusicName::Dungeon1;
-                break;
-            case 3: // Claude Boss level
-                track = MusicName::BossBattle1;
-                break;
-            case 4: // Dungeon level #2
-                track = MusicName::Dungeon2;
-                break;
-            case 5: // Dungeon level #3
-                track = MusicName::Dungeon2;
-                break;
-            case 6: // Forest level #2
-                track = MusicName::Forest2;
-                break;
-            case 7: // Treant Boss level
+            case 2: // Treant Boss level
                 track = MusicName::BossBattle2;
                 break;
-            case 8: // Butcher Boss level
+            case 3: // Dungeon level #1
+                track = MusicName::Dungeon1;
+                break;
+            case 4: // Claude Boss level
+                track = MusicName::BossBattle1;
+                break;
+            case 5: // Dungeon level #2
+                track = MusicName::Dungeon2;
+                break;
+            case 6: // Butcher Boss level
                 track = MusicName::BossBattle3;
                 break;
-            case 9: // Mage Boss level
+            case 7: // Dungeon level #3
+                track = MusicName::Dungeon2;
+                break;
+            case 8: // Mage Boss level
                 track = MusicName::BossBattle4;
+                break;
+            case 9: // Forest level #2
+                track = MusicName::Forest2;
                 break;
             case 99999: // Final diamond map
                 track = MusicName::Victory1;
