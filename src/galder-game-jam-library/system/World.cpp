@@ -10,6 +10,9 @@
 #include "../game/enemies/ClaudeEnemy.h"
 #include "../game/enemies/TreantEnemy.h"
 #include "../game/enemies/TreantRoot.h"
+#include "../game/enemies/ButcherEnemy.h"
+#include "../game/enemies/MeatCleaver.h"
+#include "../game/enemies/ThrownSpider.h"
 #include "../game/enemies/Claudling.h"
 #include "../game/enemies/Bomb.h"
 #include "CollisionCategory.hpp"
@@ -192,6 +195,16 @@ namespace ggj
                                 generatorData.rootMinSpikeDelay = value.getValue<float>();
                             else if (key == "root_max_spike_delay")
                                 generatorData.rootMaxSpikeDelay = value.getValue<float>();
+                            else if (key == "cleaver_count")
+                                generatorData.cleaverCount = value.getValue<int>();
+                            else if (key == "enraged_cleaver_count")
+                                generatorData.enragedCleaverCount = value.getValue<int>();
+                            else if (key == "death_cleaver_count")
+                                generatorData.deathCleaverCount = value.getValue<int>();
+                            else if (key == "cleaver_speed")
+                                generatorData.cleaverSpeed = value.getValue<float>();
+                            else if (key == "spider_flight_time")
+                                generatorData.spiderFlightTime = value.getValue<float>();
                         }
 
                         ObjectType objectType = (ObjectType)userdataObjectType;
@@ -637,6 +650,11 @@ namespace ggj
             generateTreant(name, body, generatorData);
             ++m_numberOfEnemies;
         }
+        else if (name == "butcher")
+        {
+            generateButcher(name, body, generatorData);
+            ++m_numberOfEnemies;
+        }
         else
             generateGenericPhysicsObject(name, body, generatorData);
 
@@ -651,8 +669,8 @@ namespace ggj
 
         // Enemies and coins are synced over the network. They are generated in the same order on
         // every peer (same map + generators), so a per-spawn counter yields matching ids everywhere.
-        if (name == "bat" || name == "snake" || name == "spider" || name == "thing" || name == "ghost" || name == "coin"
-            || name == "claude" || name == "claudling" || name == "treant")
+        if (name == "bat" || name == "snake" || name == "spider" || name == "thing" || name == "ghost" || name == "coin" || name == "claude" || name == "claudling" ||
+            name == "treant" || name == "butcher")
             registerNetworkObject(m_userDataManager.getUserData(body));
     }
 
@@ -706,6 +724,26 @@ namespace ggj
         if (found == remotes.end())
             return std::nullopt;
         return found->second.position;
+    }
+
+    std::optional<raylib::Vector2> World::getPlayerCenter(uint32_t playerId) const
+    {
+        if (playerId == getLocalPlayerId())
+        {
+            if (m_player == nullptr)
+                return std::nullopt;
+            return m_player->getVisualCenter();
+        }
+
+        if (m_network == nullptr || !m_network->isActive())
+            return std::nullopt;
+
+        const std::map<uint32_t, RemotePlayer>& remotes = m_network->remotePlayers();
+        const auto found = remotes.find(playerId);
+        if (found == remotes.end())
+            return std::nullopt;
+        // Same formula as Player::getVisualCenter(), so remote players are aimed at like the local one.
+        return raylib::Vector2 { found->second.position.x, found->second.position.y - m_playerSpriteOrigin.y + m_playerSpriteHeight / 2.f };
     }
 
     bool World::isEnemyAuthority() const
@@ -919,6 +957,10 @@ namespace ggj
                 doSpawnBomb(bomb);
             for (const RootSpawnEvent& root : m_network->takeRootSpawns())
                 doSpawnTreantRoot(root);
+            for (const CleaverSpawnEvent& cleaver : m_network->takeCleaverSpawns())
+                doSpawnCleaver(cleaver);
+            for (const SpiderSpawnEvent& spider : m_network->takeSpiderSpawns())
+                doSpawnSpider(spider);
             for (const auto& [id, state] : m_network->enemyStates())
             {
                 auto found = m_networkObjects.find(id);
@@ -1514,16 +1556,64 @@ namespace ggj
         }
     }
 
-    void World::damageLocalPlayerWithin(const raylib::Vector2& center, float radius)
+    bool World::damageLocalPlayerWithin(const raylib::Vector2& center, float radius)
     {
         if (m_player == nullptr)
-            return;
+            return false;
 
         const raylib::Vector2 playerCenter = m_player->getVisualCenter();
         const float dx = playerCenter.x - center.x;
         const float dy = playerCenter.y - center.y;
-        if (dx * dx + dy * dy <= radius * radius)
-            m_player->takeHit();
+        if (dx * dx + dy * dy > radius * radius)
+            return false;
+
+        m_player->takeHit();
+        return true;
+    }
+
+    bool World::stunLocalPlayerWithin(const raylib::Vector2& center, float radius, float seconds)
+    {
+        if (m_player == nullptr)
+            return false;
+
+        const raylib::Vector2 playerCenter = m_player->getVisualCenter();
+        const float dx = playerCenter.x - center.x;
+        const float dy = playerCenter.y - center.y;
+        if (dx * dx + dy * dy > radius * radius)
+            return false;
+
+        m_player->stun(seconds);
+        return true;
+    }
+
+    bool World::isAnyPlayerWithin(const raylib::Vector2& center, float radius) const
+    {
+        const std::vector<raylib::Vector2> centers = getPlayerCenters();
+        return std::any_of(centers.begin(), centers.end(),
+                           [&center, radius](const raylib::Vector2& playerCenter)
+                           {
+                               const float dx = playerCenter.x - center.x;
+                               const float dy = playerCenter.y - center.y;
+                               return dx * dx + dy * dy <= radius * radius;
+                           });
+    }
+
+    void World::spawnCleaverRing(const raylib::Vector2& origin, int32_t count, float startAngle, float speed, float ringRadius)
+    {
+        if (!isEnemyAuthority())
+            return;
+
+        for (const CleaverSpawnEvent& cleaver : MeatCleaver::BuildRing(origin, count, startAngle, speed, ringRadius))
+            m_pendingCleaverSpawns.push_back(cleaver);
+    }
+
+    void World::spawnThrownSpider(const raylib::Vector2& origin, const raylib::Vector2& target, float flightTime)
+    {
+        // Clients get the host's spiders over the network so every peer sees the same one.
+        if (!isEnemyAuthority())
+            return;
+
+        m_pendingSpiderSpawns.push_back(SpiderSpawnEvent { origin, target, flightTime });
     }
 
     void World::flushPendingSpawns()
@@ -1552,6 +1642,22 @@ namespace ggj
                 m_network->publishRootSpawned(root);
         }
         m_pendingRootSpawns.clear();
+
+        for (const CleaverSpawnEvent& cleaver : m_pendingCleaverSpawns)
+        {
+            doSpawnCleaver(cleaver);
+            if (isHosting)
+                m_network->publishCleaverSpawned(cleaver);
+        }
+        m_pendingCleaverSpawns.clear();
+
+        for (const SpiderSpawnEvent& spider : m_pendingSpiderSpawns)
+        {
+            doSpawnSpider(spider);
+            if (isHosting)
+                m_network->publishSpiderSpawned(spider);
+        }
+        m_pendingSpiderSpawns.clear();
     }
 
     void World::spawnTreantRoot(const raylib::Vector2& origin, const raylib::Vector2& target, float flightTime, float spikeDelay)
@@ -1712,6 +1818,42 @@ namespace ggj
         m_userDataManager.addUserData(body, physicsObject);
     }
 
+    void World::doSpawnCleaver(const CleaverSpawnEvent& cleaver)
+    {
+        raylib::Texture* tex = m_textures.get(TextureName::EnemyCleaver);
+        if (tex == nullptr)
+            return;
+
+        b2Body* body = MeatCleaver::CreateBody(m_world, cleaver);
+
+        const UserData userData { ObjectType::Trap, { 0.f, 0.f }, "", "", "cleaver" };
+        PhysicsObject* physicsObject = createObject<MeatCleaver>(body, tex, userData, this);
+        if (physicsObject == nullptr)
+        {
+            m_world.DestroyBody(body);
+            return;
+        }
+        m_userDataManager.addUserData(body, physicsObject);
+    }
+
+    void World::doSpawnSpider(const SpiderSpawnEvent& spider)
+    {
+        raylib::Texture* tex = m_textures.get(TextureName::EnemySpiderWalk);
+        if (tex == nullptr)
+            return;
+
+        b2Body* body = ThrownSpider::CreateBody(m_world, spider);
+
+        const UserData userData { ObjectType::Trap, { 0.f, 0.f }, "", "", "thrown_spider" };
+        PhysicsObject* physicsObject = createObject<ThrownSpider>(body, tex, userData, spider.flightTime, this);
+        if (physicsObject == nullptr)
+        {
+            m_world.DestroyBody(body);
+            return;
+        }
+        m_userDataManager.addUserData(body, physicsObject);
+    }
+
     uint32_t World::doSpawnClaudling(const PendingClaudlingSpawn& spawn)
     {
         const raylib::Vector2& position = spawn.position;
@@ -1818,6 +1960,38 @@ namespace ggj
                 {
                     m_boss         = physicsObject;
                     m_bossName     = generatorData.bossName;
+                    m_bossMaxLives = generatorData.lives;
+                }
+            }
+        }
+    }
+
+    void World::generateButcher(const std::string& name, b2Body* body, const ObjectGeneratorData& generatorData)
+    {
+        TextureName id = m_mapper.getTextureNameByString(generatorData.sprite);
+        if (id != TextureName::None)
+        {
+            raylib::Texture* tex = m_textures.get(id);
+            if (tex != nullptr)
+            {
+                // The butcher sprite is a single 64x64 frame, regardless of the object's physics size.
+                const raylib::Rectangle r { 0.f, 0.f, 64.f, 64.f };
+
+                // sprite_size_x/y is the size the frame is scaled up to when drawn.
+                raylib::Vector2 spriteSize = raylib::Vector2(r.width, r.height);
+                if (generatorData.spriteSize.x != 0 && generatorData.spriteSize.y != 0)
+                    spriteSize = raylib::Vector2(generatorData.spriteSize.x, generatorData.spriteSize.y);
+
+                PhysicsObject* physicsObject = m_layers[generatorData.layerIndex].createGameObject<ggj::ButcherEnemy>(
+                    m_animationManager, m_mapper, m_soundManager, body, raylib::Vector2((float)generatorData.size.x, (float)generatorData.size.y), spriteSize, r, tex,
+                    generatorData.userData, generatorData.lives, generatorData.followSpeed, generatorData.knockback, this, m_tintShader,
+                    ButcherConfig { generatorData.cleaverCount, generatorData.enragedCleaverCount, generatorData.deathCleaverCount, generatorData.cleaverSpeed,
+                                    generatorData.spiderFlightTime });
+                m_userDataManager.addUserData(body, physicsObject);
+                if (generatorData.isBoss && physicsObject != nullptr)
+                {
+                    m_boss = physicsObject;
+                    m_bossName = generatorData.bossName;
                     m_bossMaxLives = generatorData.lives;
                 }
             }

@@ -6,6 +6,7 @@
 #include "Player2.h"
 #include "../system/World.h"
 #include "projectiles/MageBall.hpp"
+#include "../graphics/StunStars.hpp"
 
 namespace ggj
 {
@@ -19,6 +20,11 @@ namespace ggj
             PhysicsSprite::draw();
         if (m_world != nullptr)
             m_world->endPlayerPalette();
+        if (isStunned())
+        {
+            const raylib::Vector2 center = getVisualCenter();
+            DrawStunStars({ center.x, center.y - STUN_STARS_HEIGHT }, static_cast<float>(GetTime()));
+        }
     }
 
     void Player2::update(float timeDelta)
@@ -28,6 +34,9 @@ namespace ggj
 
         if (m_damageCooldown > 0.f)
             m_damageCooldown = std::max(0.f, m_damageCooldown - timeDelta);
+        if (m_stunTimer > 0.f)
+            m_stunTimer = std::max(0.f, m_stunTimer - timeDelta);
+        m_tint = isStunned() ? STUN_TINT : WHITE;
 
         // The cap grows with level, so clamp every frame (and refill gradually, never instantly, on level-up).
         const TalentEffects& talentFx = m_world->getPlayerTalentEffects(m_playerIndex);
@@ -94,6 +103,7 @@ namespace ggj
                 m_isDead = false;
                 m_world->resetPlayerLives(m_playerIndex);
                 m_damageCooldown = 0.f;
+                m_stunTimer = 0.f;
                 m_mana = getMaxMana();
                 m_body->SetEnabled(true);
                 m_soundManager.playSound(SoundName::PlayerRespawn);
@@ -104,6 +114,14 @@ namespace ggj
         if (m_inDialog)
         {
             m_velocity = raylib::Vector2 { 0, 0 };
+            return;
+        }
+
+        // Stunned: frozen in place, and no talking or casting either.
+        if (m_stunTimer > 0.f)
+        {
+            m_velocity = raylib::Vector2 { 0.f, 0.f };
+            setPlayerState(PlayerState::Idle);
             return;
         }
 
@@ -247,6 +265,18 @@ namespace ggj
             m_soundManager.playSound(SoundName::PlayerDeath);
             m_isDead = true;
         }
+    }
+
+    void Player2::stun(float seconds)
+    {
+        if (m_isDead || m_stunTimer > 0.f || seconds <= 0.f)
+            return;
+
+        m_stunTimer = seconds;
+        // A cast in progress is cut short so the wizard is not still "attacking" the moment the stun ends.
+        m_isAttacking = false;
+        m_attackCounter = 0;
+        m_soundManager.playSound(SoundName::PlayerHurt);
     }
 
     void Player2::beginContact(PhysicsObject* a, PhysicsObject* b, b2Contact* contact)

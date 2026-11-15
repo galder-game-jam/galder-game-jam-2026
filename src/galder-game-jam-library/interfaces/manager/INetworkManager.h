@@ -17,6 +17,8 @@
 #include "../../data/EnemyDamageEvent.hpp"
 #include "../../data/BombSpawnEvent.hpp"
 #include "../../data/RootSpawnEvent.hpp"
+#include "../../data/CleaverSpawnEvent.hpp"
+#include "../../data/SpiderSpawnEvent.hpp"
 #include "../../data/ChatEntry.hpp"
 #include "../../data/DiscoveredServer.hpp"
 #include "../../../gamedev-base/enums/ConnectionStatus.hpp"
@@ -173,6 +175,32 @@ namespace ggj
          * @return Root spawns in arrival order
          */
         [[nodiscard]] virtual std::vector<RootSpawnEvent> takeRootSpawns() = 0;
+
+        /*!
+         * Server: tells every client that the butcher threw a cleaver. No-op when not hosting.
+         *
+         * @param cleaver Where it starts and how fast it flies
+         */
+        virtual void publishCleaverSpawned(const CleaverSpawnEvent& cleaver) = 0;
+        /*!
+         * Client: drains the cleavers the host threw since the last call.
+         *
+         * @return Cleaver spawns in arrival order
+         */
+        [[nodiscard]] virtual std::vector<CleaverSpawnEvent> takeCleaverSpawns() = 0;
+
+        /*!
+         * Server: tells every client that the butcher threw a spider. No-op when not hosting.
+         *
+         * @param spider Where it starts, where it lands and how long the flight takes
+         */
+        virtual void publishSpiderSpawned(const SpiderSpawnEvent& spider) = 0;
+        /*!
+         * Client: drains the spiders the host threw since the last call.
+         *
+         * @return Spider spawns in arrival order
+         */
+        [[nodiscard]] virtual std::vector<SpiderSpawnEvent> takeSpiderSpawns() = 0;
         /*! Feeds the local player's authoritative stats (lives, score, kills, level, resources) for outbound sync. */
         virtual void setLocalPlayerStats(const NetworkPlayerStats& stats) = 0;
         /*!

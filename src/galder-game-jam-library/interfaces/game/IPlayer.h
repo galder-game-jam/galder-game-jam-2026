@@ -71,6 +71,17 @@ namespace ggj
              * unless the post-hit damage cooldown is still running or the player is already dead.
              */
             virtual void takeHit() = 0;
+
+            /*!
+             * Stuns the player: they cannot move or attack for a while. Does nothing to a dead or
+             * an already stunned player, so stuns never chain into a permanent lock.
+             *
+             * @param seconds How long the stun lasts
+             */
+            virtual void stun(float seconds) = 0;
+
+            /*! @return True while the player is stunned. */
+            [[nodiscard]] virtual bool isStunned() const = 0;
     };
 } // namespace ggj
 

@@ -13,6 +13,7 @@
 #include "../../enums/SoundName.h"
 #include "../../interfaces/graphics/ITintShader.h"
 #include "../../data/TreantRootConfig.hpp"
+#include "ObstacleSteering.h"
 
 namespace ggj
 {
@@ -95,26 +96,6 @@ namespace ggj
         void die();
         void faceTowards(const raylib::Vector2& direction);
 
-        /*!
-         * Whether the treant's body would run into something solid when moving along a direction. Casts
-         * three parallel rays (centre and both flanks) so the treant's width is accounted for, not just
-         * its centre line.
-         *
-         * @param direction Unit vector in world space
-         * @return True when a non-sensor static fixture (a tree, a wall) lies within the lookahead distance
-         */
-        [[nodiscard]] bool isPathBlocked(const raylib::Vector2& direction) const;
-
-        /*!
-         * Bends a desired heading around static obstacles. Returns it untouched when the way is clear,
-         * otherwise the closest free heading, preferring the side it last went around so it does not
-         * dither in front of a tree.
-         *
-         * @param desired Unit vector towards where the treant wants to go
-         * @return Unit vector to walk along
-         */
-        [[nodiscard]] raylib::Vector2 steerAroundObstacles(const raylib::Vector2& desired);
-
         /*! Uniform random float in [min, max]. */
         [[nodiscard]] static float randomRange(float min, float max);
 
@@ -185,7 +166,7 @@ namespace ggj
         int32_t m_chargesLeft { 0 };             ///< Charges still to perform before returning to Idle.
         raylib::Vector2 m_chargeDirection { 0.f, 0.f };
         float m_enrageTint { 0.f }; ///< 0..1, fades in once enraged so the purple does not pop in.
-        float m_avoidSide { 1.f };  ///< +1/-1: which side of an obstacle the treant is currently going around.
+        ObstacleSteering m_steering;
 
         // Invulnerability + flash
         float m_invulTimer { 0.f };
@@ -216,8 +197,6 @@ namespace ggj
         static constexpr float ROOT_MIN_SPACING = 64.f; ///< Pixels between roots; a bit more than a root's diameter.
         static constexpr int32_t ROOT_PLACEMENT_ATTEMPTS = 12;
         static constexpr float ROOT_AIMED_SCATTER = 20.f;    ///< The first root lands almost on the player.
-        static constexpr float OBSTACLE_LOOKAHEAD = 2.5f;    ///< Metres past the treant's edge to scan for obstacles.
-        static constexpr float OBSTACLE_FLANK_FACTOR = 0.9f; ///< Flank rays sit this fraction of the radius off-centre.
         static constexpr float WINDUP_DURATION = 0.9f;
         static constexpr float ENRAGED_WINDUP_DURATION = 0.55f;
         static constexpr float CHARGE_DURATION = 0.8f;

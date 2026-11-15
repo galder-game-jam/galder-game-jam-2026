@@ -65,8 +65,8 @@ namespace ggj
         float followSpeed { 0.f }; ///< ClaudlingSpawned: chase speed.
         float knockback { 0.f };   ///< ClaudlingSpawned: knockback applied to players on contact.
         float fuseTime { 0.f };    ///< BombSpawned: seconds until the bomb explodes.
-        raylib::Vector2 target {}; ///< RootSpawned: where the root lands (position holds where it was thrown from).
-        float flightTime { 0.f };  ///< RootSpawned: seconds the root spends in the air.
+        raylib::Vector2 target {}; ///< RootSpawned / SpiderSpawned: where it lands (position holds where it was thrown from).
+        float flightTime { 0.f };  ///< RootSpawned / SpiderSpawned: seconds it spends in the air.
         float spikeDelay { 0.f };  ///< RootSpawned: seconds between landing and spiking.
 
         int32_t stageIndex { 0 }; ///< JoinAccept / StageChanged: the host's stage. PortalEntered: stage of that portal.

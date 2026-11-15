@@ -165,6 +165,8 @@ namespace ggj
         m_claudlingSpawns.clear();
         m_bombSpawns.clear();
         m_rootSpawns.clear();
+        m_cleaverSpawns.clear();
+        m_spiderSpawns.clear();
         m_spawnedClaudlings.clear();
         m_projectileEvents.clear();
         m_isPortalEntered = false;
@@ -549,6 +551,14 @@ namespace ggj
                     if (m_rootSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
                         m_rootSpawns.push_back(RootSpawnEvent { message.position, message.target, message.flightTime, message.spikeDelay });
                     break;
+                case NetMessageType::CleaverSpawned:
+                    if (m_cleaverSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
+                        m_cleaverSpawns.push_back(CleaverSpawnEvent { message.position, message.velocity });
+                    break;
+                case NetMessageType::SpiderSpawned:
+                    if (m_spiderSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
+                        m_spiderSpawns.push_back(SpiderSpawnEvent { message.position, message.target, message.flightTime });
+                    break;
                 case NetMessageType::ClaudlingSpawned:
                     if (m_claudlingSpawns.size() < MAX_QUEUED_WORLD_EVENTS)
                         m_claudlingSpawns.push_back(ClaudlingSpawnEvent { message.objectId, message.targetPlayerId, message.position, message.followSpeed, message.knockback });
@@ -835,6 +845,47 @@ namespace ggj
         std::vector<RootSpawnEvent> roots;
         roots.swap(m_rootSpawns);
         return roots;
+    }
+
+    void NetworkManager::publishCleaverSpawned(const CleaverSpawnEvent& cleaver)
+    {
+        if (m_role != NetworkRole::Server || !m_server)
+            return;
+
+        // Not kept for late joiners: a cleaver is gone within a few seconds.
+        ServerMessage message {};
+        message.type = NetMessageType::CleaverSpawned;
+        message.position = cleaver.position;
+        message.velocity = cleaver.velocity;
+        m_server->broadcast(message);
+    }
+
+    std::vector<CleaverSpawnEvent> NetworkManager::takeCleaverSpawns()
+    {
+        std::vector<CleaverSpawnEvent> cleavers;
+        cleavers.swap(m_cleaverSpawns);
+        return cleavers;
+    }
+
+    void NetworkManager::publishSpiderSpawned(const SpiderSpawnEvent& spider)
+    {
+        if (m_role != NetworkRole::Server || !m_server)
+            return;
+
+        // Not kept for late joiners: a spider is gone within a couple of seconds.
+        ServerMessage message {};
+        message.type = NetMessageType::SpiderSpawned;
+        message.position = spider.origin;
+        message.target = spider.target;
+        message.flightTime = spider.flightTime;
+        m_server->broadcast(message);
+    }
+
+    std::vector<SpiderSpawnEvent> NetworkManager::takeSpiderSpawns()
+    {
+        std::vector<SpiderSpawnEvent> spiders;
+        spiders.swap(m_spiderSpawns);
+        return spiders;
     }
 
     void NetworkManager::sendWorldStateTo(HSteamNetConnection connection)

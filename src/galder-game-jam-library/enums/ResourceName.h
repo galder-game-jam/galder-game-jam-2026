@@ -118,6 +118,7 @@ namespace ggj
         GraphicsEnemyClaudling = 351,
         GraphicsEnemyBomb = 352,
         GraphicsEnemyBombExplosion = 353,
+        GraphicsEnemyCleaver = 354,
 
         FontDroidSans = 400,
         FontDroidSansBold = 401,

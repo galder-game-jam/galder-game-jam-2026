@@ -19,6 +19,10 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         game/enemies/Claudling.cpp game/enemies/Claudling.h
         game/enemies/Bomb.cpp game/enemies/Bomb.h
         game/enemies/TreantEnemy.cpp game/enemies/TreantEnemy.h
+        game/enemies/ObstacleSteering.cpp game/enemies/ObstacleSteering.h
+        game/enemies/ButcherEnemy.cpp game/enemies/ButcherEnemy.h
+        game/enemies/MeatCleaver.cpp game/enemies/MeatCleaver.h
+        game/enemies/ThrownSpider.cpp game/enemies/ThrownSpider.h
         game/interactables/PowerUp.cpp game/interactables/PowerUp.h game/Hitbox.hpp
         data/PlayerNetworkData.hpp
         data/ServerNetworkData.hpp
@@ -36,6 +40,10 @@ add_library(galder-game-jam-library GalderGameJamLibrary.h managers/GameManager.
         data/BombSpawnEvent.hpp
         data/RootSpawnEvent.hpp
         data/ClaudeBombConfig.hpp
+        data/ButcherConfig.hpp
+        data/CleaverSpawnEvent.hpp
+        data/SpiderSpawnEvent.hpp
+        graphics/StunStars.hpp
         interfaces/game/IPlayerLocator.h
         enums/NetMessageType.h
         enums/NetworkRole.h
