@@ -463,7 +463,7 @@
                         {
                          "name":"follow_speed",
                          "type":"float",
-                         "value":4
+                         "value":5
                         }, 
                         {
                          "name":"freeze_seconds",

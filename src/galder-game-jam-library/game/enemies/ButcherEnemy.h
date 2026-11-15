@@ -17,7 +17,7 @@ namespace ggj
 
     /*!
      * The phases of the butcher's attack cycle: lumber towards a player, then wind up either a ring
-     * of thrown cleavers (flashing red) or a spider hurled at one random player (green). Synced to
+     * of thrown cleavers (flashing red) or a spider hurled at every player at once (green). Synced to
      * clients as a uint8_t, so keep BUTCHER_STATE_COUNT in step.
      */
     enum class ButcherState : uint8_t
@@ -25,7 +25,7 @@ namespace ggj
         Idle,          ///< Standing still between cycles.
         Walk,          ///< Lumbering towards a player.
         CleaverWindup, ///< Rearing back, flashing red; throws a ring of cleavers when this ends.
-        SpiderWindup,  ///< Hunched and glowing green, staring down his victim; throws the spider when this ends.
+        SpiderWindup,  ///< Hunched and glowing green, staring down his chase target; throws a spider at every player when this ends.
         Recover,       ///< Follow-through right after a throw, before the next volley (enraged) or a pause.
         Dying          ///< Death throes: invulnerable and convulsing; ends by throwing cleavers in every direction.
     };
@@ -34,7 +34,7 @@ namespace ggj
 
     /*!
      * Dungeon boss. Slow on its own, but fills the arena with spinning cleavers that only cover can
-     * stop, and lobs a spider at a random player that stuns whoever it hits. Below half health it
+     * stop, and lobs a spider at every player at once, each stunning whoever it hits. Below half health it
      * enrages: it throws more cleavers, chains a second ring in between the first and winds up faster.
      *
      * On the host (or offline) it rolls its own attacks. Clients never do: they mirror the host's
@@ -123,12 +123,12 @@ namespace ggj
 
         /*! Host: throws a ring of cleavers in every direction. @param startAngle Direction of the first one (radians). */
         void throwCleavers(float startAngle);
-        /*! Host: throws a spider at the player picked when the windup began. */
+        /*! Host: throws one spider at each player, aimed at where they stand now. */
         void throwSpider();
         /*! Finishes the death throes: throws cleavers in every direction, credits the kill and removes the butcher. */
         void die();
 
-        /*! Picks a random player to chase and, for the spider, to throw it at. Only the host decides; clients receive the choice through applyNetworkState(). */
+        /*! Picks a random player to chase. Only the host decides; clients receive the choice through applyNetworkState(). */
         void pickTarget();
         /*! Whether this peer decides the butcher's attacks: offline or hosting. */
         [[nodiscard]] bool isAuthority() const;
@@ -156,7 +156,7 @@ namespace ggj
         ITintShader& m_tintShader;
         ButcherConfig m_config;
         ObstacleSteering m_steering;
-        std::optional<uint32_t> m_targetPlayerId {}; ///< Network player id being chased and, for the spider, targeted; empty until picked.
+        std::optional<uint32_t> m_targetPlayerId {}; ///< Network player id being chased; empty until picked.
         std::optional<uint32_t> m_remoteKillerId {}; ///< Client that landed the killing blow, when it was remote.
         PhysicsObject* m_killer { nullptr };         ///< Whoever landed the killing blow; credited once the death throes end.
 

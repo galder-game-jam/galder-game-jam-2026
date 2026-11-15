@@ -42,6 +42,7 @@ namespace ggj
         int bombSpawnCount { 5 };
 
         // The treant's root throws (see TreantRootConfig).
+        float chargeSpeed { 0.f }; ///< charge_speed; zero or less keeps the treant's default of 3x follow_speed.
         int rootCount { 3 };
         int enragedRootCount { 5 };
         int deathRootCount { 60 };

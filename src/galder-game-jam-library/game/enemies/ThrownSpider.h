@@ -11,9 +11,9 @@ namespace ggj
 
     /*!
      * A spider the butcher hurls at one player. It tumbles through the air towards where the player
-     * stood when it was thrown. If it meets a player on the way, that player is stunned; either
-     * way it then splats into a pile of blood, whether on the player, on the floor where it
-     * landed or against the first wall or obstacle in its path (so cover works against it too).
+     * stood when it was thrown. It flies over walls and obstacles, so cover does not stop it. If it
+     * meets a player on the way, that player is stunned; either way it then splats into a pile of
+     * blood, whether on the player or on the floor where it landed.
      * Not an enemy: it cannot be hit and touching it does nothing, only the splat stuns.
      */
     class ThrownSpider : public PhysicsSprite
@@ -24,7 +24,7 @@ namespace ggj
         static constexpr int32_t FRAME_COUNT = 4;
         static constexpr float FRAME_DURATION = 0.07f;     ///< Seconds per frame; the legs flail while it flies.
         static constexpr float DRAW_SCALE = 2.f;           ///< Integer scale, so the pixel art stays crisp.
-        static constexpr float BODY_RADIUS = 7.f;          ///< Pixels; the part of the spider that splats against walls.
+        static constexpr float BODY_RADIUS = 7.f;          ///< Pixels; the size of its (non-colliding) sensor body.
         static constexpr float HIT_RADIUS = 18.f;          ///< Pixels from the spider that count as hitting a player.
         static constexpr float ARC_HEIGHT = 36.f;          ///< Pixels the spider rises above the ground at the top of its arc.
         static constexpr float TUMBLE_TURNS = 2.f;         ///< Full rotations over the whole flight.
@@ -32,8 +32,8 @@ namespace ggj
         static constexpr float SPLAT_BLOOD_STRENGTH = 3.f; ///< Burst strength of the splat; an ordinary hit is 1, a killing blow 2.
 
         /*!
-         * Creates the physics body for a thrown spider: a sensor circle that only notices terrain
-         * (see CollisionCategory), launched in a straight line so it lands on the target exactly
+         * Creates the physics body for a thrown spider: a sensor circle that collides with nothing
+         * (it flies over terrain; see CollisionCategory), launched in a straight line so it lands on the target exactly
          * when the flight ends.
          *
          * Every peer builds its own spider from the same SpiderSpawnEvent against the same static

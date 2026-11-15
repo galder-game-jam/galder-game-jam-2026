@@ -189,6 +189,8 @@ namespace ggj
                                 generatorData.bombSpawnIdleStateTime = value.getValue<float>();
                             else if (key == "bomb_spawn_count")
                                 generatorData.bombSpawnCount = value.getValue<int>();
+                            else if (key == "charge_speed")
+                                generatorData.chargeSpeed = value.getValue<float>();
                             else if (key == "root_count")
                                 generatorData.rootCount = value.getValue<int>();
                             else if (key == "enraged_root_count")
@@ -2237,7 +2239,8 @@ namespace ggj
                     spriteSize, r, tex, generatorData.userData, generatorData.lives,
                     generatorData.followSpeed, generatorData.knockback, m_player, this, m_tintShader,
                     TreantRootConfig { generatorData.rootCount, generatorData.enragedRootCount, generatorData.deathRootCount,
-                                       SpikeDelayRange { generatorData.rootMinSpikeDelay, generatorData.rootMaxSpikeDelay } });
+                                       SpikeDelayRange { generatorData.rootMinSpikeDelay, generatorData.rootMaxSpikeDelay } },
+                    generatorData.chargeSpeed);
                 m_userDataManager.addUserData(body, physicsObject);
                 if (generatorData.isBoss && physicsObject != nullptr)
                 {
